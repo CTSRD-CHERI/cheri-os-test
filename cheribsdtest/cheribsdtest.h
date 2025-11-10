@@ -165,7 +165,9 @@ struct cheri_test {
 	u_int		 ct_flags;
 	int		 ct_signum;
 	int		 ct_si_code;
+#ifdef __FreeBSD__
 	int		 ct_si_trapno;
+#endif
 	const char	*ct_stdin_string;
 	const char	*ct_stdout_string;
 	const char	*ct_xfail_reason;

@@ -171,7 +171,10 @@ signal_handler(int signum, siginfo_t *info, void *vuap __unused)
 {
 	ccsp->ccs_signum = signum;
 	ccsp->ccs_si_code = info->si_code;
+#ifdef __FreeBSD__
+	// Musl libc's siginfo_t does not have this field
 	ccsp->ccs_si_trapno = info->si_trapno;
+#endif
 	ccsp->ccs_si_addr = info->si_addr;
 
 	/*
@@ -468,6 +471,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 		    ctp->ct_si_code, ccsp->ccs_si_code);
 		goto fail;
 	}
+#ifdef __FreeBSD__
 	if ((ctp->ct_flags & CT_FLAG_SI_TRAPNO) &&
 	    ccsp->ccs_si_trapno != ctp->ct_si_trapno) {
 		snprintf(reason, sizeof(reason),
@@ -475,6 +479,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 		    ccsp->ccs_si_trapno);
 		goto fail;
 	}
+#endif
 	if ((ctp->ct_flags & CT_FLAG_SI_ADDR) &&
 	    !cheri_ptr_equal_exact(ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr)) {
 		snprintf(reason, sizeof(reason), "Expected si_addr %#p, got %#p",
