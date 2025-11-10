@@ -921,7 +921,13 @@ main(int argc, char *argv[])
 	 */
 	stack.ss_size = MAX(getpagesize(), SIGSTKSZ);
 	stack.ss_sp = mmap(NULL, stack.ss_size, PROT_READ | PROT_WRITE,
-	    MAP_ANON, -1, 0);
+#ifdef __FreeBSD__ \
+		MAP_ANON, -1, 0);
+#elifdef __linux__
+		MAP_ANON | MAP_PRIVATE, -1, 0);
+#elif
+#error "Unsupported OS"
+#endif
 	if (stack.ss_sp == MAP_FAILED)
 		err(EX_OSERR, "mmap");
 	stack.ss_flags = 0;
