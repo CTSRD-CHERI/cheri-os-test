@@ -835,6 +835,8 @@ main(int argc, char *argv[])
 		case 'l':
 			list = 1;
 			break;
+//TODO: This needs to be implemented
+#ifdef __FreeBSD__
 		case 'Q':
 			qtrace_user_mode_only = 1;
 			/* FALLTHROUGH */
@@ -850,6 +852,11 @@ main(int argc, char *argv[])
 				    "hw.qemu_trace_perthread=1", opt);
 			qtrace = 1;
 			break;
+#elifdef __linux__
+		case 'Q':
+		case 'q':
+			err(EINVAL, "-Q and -q are not yet implemented for Linux");
+#endif
 		case 's':
 			sleep_after_test = 1;
 			break;
