@@ -816,8 +816,10 @@ main(int argc, char *argv[])
 	int glob = 0;
 	stack_t stack;
 	int i;
+#ifdef __FreeBSD__
 	uint qemu_trace_perthread;
 	size_t len;
+#endif
 	const char *sep;
 	struct cheri_test **ctp, *ct;
 
