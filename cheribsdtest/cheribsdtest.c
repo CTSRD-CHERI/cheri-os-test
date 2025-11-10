@@ -740,7 +740,13 @@ cheribsdtest_spawn_child(enum spawn_child_mode mode)
 		pid = vfork();
 		break;
 	default:
+#ifdef __FreeBSD__
 		errno = EDOOFUS;
+#elif __linux__
+		errno = EINVAL;
+#else
+#error "Unsupported OS"
+#endif
 		pid = -1;
 		break;
 	}
