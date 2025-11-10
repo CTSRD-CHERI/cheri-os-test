@@ -731,9 +731,11 @@ cheribsdtest_spawn_child(enum spawn_child_mode mode)
 	case SC_MODE_FORK:
 		pid = fork();
 		break;
+#ifdef __FreeBSD__
 	case SC_MODE_RFORK:
 		pid = rfork(RFPROC);
 		break;
+#endif
 	case SC_MODE_VFORK:
 		pid = vfork();
 		break;

@@ -193,7 +193,9 @@ enum spawn_child_mode {
 	SC_MODE_POSIX_SPAWN,
 	SC_MODE_FORK,
 	SC_MODE_VFORK,
+#ifdef __FreeBSD__
 	SC_MODE_RFORK,
+#endif
 };
 
 /*
