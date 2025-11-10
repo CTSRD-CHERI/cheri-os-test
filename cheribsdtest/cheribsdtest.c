@@ -337,14 +337,18 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 		sigemptyset(&sa.sa_mask);
 		if (sigaction(SIGALRM, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGALRM)");
+#ifdef __FreeBSD__
 		if (sigaction(SIGPROT, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGPROT)");
+#endif
 		if (sigaction(SIGSEGV, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGSEGV)");
 		if (sigaction(SIGBUS, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGBUS");
+#ifdef __FreeBSD__
 		if (sigaction(SIGEMT, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGEMT)");
+#endif
 		if (sigaction(SIGTRAP, &sa, NULL) < 0)
 			err(EX_OSERR, "sigaction(SIGEMT)");
 
