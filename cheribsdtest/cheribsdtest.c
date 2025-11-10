@@ -676,6 +676,11 @@ mk_exec_args(const struct cheri_test *ctp)
 	if (exec_args == NULL)
 		err(EX_OSERR, "calloc");
 
+#ifdef __linux__
+	error = readlink("/proc/self/exe", execpath, PATH_MAX);
+	if (error != 0)
+		errx(EX_OSERR, "readlink: %s", strerror(error));
+#elifdef __FreeBSD__
 	/*
 	 * XXX: This won't work for direct exec as an rtld argument.
 	 * (e.g., /libexec/ld-elf.so.1 /bin/cheribsdtest-purecap-dynamic)
@@ -686,6 +691,9 @@ mk_exec_args(const struct cheri_test *ctp)
 	error = elf_aux_info(AT_EXECPATH, execpath, PATH_MAX);
 	if (error != 0)
 		errx(EX_OSERR, "elf_aux_info: %s", strerror(error));
+#else
+#error "Unsupported OS"
+#endif
 	exec_args[argc++] = execpath;
 	exec_args[argc++] = "-E";
 	if (coredump_enabled)
