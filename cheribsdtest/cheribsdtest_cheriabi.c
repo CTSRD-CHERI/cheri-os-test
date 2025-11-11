@@ -39,9 +39,18 @@
 #include <sys/ipc.h>
 #include <sys/mman.h>
 #include <sys/shm.h>
+#ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
+
+#include <cheri/cheri.h>
+#include <cheri/cheric.h>
+
+#ifdef __FreeBSD__
+#include <machine/sysarch.h>
+#endif
 
 #include <err.h>
 #include <errno.h>
@@ -49,6 +58,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __linux__
+#include <signal.h>
+#endif
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>

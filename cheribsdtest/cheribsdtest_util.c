@@ -37,7 +37,9 @@
 
 #include <sys/types.h>
 #include <sys/mman.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 #include <sys/ucontext.h>
 #include <sys/wait.h>

@@ -41,15 +41,23 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 #include <sys/ucontext.h>
 #include <sys/wait.h>
 
+
+#include <cheri/cheri.h>
+#include <cheri/cheric.h>
+
+#ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
 
 #include <machine/sysarch.h>
+#endif
 
 #include <assert.h>
 #include <cheriintrin.h>
@@ -58,7 +66,11 @@
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <inttypes.h>
+#XXX: Is this include need at all here?
+#     Are any non-portable features used in this file?
+#ifdef __FreeBSD__
 #include <malloc_np.h>
+#endif
 #include <signal.h>
 #include <spawn.h>
 #include <stdbool.h>
