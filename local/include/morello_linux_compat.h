@@ -34,5 +34,6 @@
  * SUCH DAMAGE.
  */
 
+#define LIBBSD_NETBSD_VIS 1
 // This was taken from CheriBSD's sys/param.h
 #define	nitems(x)	(sizeof((x)) / sizeof((x)[0]))
