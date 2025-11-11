@@ -133,9 +133,13 @@ cheribsdtest_set_expected_si_addr(void *addr)
 const char *
 skip_need_cheri_revoke(const struct cheri_test *ctp __unused)
 {
+#ifdef __FreeBSD__
 	if (!feature_present("cheri_revoke"))
 		return ("Kernel does not support revocation");
 	return (NULL);
+#elif __linux__
+	return ("Morello Linux and CHERI Linux do not support revocation");
+#endif
 }
 
 const char *
