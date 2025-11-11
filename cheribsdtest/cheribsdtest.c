@@ -30,6 +30,10 @@
  * SUCH DAMAGE.
  */
 
+#ifdef __linux__
+#include <morello_linux_compat.h>
+#endif
+
 #include <sys/cdefs.h>
 
 #if !__has_feature(capabilities)
@@ -66,8 +70,8 @@
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <inttypes.h>
-#XXX: Is this include need at all here?
-#     Are any non-portable features used in this file?
+//#XXX: Is this include need at all here?
+//#     Are any non-portable features used in this file?
 #ifdef __FreeBSD__
 #include <malloc_np.h>
 #endif
@@ -83,6 +87,8 @@
 #include <vis.h>
 
 #include <libxo/xo.h>
+
+
 
 #include "cheribsdtest.h"
 
@@ -106,7 +112,9 @@ static int list;
 static int run_all;
 static int fast_tests_only;
 static int qtrace;
+#ifdef __FreeBSD__
 static int qtrace_user_mode_only;
+#endif
 static int sleep_after_test;
 static int coredump_enabled;
 static int debugger_enabled;
@@ -941,7 +949,7 @@ main(int argc, char *argv[])
 	 */
 	stack.ss_size = MAX(getpagesize(), SIGSTKSZ);
 	stack.ss_sp = mmap(NULL, stack.ss_size, PROT_READ | PROT_WRITE,
-#ifdef __FreeBSD__ \
+#ifdef __FreeBSD__
 		MAP_ANON, -1, 0);
 #elifdef __linux__
 		MAP_ANON | MAP_PRIVATE, -1, 0);

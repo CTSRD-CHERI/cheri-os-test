@@ -43,7 +43,13 @@
 #include <string.h>
 #include <cheriintrin.h>
 
+#ifdef __FreeBSD__
 #include "cheribsdtest_md.h"
+#elif __linux__
+#include "arm64/cheribsdtest_md.h"
+#else
+#error "Unsupported OS"
+#endif
 
 /*
  * Convert a pointer to a null-derived void * with the same address. This is
