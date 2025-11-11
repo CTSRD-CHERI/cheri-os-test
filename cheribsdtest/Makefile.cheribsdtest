@@ -78,7 +78,7 @@ OS = uname -s
 LIBADD+=	procstat util xo z
 .else
 # Linux has not libprocstat
-LIBADD+=	util xo z
+LIBADD+=	util xo bsd
 .endif
 
 #.ifdef CHERIBSD_DYNAMIC_TESTS
