@@ -73,7 +73,8 @@ CFLAGS.cheribsdtest_bounds_subobject.c+=-cheri-bounds=subobject-safe
 
 MAN=
 
-.if ${OPSYS} == "FreeBSD"
+OS = uname -s
+.if ${OS} == "FreeBSD"
 LIBADD+=	procstat util xo z
 .else
 # Linux has not libprocstat

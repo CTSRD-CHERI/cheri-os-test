@@ -17,7 +17,7 @@ SUBDIR+=	purecap \
 #.if ${MACHINE_CPUARCH} == "aarch64" && ${MACHINE_ABI:Mpurecap}
 #SUBDIR+=	mt-c18n
 #.endif
-#.endif
+.endif
 
 #.if (${MACHINE_ABI:Mpurecap} && ${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64CB} == "yes"
 #SUBDIR+=	purecap-benchmark \
