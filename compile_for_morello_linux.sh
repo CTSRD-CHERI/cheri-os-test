@@ -66,4 +66,8 @@ cp $CWD/cheribsd/sys/sys/cdefs.h $CWD/local/include/sys/
 # Linux doesn't have linker_set.h
 cp $CWD/cheribsd/sys/sys/linker_set.h $CWD/local/include/sys/
 
+# Copy armreg.h
+mkdir -p $CWD/local/include/machine/
+cp $CWD/cheribsd/sys/arm64/include/armreg.h $CWD/local/include/machine/
+
 
