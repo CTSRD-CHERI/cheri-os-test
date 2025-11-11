@@ -1,1 +1,1 @@
-.include "${.PARSEDIR}/../Makefile.inc"
+#.include "${.PARSEDIR}/../Makefile.inc"
