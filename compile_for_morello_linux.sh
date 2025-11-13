@@ -31,12 +31,13 @@ source /morello/env/morello-sdk
 source $CWD/source
 
 export CC=clang
+#TODO: Do we need -rtlib=compiler-rt here?
 export CFLAGS+="-march=morello \
                 -mabi=purecap \
                 --target=aarch64-unknown-linux-musl_purecap \
                 --sysroot=/morello/musl/ \
                 -rtlib=compiler-rt \
-                -static"
+                -static "
 export LDFLAGS+="-fuse-ld=lld"
 
 # libm
@@ -92,5 +93,20 @@ cp $CWD/cheribsd/sys/sys/linker_set.h $CWD/local/include/sys/
 # Copy armreg.h
 mkdir -p $CWD/local/include/machine/
 cp $CWD/cheribsd/sys/arm64/include/armreg.h $CWD/local/include/machine/
+
+# Compile CheriBSDtest
+cd cheribsdtest
+# We need -Wno-error=macro-redefined and -Wno-error=typedef-redefinition because Musl libc's
+# alltypes.h doesn't have an include guard
+CFLAGS+="-Wno-error=typedef-redefinition -Wno-error=macro-redefined \
+        -Wno-error=shift-op-parentheses \
+        -Wno-error=bitwise-op-parentheses"
+bmake MACHINE_CPUARCH=aarch64c \
+        MACHINE_ABI=purecap \
+        MACHINE_ARCH=aarch64c \
+        LOCAL_LIBRARIES=bsd \
+        _DP_c= \
+        _DP_pthread=c -C $CWD/cheribsdtest/
+cd ..
 
 
