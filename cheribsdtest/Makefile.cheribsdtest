@@ -4,6 +4,7 @@ SRCS=	cheribsdtest.c
 
 #XXX: Commented out test cases that haven't been ported yet
 SRCS+=	cheribsdtest_bounds_globals.c					\
+    cheribsdtest_util.c \
 	cheribsdtest_bounds_globals_x.c					\
 #	cheribsdtest_bounds_heap.c					\
 	cheribsdtest_bounds_stack.c					\
@@ -26,8 +27,7 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_strfcap.c						\
 	cheribsdtest_string.c						\
 	cheribsdtest_syscall.c						\
-	cheribsdtest_tls.c						\
-	cheribsdtest_util.c						\
+	cheribsdtest_tls.c                          \
 	cheribsdtest_util_vm.c						\
 	cheribsdtest_vm.c						\
 	cheribsdtest_zlib.c
