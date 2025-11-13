@@ -24,36 +24,59 @@ cd bmake
 ./configure >> log
 make -j3 >> log
 make install >> log
+cd ../..
 
 # Libraries that we use need to be purecap
 source /morello/env/morello-sdk
+source $CWD/source
+
+export CC=clang
+export CFLAGS+="-march=morello \
+                -mabi=purecap \
+                --target=aarch64-unknown-linux-musl_purecap \
+                --sysroot=/morello/musl/ \
+                -rtlib=compiler-rt \
+                -static"
+export LDFLAGS+="-fuse-ld=lld"
 
 # libm
 wget https://libbsd.freedesktop.org/releases/libmd-1.1.0.tar.xz >> log
 tar -xf libmd-1.1.0.tar.xz >> log
 mkdir -p libmd-1.1.0/build/
 cd       libmd-1.1.0/build/
-../configure --prefix=$CWD/local/ >> log
+../configure \
+  --host=aarch64-unknown-linux-musl_purecap \
+  --prefix=$CWD/local/ \
+  --exec-prefix=$CWD/local/
 make -j3 >> log
 make install >> log
+cd ../..
 
 # libxo
 wget https://github.com/Juniper/libxo/releases/download/1.7.5/libxo-1.7.5.tar.gz >> log
 tar -xf libxo-1.7.5.tar.gz >> log
 mkdir -p libxo-1.7.5/build/
 cd       libxo-1.7.5/build/
-../configure --prefix=$CWD/local/
+../configure \
+  --host=aarch64-unknown-linux-musl_purecap \
+  --prefix=$CWD/local/ \
+  --exec-prefix=$CWD/local/
 make -j3 >> log
 make install >> log
+cd ../..
 
 # libbsd
 wget https://libbsd.freedesktop.org/releases/libbsd-0.12.2.tar.xz >> log
 tar -xf libbsd-0.12.2.tar.xz >> log
 mkdir -p libbsd-0.12.2/build/
 cd       libbsd-0.12.2/build/
-../configure --prefix=$CWD/local/ >> log
+../configure \
+  --host=aarch64-unknown-linux-musl_purecap \
+  --prefix=$CWD/local/ \
+  --exec-prefix=$CWD/local/
 make -j3 >> log
 make install >> log
+cd ../..
 
 cd $CWD
 
