@@ -1,17 +1,14 @@
 #!/bin/bash
 
 set -e # Exit on failure
-set -x
+set -x # Print the lines of this script as they are executed
 
-# Download dependencies and build them
 CWD=$(pwd)
-mkdir -p ext_packages
 mkdir -p local
 
 # Get CheriBSD
 # We need the CheriBSD .mk files and we take bmake from it
-## FIXME: We seem to have to clone the repository
-## just to get the .mk files.
+## FIXME: We seem to have to clone the repository just to get the .mk files.
 ## Is there a nicer way to do this?
 if [ ! -d "cheribsd" ]; then
   git clone --depth=1 --branch=release/25.03 https://github.com/CTSRD-CHERI/cheribsd.git
@@ -40,8 +37,9 @@ export CFLAGS+="-march=morello \
                 -static "
 export LDFLAGS+="-fuse-ld=lld"
 
+# Download dependencies and build them
 # libm
-wget https://libbsd.freedesktop.org/releases/libmd-1.1.0.tar.xz >> log
+#wget https://libbsd.freedesktop.org/releases/libmd-1.1.0.tar.xz >> log
 tar -xf libmd-1.1.0.tar.xz >> log
 mkdir -p libmd-1.1.0/build/
 cd       libmd-1.1.0/build/
@@ -54,7 +52,7 @@ make install >> log
 cd ../..
 
 # libxo
-wget https://github.com/Juniper/libxo/releases/download/1.7.5/libxo-1.7.5.tar.gz >> log
+#wget https://github.com/Juniper/libxo/releases/download/1.7.5/libxo-1.7.5.tar.gz >> log
 tar -xf libxo-1.7.5.tar.gz >> log
 mkdir -p libxo-1.7.5/build/
 cd       libxo-1.7.5/build/
@@ -67,7 +65,7 @@ make install >> log
 cd ../..
 
 # libbsd
-wget https://libbsd.freedesktop.org/releases/libbsd-0.12.2.tar.xz >> log
+#wget https://libbsd.freedesktop.org/releases/libbsd-0.12.2.tar.xz >> log
 tar -xf libbsd-0.12.2.tar.xz >> log
 mkdir -p libbsd-0.12.2/build/
 cd       libbsd-0.12.2/build/
@@ -79,12 +77,9 @@ make -j3 >> log
 make install >> log
 cd ../..
 
-cd $CWD
-
 # Get missing header files
 # Musl libc doesn't have a cdefs.h and we are depending on CheriBSD's cdefs.h
 mkdir -p $CWD/local/include/sys/
-#wget -P  $CWD/local/include/sys/ https://raw.githubusercontent.com/CTSRD-CHERI/cheribsd/refs/tags/release/25.03/sys/sys/cdefs.h
 cp $CWD/cheribsd/sys/sys/cdefs.h $CWD/local/include/sys/
 
 # Linux doesn't have linker_set.h
@@ -98,9 +93,12 @@ cp $CWD/cheribsd/sys/arm64/include/armreg.h $CWD/local/include/machine/
 cd cheribsdtest
 # We need -Wno-error=macro-redefined and -Wno-error=typedef-redefinition because Musl libc's
 # alltypes.h doesn't have an include guard
+# TODO: Fix the parentheses warnings in the source code
 CFLAGS+="-Wno-error=typedef-redefinition -Wno-error=macro-redefined \
         -Wno-error=shift-op-parentheses \
         -Wno-error=bitwise-op-parentheses"
+
+# TODO: Are "MACHINE_CPUARCH" and "MACHINE_ARCH" needed?
 bmake MACHINE_CPUARCH=aarch64c \
         MACHINE_ABI=purecap \
         MACHINE_ARCH=aarch64c \
