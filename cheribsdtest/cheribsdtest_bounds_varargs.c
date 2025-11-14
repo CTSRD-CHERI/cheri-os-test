@@ -29,14 +29,25 @@
  * SUCH DAMAGE.
  */
 
+
+#if __linux__
+#include <linux/signal.h>
+// This avoids redefinition of sigset_t in musl's alltypes.h
+#define __DEFINED_sigset_t
+#endif
+
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 
+#ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
+#endif
 
 #include <err.h>
 #include <errno.h>
@@ -74,13 +85,20 @@ varargs_test_onearg(const char *fmt, ...)
 
 CHERIBSDTEST(bounds_varargs_vaarg_overflow,
     "check that va_arg() triggers a fault on overrun",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPBOUNDSERR,
+#else
+#error "Unsupported OS"
+#endif
     .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
 {
-
 	varargs_test_onearg("%p", NULL);
 }
 
@@ -97,10 +115,18 @@ CHERIBSDTEST(bounds_varargs_vaarg_overflow,
  */
 CHERIBSDTEST(bounds_varargs_empty_pointer_null,
     "check that empty varargs gives a tag violation on load",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_TAG,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPTAGERR,
+#else
+#error "Unsupported OS"
+#endif
     .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
 {
 
@@ -118,10 +144,18 @@ CHERIBSDTEST(bounds_varargs_empty_pointer_null,
  */
 CHERIBSDTEST(bounds_varargs_printf_load,
     "check that load via printf varargs overflow faults",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPBOUNDSERR,
+#else
+#error "Unsupported OS"
+#endif
     .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
 {
 
@@ -140,10 +174,18 @@ CHERIBSDTEST(bounds_varargs_printf_load,
  */
 CHERIBSDTEST(bounds_varargs_printf_store,
     "check that store via printf varargs overflow faults",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPBOUNDSERR,
+#else
+#error "Unsupported OS"
+#endif
     .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
 {
 
