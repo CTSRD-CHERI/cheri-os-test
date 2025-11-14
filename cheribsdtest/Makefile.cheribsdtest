@@ -31,12 +31,11 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_util_vm.c						\
 	cheribsdtest_vm.c						\
 	cheribsdtest_zlib.c
-#.if ${MACHINE_ABI:Mpurecap}
-#SRCS+=	cheribsdtest_bounds_subobject.c					\
-	cheribsdtest_bounds_varargs.c					\
+.if ${MACHINE_ABI:Mpurecap}
+SRCS+=	cheribsdtest_bounds_subobject.c
+#	cheribsdtest_bounds_varargs.c					\
 	cheribsdtest_malloc.c						\
 	cheribsdtest_sentries.c
-
 
 #.if ${MK_COMPARTMENT_POLICY} != "no"
 #SRCS+=	cheribsdtest_compartments.c

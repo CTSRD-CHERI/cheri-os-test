@@ -35,11 +35,20 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#if __linux__
+// This needs to be included for the definition of SEGV_CAPBOUNDSERR
+#include <linux/signal.h>
+// This define avoids a redefinition of sigset_t in musl's alltypes.h
+#define __DEFINED_sigset_t
+#endif
+
 #include <sys/types.h>
 #include <sys/queue.h>
+#if __FreeBSD__
 #include <sys/signal.h>
 #include <sys/stddef.h>
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 
 #include <err.h>
@@ -219,10 +228,18 @@ volatile char * __capability subobject_ptr_outofbounds;
 
 CHERIBSDTEST(bounds_subobject_struct_chararray2048_overflow,
     "Check that an overflow of a 2048-byte subobject array faults",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE)
+#elif __linux__
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPBOUNDSERR)
+#else
+#error "Unsupported OS"
+#endif
 {
 
 	subobject_ptr_outofbounds = &sc2048_sideeffect.chararray2048[2047];
