@@ -35,7 +35,9 @@
 #endif
 
 #include <sys/types.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 
 #include <err.h>

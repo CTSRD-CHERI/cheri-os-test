@@ -40,8 +40,13 @@
 #endif
 
 #include <sys/types.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
+
+#include <cheri/cheri.h>
+#include <cheri/cheric.h>
 
 #include <err.h>
 #include <errno.h>
