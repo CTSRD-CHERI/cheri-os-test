@@ -14,6 +14,7 @@ if [ ! -d "cheribsd" ]; then
   git clone --depth=1 --branch=release/25.03 https://github.com/CTSRD-CHERI/cheribsd.git
 fi
 
+if false; then
 # bmake
 cp -r $CWD/cheribsd/contrib/bmake/ .
 cd bmake
@@ -22,6 +23,7 @@ cd bmake
 make -j3 >> log
 make install >> log
 cd ../..
+fi
 
 # Libraries that we use need to be purecap
 source /morello/env/morello-sdk
@@ -37,6 +39,7 @@ export CFLAGS+="-march=morello \
                 -static "
 export LDFLAGS+="-fuse-ld=lld"
 
+if false; then
 # Download dependencies and build them
 # libm
 #wget https://libbsd.freedesktop.org/releases/libmd-1.1.0.tar.xz >> log
@@ -76,7 +79,9 @@ cd       libbsd-0.12.2/build/
 make -j3 >> log
 make install >> log
 cd ../..
+fi
 
+#XXX: Maybe copy from CheriBSD repository into this repository
 # Get missing header files
 # Musl libc doesn't have a cdefs.h and we are depending on CheriBSD's cdefs.h
 mkdir -p $CWD/local/include/sys/
@@ -96,7 +101,7 @@ cd cheribsdtest
 # TODO: Fix the parentheses warnings in the source code
 CFLAGS+="-Wno-error=typedef-redefinition -Wno-error=macro-redefined \
         -Wno-error=shift-op-parentheses \
-        -Wno-error=bitwise-op-parentheses"
+        -Wno-error=bitwise-op-parentheses -Wno-typedef-redefinition"
 
 # TODO: Are "MACHINE_CPUARCH" and "MACHINE_ARCH" needed?
 bmake MACHINE_CPUARCH=aarch64c \
