@@ -37,3 +37,7 @@
 #define LIBBSD_NETBSD_VIS 1
 // This was taken from CheriBSD's sys/param.h
 #define	nitems(x)	(sizeof((x)) / sizeof((x)[0]))
+#define	PAGE_SIZE	getpagesize()
+#define PAGE_SHIFT	(__builtin_ctzl(PAGE_SIZE))
+#define trunc_page(x)	__align_down(x, PAGE_SIZE)
+#define round_page(x)	__align_up(x, PAGE_SIZE)

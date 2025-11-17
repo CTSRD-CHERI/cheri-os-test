@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2021, 2022 SRI International
+ * Copyright (c) 2025 Paul Metzger
  * All rights reserved.
  *
  * This software was developed by SRI International and the University of
@@ -31,16 +32,30 @@
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
-#include <sys/sysctl.h>
 #include <sys/user.h>
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/queue.h>
+#else
+#error "Unsupported OS"
+#endif
 
 #include <cheri/cheric.h>
 
-#include <libprocstat.h>
 #include <unistd.h>
+#ifdef __FreeBSD__
+#include <libprocstat.h>
+#elif defined(__linux__)
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
 
 #include "cheribsdtest.h"
 
+#ifdef __FreeBSD__
 /*
  * Find a region of address space unoccupied by any memory mappings.
  *
@@ -99,3 +114,69 @@ find_address_space_gap(size_t len, size_t align)
 	procstat_close(psp);
 	return (addr);
 }
+#elif defined(__linux__)
+
+struct vma_attr_t {
+	unsigned long long start;
+	unsigned long long end;
+	LIST_ENTRY(vma_attr_t) link;
+};
+
+LIST_HEAD(vma_attr_list, vma_attr_t);
+
+ptraddr_t
+find_address_space_gap(size_t len, size_t align)
+{
+	ptraddr_t addr = 0;
+	struct vma_attr_t *cur_vma_attr;
+	FILE *f = NULL;
+	char *line = NULL;
+	size_t line_len = 0;
+	struct vma_attr_list lh;
+	uint vmcnt = 0;
+
+	LIST_INIT(&lh);
+
+	// Create a list of VMAs based on /proc/self/stat
+	f = fopen("/proc/self/maps", "r");
+	if (f == NULL) {
+		cheribsdtest_failure_errx("fopen: %s", strerror(errno)); // TODO: Improve this
+	}
+
+	while(getline(&line, &line_len, f) != -1) {
+		cur_vma_attr = malloc(sizeof(struct vma_attr_t));
+		sscanf(line, "%llx-%llx", &cur_vma_attr->start, &cur_vma_attr->end);
+		LIST_INSERT_HEAD(&lh, cur_vma_attr, link);
+		vmcnt++;
+	}
+	free(line);
+	fclose(f);
+
+	if (align == 0) {
+		len = CHERI_REPRESENTABLE_LENGTH(len);
+		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
+	}
+
+	// Search for gap in the address space
+	struct vma_attr_t *it = LIST_FIRST(&lh);
+	for (u_int i = 0; i < vmcnt - 1; i++) {
+		ptraddr_t end = it->start;
+		it = LIST_NEXT(it, link);
+		ptraddr_t aligned_start = __align_up(it->end, align);
+		if (aligned_start > end)
+			continue;
+		if (end - aligned_start >= len) {
+			addr = aligned_start;
+			break;
+		}
+	}
+
+	if (addr == 0) {
+		cheribsdtest_failure_errx("no free region of length %#jx\n", len);
+	}
+
+	return addr;
+}
+#else
+#error "Unsupported OS"
+#endif

@@ -67,6 +67,10 @@
 
 #include "cheribsdtest.h"
 
+#ifdef __linux__
+#include "morello_linux_compat.h"
+#endif
+
 #define	MINCORE_PAGES	3
 
 CHERIBSDTEST(cheriabi_mincore,
@@ -90,10 +94,14 @@ CHERIBSDTEST(cheriabi_mincore,
 	 * needs to be a memory capabilty that can do something useful.
 	 */
 
+#if !defined(CHERI_PERM_SW_VM)
+	cheribsdtest_failure_err("CHERI_PERM_SW_VM is not defined");
+#else
 	/* No VMEM */
 	cap = cheri_perms_and(pages, ~CHERI_PERM_SW_VMEM);
 	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap without VMEM perm");
+#endif
 
 	/* Execute-only */
 	cap = cheri_perms_and(pages, CHERI_PERM_EXECUTE | CHERI_PERM_GLOBAL);
@@ -183,7 +191,14 @@ CHERIBSDTEST(cheriabi_mmap_fixed,
 
 	/* Create a large mapping */
 	p1 = mmap(0, 0x200000, PROT_READ | PROT_WRITE,
+#ifdef __FreeBSD__
 	    MAP_PRIVATE | MAP_ANON | MAP_ALIGNED(21), -1, 0);
+#elif defined(__linux__)
+	    // mmap on Linux doesn't have a MAP_ALIGNED() flag
+	    MAP_PRIVATE | MAP_ANON, -1, 0);
+#else
+#error "Unsupported OS"
+#endif
 	CHERIBSDTEST_VERIFY(p1 != MAP_FAILED);
 
 	/*
@@ -289,6 +304,10 @@ CHERIBSDTEST(cheriabi_mmap_perms,
 	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_RWX mapping");
 
+/*
+ * CHERI Linux does not have PROT_CAP and PROT_NO_CAP currently.
+ */
+#ifdef PROT_CAP
 	/* RO and RW with explicit cap perms */
 	perms = mmap_and_get_perms(PROT_READ | PROT_CAP);
 	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
@@ -353,10 +372,15 @@ CHERIBSDTEST(cheriabi_mmap_perms,
 #endif
 	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_RWX | PROT_CAP mapping");
+#endif
 
 	cheribsdtest_success();
 }
 
+/*
+ * CHERI Linux does not define PROT_CAP and PROT_NO_CAP currently.
+ */
+#ifdef PROT_CAP
 CHERIBSDTEST(cheriabi_mmap_no_cap_perms,
     "Verify that mmap PROT_NO_CAP does not return capability permissions")
 {
@@ -502,6 +526,7 @@ CHERIBSDTEST(cheriabi_mmap_maxprot_perms,
 
 	cheribsdtest_success();
 }
+#endif
 
 struct adjacent_mappings {
 	char *first;
@@ -525,13 +550,13 @@ create_adjacent_mappings(struct adjacent_mappings *mappings)
 	memset(mappings, 0, sizeof(*mappings));
 	requested_addr = (void *)(uintcap_t)find_address_space_gap(len * 3, 0);
 	mappings->first = CHERIBSDTEST_CHECK_SYSCALL(mmap(requested_addr, len,
-	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED, -1, 0));
+	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0));
 	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->first));
 	/* Try to create a mapping immediately following the latest one. */
 	requested_addr =
 	    (void *)(uintcap_t)(cheri_address_get(mappings->first) + len);
 	mappings->middle = CHERIBSDTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
-	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED, -1, 0),
+	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0),
 	    "Failed to create mapping at address %p", requested_addr);
 	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->middle,
 	    (ptraddr_t)mappings->first + len);
@@ -539,7 +564,7 @@ create_adjacent_mappings(struct adjacent_mappings *mappings)
 	    (void *)(uintcap_t)(cheri_address_get(mappings->middle) + len);
 	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->middle));
 	mappings->last = CHERIBSDTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
-	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED, -1, 0),
+	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0),
 	    "Failed to create mapping at address %p", requested_addr);
 	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->last,
 	    (ptraddr_t)mappings->middle + len);
@@ -562,25 +587,33 @@ CHERIBSDTEST(cheriabi_munmap_invalid_ptr,
 
 	create_adjacent_mappings(&mappings);
 
+#ifdef __FreeBSD__
+	const int expected_errno = EPROT;
+#elif defined(__linux__)
+	const int expected_errno = EINVAL;
+#else
+#error "Unsupported OS"
+#endif
+
 	/* munmap() with an out-of-bounds length should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    munmap(mappings.middle, mappings.maplen * 2), EPROT);
+	    munmap(mappings.middle, mappings.maplen * 2), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    munmap(mappings.middle, mappings.maplen + 1), EPROT);
+	    munmap(mappings.middle, mappings.maplen + 1), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* munmap() with an in-bounds but untagged capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    munmap(cheri_tag_clear(mappings.middle), mappings.maplen), EPROT);
+	    munmap(cheri_tag_clear(mappings.middle), mappings.maplen), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* munmap() with an out-of-bounds capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    munmap(mappings.middle - mappings.maplen, mappings.maplen), EPROT);
+	    munmap(mappings.middle - mappings.maplen, mappings.maplen), expected_errno);
 	mappings.first[0] = 'a'; /* Check that the mapping is still valid */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    munmap(mappings.middle + mappings.maplen, mappings.maplen), EPROT);
+	    munmap(mappings.middle + mappings.maplen, mappings.maplen), expected_errno);
 	mappings.last[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* Unmapping the original capabilities should succeed. */
@@ -623,6 +656,9 @@ CHERIBSDTEST(cheriabi_mprotect_restore_prot_cap,
 	cheribsdtest_success();
 }
 
+#ifdef __FreeBSD__
+// This tests the behaviour of mmap with non-POSIX and FreeBSD-specific
+// flag PROT_MAX().
 CHERIBSDTEST(cheriabi_mprotect_downgrade_prot_cap,
     "Check that downgrading to PROT_MAX(PROT_READ) includes capability read",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO | CT_FLAG_SI_ADDR,
@@ -648,33 +684,42 @@ CHERIBSDTEST(cheriabi_mprotect_downgrade_prot_cap,
 
 	cheribsdtest_failure_errx("tagged store succeeded after downgrade");
 }
+#endif
 
 CHERIBSDTEST(cheriabi_mprotect_invalid_ptr,
     "Check that mprotect() rejects invalid pointer arguments")
 {
 	struct adjacent_mappings mappings;
 
+#ifdef __FreeBSD__
+	const int expected_errno = EPROT;
+#elif defined(__linux__)
+	const int expected_errno = EINVAL;
+#else
+#error "Unsupported OS"
+#endif
+
 	create_adjacent_mappings(&mappings);
 
 	/* mprotect() with an out-of-bounds length should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    mprotect(mappings.middle, mappings.maplen * 2, PROT_NONE), EPROT);
+	    mprotect(mappings.middle, mappings.maplen * 2, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    mprotect(mappings.middle, mappings.maplen + 1, PROT_NONE), EPROT);
+	    mprotect(mappings.middle, mappings.maplen + 1, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* mprotect() with an in-bounds but untagged capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(cheri_tag_clear(mappings.middle),
-	    mappings.maplen, PROT_NONE), EPROT);
+	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* mprotect() with an out-of-bounds capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(mappings.middle - mappings.maplen,
-	    mappings.maplen, PROT_NONE), EPROT);
+	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.first[0] = 'a'; /* Check that it still has PROT_WRITE */
 	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(mappings.middle + mappings.maplen,
-	    mappings.maplen, PROT_NONE), EPROT);
+	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.last[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* Sanity check: mprotect() on a valid capability should succeed. */
@@ -688,6 +733,8 @@ CHERIBSDTEST(cheriabi_mprotect_invalid_ptr,
 	cheribsdtest_success();
 }
 
+#if __FreeBSD__
+// Linux does not have a minherit system call
 CHERIBSDTEST(cheriabi_minherit_invalid_ptr,
     "Check that minherit() rejects invalid pointer arguments")
 {
@@ -721,6 +768,7 @@ CHERIBSDTEST(cheriabi_minherit_invalid_ptr,
 	free_adjacent_mappings(&mappings);
 	cheribsdtest_success();
 }
+#endif
 
 /*
  * Create three adjacent memory mappings that be used to check that the memory
@@ -774,19 +822,27 @@ CHERIBSDTEST(cheriabi_shmdt_invalid_ptr,
 {
 	struct adjacent_mappings mappings;
 
+#ifdef __FreeBSD__
+	const int expected_errno = EPROT;
+#elif defined(__linux__)
+	const int expected_errno = EINVAL;
+#else
+#error "Unsupported OS"
+#endif
+
 	create_adjacent_mappings_shm(&mappings);
 
 	/* shmdt() with an in-bounds but untagged capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    shmdt(cheri_tag_clear(mappings.middle)), EPROT);
+	    shmdt(cheri_tag_clear(mappings.middle)), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* shmdt() with an out-of-bounds capability should fail. */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    shmdt(mappings.middle - mappings.maplen), EPROT);
+	    shmdt(mappings.middle - mappings.maplen), expected_errno);
 	mappings.first[0] = 'a'; /* Check that the mapping is still valid */
 	CHERIBSDTEST_CHECK_CALL_ERROR(
-	    shmdt(mappings.middle + mappings.maplen), EPROT);
+	    shmdt(mappings.middle + mappings.maplen), expected_errno);
 	mappings.last[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* Unmapping the original capabilities should succeed. */

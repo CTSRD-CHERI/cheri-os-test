@@ -4,7 +4,8 @@ SRCS=	cheribsdtest.c
 
 #XXX: Commented out test cases that haven't been ported yet
 SRCS+=	cheribsdtest_bounds_globals.c					\
-    cheribsdtest_util.c \
+	cheribsdtest_util.c \
+	cheribsdtest_util_vm.c						\
 	cheribsdtest_bounds_globals_x.c					\
 	cheribsdtest_bounds_heap.c					\
 	cheribsdtest_bounds_stack.c					\
@@ -28,7 +29,6 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_string.c						\
 	cheribsdtest_syscall.c						\
 	cheribsdtest_tls.c							\
-	cheribsdtest_util_vm.c						\
 	cheribsdtest_vm.c						\
 	cheribsdtest_zlib.c
 .if ${MACHINE_ABI:Mpurecap}
@@ -51,7 +51,7 @@ CFLAGS+=	-I${CHERIBSDTEST_DIR}/${MACHINE}
 CFLAGS+=	'-DPROG="${PROG}"' '-DPROG_SUFFIX="${PROG:S/^cheribsdtest//}"'
 
 #.if ${MACHINE_ABI:Mpurecap}
-#SRCS+=	cheribsdtest_cheriabi.c
+SRCS+=	cheribsdtest_cheriabi.c
 #SRCS+=	cheribsdtest_cheriabi_libc.c
 #SRCS+=	cheribsdtest_cheriabi_open.c
 #.endif
