@@ -35,7 +35,11 @@
 #endif
 
 #include <sys/types.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/auxv.h>
+#endif
 #include <sys/time.h>
 
 #include <err.h>
@@ -141,7 +145,7 @@ CHERIBSDTEST(cheriabi_open_bad_addr_2,
 }
 
 CHERIBSDTEST(cheriabi_open_bad_len,
-    "Path too long for the capaility bounds")
+    "Path too long for the capability bounds")
 {
 	char pathbuf[] = "/dev/null";
 	char *path;
@@ -236,13 +240,24 @@ CHERIBSDTEST(cheriabi_open_sealed, "Sealed path")
 {
 	char *path, *sealed_path;
 	void *sealer;
-	size_t sealer_size;
 	int fd;
+#ifdef __FreeBSD__
+	size_t sealer_size;
 
 	sealer_size = sizeof(sealer);
 	if (sysctlbyname("security.cheri.sealcap", &sealer, &sealer_size,
 	    NULL, 0) < 0)
 		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+#elif defined(__linux__)
+	sealer = getauxptr(AT_CHERI_SEAL_CAP);
+	//XXX: cheri_seal() does not work if the address of the sealer is 0x0?
+	//     Is this intended?
+	sealer = (void *) (((char *) sealer) + 1);
+	if (!cheri_tag_get(sealer) || !(cheri_perms_get(sealer) & CHERI_PERM_SEAL))
+		cheribsdtest_failure_err("getauxptr failed");
+#else
+#error "Unsupported OS"
+#endif
 
 	/* Allocate enough space that it's sealable for 128-bit */
 	path = calloc(1, 1<<12);
