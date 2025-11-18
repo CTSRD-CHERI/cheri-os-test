@@ -32,6 +32,11 @@
 
 #include <sys/param.h>
 #include <sys/mount.h>
+#ifdef __linux__
+#include "sys/vfs.h"
+
+#include "linux/magic.h"
+#endif
 
 #include <err.h>
 #include <stdlib.h>
@@ -49,8 +54,13 @@ skip_non_tmpfs_tmp(const struct cheri_test *ctp __unused)
 		return ("unable to query statfs for /tmp");
 	}
 
+#ifdef __FreeBSD__
 	if (strcmp(sb.f_fstypename, "tmpfs") == 0)
 		return (NULL);
+#elif defined(__linux__)
+	if (sb.f_type == TMPFS_MAGIC)
+		return (NULL);
+#endif
 	else
 		return ("/tmp is not using tmpfs");
 }
