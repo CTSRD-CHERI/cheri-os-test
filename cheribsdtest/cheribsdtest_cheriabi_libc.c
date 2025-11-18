@@ -34,6 +34,9 @@
 #include <sys/param.h>
 #include <sys/types.h>
 
+#include <cheri/cheri.h>
+#include <cheri/cheric.h>
+
 #include <string.h>
 
 #include "cheribsdtest.h"
@@ -87,7 +90,8 @@ CHERIBSDTEST(cheriabi_libc_strchr,
 	cheribsdtest_success();
 }
 
-
+#if defined(__FreeBSD__) || defined (__GLIBC__)
+// Musl libc does not provide strchrnul()
 CHERIBSDTEST(cheriabi_libc_strchrnul,
     "Check that strchrnul() works as required")
 {
@@ -109,3 +113,4 @@ CHERIBSDTEST(cheriabi_libc_strchrnul,
 
 	cheribsdtest_success();
 }
+#endif

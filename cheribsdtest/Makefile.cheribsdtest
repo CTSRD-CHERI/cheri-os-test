@@ -52,7 +52,7 @@ CFLAGS+=	'-DPROG="${PROG}"' '-DPROG_SUFFIX="${PROG:S/^cheribsdtest//}"'
 
 #.if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheribsdtest_cheriabi.c
-#SRCS+=	cheribsdtest_cheriabi_libc.c
+SRCS+=	cheribsdtest_cheriabi_libc.c
 #SRCS+=	cheribsdtest_cheriabi_open.c
 #.endif
 
