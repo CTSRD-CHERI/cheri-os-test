@@ -36,7 +36,9 @@
 #endif
 
 #include <sys/types.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 
 #include <netinet/in.h>
@@ -65,22 +67,44 @@
  * VM_PROT_CAP.
  */
 
+#ifdef __FreeBSD__
 #define	BUFFER_SIZE	8192
+#endif
 
 CHERIBSDTEST(ipc_pipe_sleep_signal,
     "check that direct write pipe IPC of a capability can be interrupted",
     .ct_flags = CT_FLAG_SIGNAL,
     .ct_signum = SIGALRM)
 {
+#ifdef __FreeBSD__
 	void * __capability buffer[BUFFER_SIZE / sizeof(void * __capability)];
+#elif defined(__linux__)
+	void * __capability * __capability buffer = NULL;
+	size_t buffer_size = 0;
+#else
+#error "Unsupported OS"
+#endif
 	int fds[2];
 
+	CHERIBSDTEST_CHECK_SYSCALL(pipe(fds));
+
+#ifdef __FreeBSD__
 	memset(buffer, 0, sizeof(buffer));
+#elif defined(__linux__)
+	// Exhaust the in-kernel buffer size so that the writer will block
+	buffer_size = fcntl(fds[1], F_GETPIPE_SZ) * 2;
+	buffer = calloc(1, buffer_size);
+#endif
+
 	buffer[0] = (__cheri_tocap void * __capability)buffer;
 
-	CHERIBSDTEST_CHECK_SYSCALL(pipe(fds));
 	CHERIBSDTEST_CHECK_SYSCALL(alarm(1));
+#ifdef __FreeBSD__
 	CHERIBSDTEST_CHECK_SYSCALL(write(fds[0], buffer, sizeof(buffer)));
+#elif defined(__linux__)
+	// Pipes are unidirectional on Linux and fds[1] is the write-end.
+	CHERIBSDTEST_CHECK_SYSCALL(write(fds[1], buffer, buffer_size));
+#endif
 	close(fds[0]);
 	close(fds[1]);
 	cheribsdtest_failure_errx("write didn't block");
