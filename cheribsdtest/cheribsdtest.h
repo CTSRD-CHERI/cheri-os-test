@@ -168,7 +168,7 @@ struct cheri_test {
 	void		(*ct_child_func)(void);
 	const char *	(*ct_check_skip)(const struct cheri_test *);
 	const char *	(*ct_check_xfail)(const char *);
-	u_int		 ct_flags;
+	unsigned int	 ct_flags;
 	int		 ct_signum;
 	int		 ct_si_code;
 #ifdef __FreeBSD__

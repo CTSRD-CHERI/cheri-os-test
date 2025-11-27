@@ -34,6 +34,10 @@
  * SUCH DAMAGE.
  */
 
+// We don't have CheriBSD's machine/cherireg.h
+#define CHERI_PERM_GLOBAL       __CHERI_CAP_PERMISSION_GLOBAL__
+#define CHERI_PERM_SEAL         __CHERI_CAP_PERMISSION_PERMIT_SEAL__
+
 #define LIBBSD_NETBSD_VIS 1
 // This was taken from CheriBSD's sys/param.h
 #define	nitems(x)	(sizeof((x)) / sizeof((x)[0]))

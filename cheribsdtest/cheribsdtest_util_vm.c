@@ -36,7 +36,7 @@
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
 #elif defined(__linux__)
-#include <sys/queue.h>
+#include <bsd/sys/queue.h>
 #else
 #error "Unsupported OS"
 #endif
@@ -78,7 +78,7 @@ find_address_space_gap(size_t len, size_t align)
 	struct procstat *psp;
 	struct kinfo_proc *kipp;
 	struct kinfo_vmentry *kivp;
-	uint pcnt, vmcnt;
+	unsigned int pcnt, vmcnt;
 	ptraddr_t addr = 0;
 
 	psp = procstat_open_sysctl();
@@ -94,7 +94,7 @@ find_address_space_gap(size_t len, size_t align)
 		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
 	}
 
-	for (u_int i = 1; i < vmcnt; i++) {
+	for (unsigned int i = 1; i < vmcnt; i++) {
 		ptraddr_t aligned_start = __align_up(kivp[i-1].kve_end, align);
 		ptraddr_t end = kivp[i].kve_start;
 		if (aligned_start > end)
@@ -133,7 +133,7 @@ find_address_space_gap(size_t len, size_t align)
 	char *line = NULL;
 	size_t line_len = 0;
 	struct vma_attr_list lh;
-	uint vmcnt = 0;
+	unsigned int vmcnt = 0;
 
 	LIST_INIT(&lh);
 
@@ -159,7 +159,7 @@ find_address_space_gap(size_t len, size_t align)
 
 	// Search for gap in the address space
 	struct vma_attr_t *it = LIST_FIRST(&lh);
-	for (u_int i = 0; i < vmcnt - 1; i++) {
+	for (unsigned int i = 0; i < vmcnt - 1; i++) {
 		ptraddr_t end = it->start;
 		it = LIST_NEXT(it, link);
 		ptraddr_t aligned_start = __align_up(it->end, align);

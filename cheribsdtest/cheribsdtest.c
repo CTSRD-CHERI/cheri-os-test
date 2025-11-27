@@ -52,7 +52,6 @@
 #include <sys/ucontext.h>
 #include <sys/wait.h>
 
-
 #include <cheri/cheri.h>
 #include <cheri/cheric.h>
 
@@ -81,10 +80,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __FreeBSD__
 #include <stringlist.h>
+#elif defined(__linux__)
+#include <bsd/stringlist.h>
+#endif
 #include <sysexits.h>
 #include <unistd.h>
+#ifdef __FreeBSD__
 #include <vis.h>
+#elif defined(__linux__)
+#include <bsd/vis.h>
+#endif
 
 #include <libxo/xo.h>
 
@@ -704,7 +711,7 @@ mk_exec_args(const struct cheri_test *ctp)
 	error = readlink("/proc/self/exe", execpath, PATH_MAX);
 	if (error != 0)
 		errx(EX_OSERR, "readlink: %s", strerror(error));
-#elifdef __FreeBSD__
+#elif defined(__FreeBSD__)
 	/*
 	 * XXX: This won't work for direct exec as an rtld argument.
 	 * (e.g., /libexec/ld-elf.so.1 /bin/cheribsdtest-purecap-dynamic)
@@ -886,7 +893,7 @@ main(int argc, char *argv[])
 				    "hw.qemu_trace_perthread=1", opt);
 			qtrace = 1;
 			break;
-#elifdef __linux__
+#elif defined(__linux__)
 		case 'Q':
 		case 'q':
 			err(EINVAL, "-Q and -q are not yet implemented for Linux");
@@ -951,7 +958,7 @@ main(int argc, char *argv[])
 	stack.ss_sp = mmap(NULL, stack.ss_size, PROT_READ | PROT_WRITE,
 #ifdef __FreeBSD__
 		MAP_ANON, -1, 0);
-#elifdef __linux__
+#elif defined(__linux__)
 		MAP_ANON | MAP_PRIVATE, -1, 0);
 #elif
 #error "Unsupported OS"

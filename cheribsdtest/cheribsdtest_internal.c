@@ -80,7 +80,7 @@ CHERIBSDTEST(internal_spawn_child_fork, "spawn a child process with fork",
 	cheribsdtest_success();
 }
 
-///XXX: Do we should test clone() instead on Linux?
+///XXX: Should we test clone() instead on Linux?
 #ifdef __FreeBSD__
 CHERIBSDTEST(internal_spawn_child_rfork, "spawn a process with rfork",
     .ct_child_func = exec_child_cf)
