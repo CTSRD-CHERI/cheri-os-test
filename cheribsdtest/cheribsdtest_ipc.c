@@ -41,6 +41,8 @@
 #endif
 #include <sys/time.h>
 
+#include <cheri/cheric.h>
+
 #include <netinet/in.h>
 
 #include <err.h>

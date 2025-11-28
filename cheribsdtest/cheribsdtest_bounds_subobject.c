@@ -43,7 +43,7 @@
 #endif
 
 #include <sys/types.h>
-#include <sys/queue.h>
+#include <bsd/sys/queue.h>
 #if __FreeBSD__
 #include <sys/signal.h>
 #include <sys/stddef.h>
@@ -51,6 +51,7 @@
 #endif
 #include <sys/time.h>
 
+#include <cheri/cheric.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -60,6 +61,10 @@
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
+
+#ifdef __linux__
+#include <stddef.h>
+#endif
 
 #include "cheribsdtest.h"
 

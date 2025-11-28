@@ -49,6 +49,8 @@
 #include <machine/trap.h>
 #endif
 
+#include <cheri/cheric.h>
+
 #include <err.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -69,7 +71,7 @@
 static __noinline void
 varargs_test_onearg(const char *fmt, ...)
 {
-	volatile int i __unused;
+	volatile int i __attribute__((__unused__));
 	va_list ap;
 
 	va_start(ap, fmt);

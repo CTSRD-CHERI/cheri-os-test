@@ -45,7 +45,6 @@
 #endif
 #include <sys/time.h>
 
-#include <cheri/cheri.h>
 #include <cheri/cheric.h>
 
 #ifdef __FreeBSD__
