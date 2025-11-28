@@ -131,7 +131,7 @@ cheribsdtest_set_expected_si_addr(void *addr)
 }
 
 const char *
-skip_need_cheri_revoke(const struct cheri_test *ctp __unused)
+skip_need_cheri_revoke(const struct cheri_test *ctp __attribute__((__unused__)))
 {
 #ifdef __FreeBSD__
 	if (!feature_present("cheri_revoke"))

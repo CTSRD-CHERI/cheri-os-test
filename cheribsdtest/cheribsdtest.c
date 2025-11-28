@@ -194,7 +194,8 @@ list_tests(void)
 }
 
 static void
-signal_handler(int signum, siginfo_t *info, void *vuap __unused)
+signal_handler(int signum, siginfo_t *info,
+			   void *vuap __attribute__((__unused__)))
 {
 	ccsp->ccs_signum = signum;
 	ccsp->ccs_si_code = info->si_code;
