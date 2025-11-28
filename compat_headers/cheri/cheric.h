@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #if !defined(_KERNEL) && !defined(_STANDALONE)
 #include <stdbool.h>
+#include <stdint.h>
 #endif
 
 #if __has_feature(capabilities)
