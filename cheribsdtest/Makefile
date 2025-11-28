@@ -9,8 +9,8 @@
 #.endif
 
 .if (${MACHINE_ABI:Mpurecap} && !${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64C} == "yes"
-SUBDIR+=	purecap \
-		purecap-dynamic \
+SUBDIR+=	purecap
+		#purecap-dynamic \
 		purecap-dynamic-mt \
 		purecap-mt
 
