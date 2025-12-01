@@ -39,11 +39,14 @@
 #include <sys/ipc.h>
 #include <sys/mman.h>
 #include <sys/shm.h>
+#include <sys/time.h>
+
 #ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/cheri.h>
 #endif
-#include <sys/time.h>
 
 #include <cheri/cheric.h>
 
@@ -93,8 +96,8 @@ CHERIBSDTEST(cheriabi_mincore,
 	 * needs to be a memory capabilty that can do something useful.
 	 */
 
-#if !defined(CHERI_PERM_SW_VM)
-	cheribsdtest_failure_err("CHERI_PERM_SW_VM is not defined");
+#if !defined(CHERI_PERM_SW_VMEM)
+	cheribsdtest_failure_errx("CHERI_PERM_SW_VMEM is not defined");
 #else
 	/* No VMEM */
 	cap = cheri_perms_and(pages, ~CHERI_PERM_SW_VMEM);
