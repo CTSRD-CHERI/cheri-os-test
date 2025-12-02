@@ -36,7 +36,19 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#if __linux__
+// This needs to be included for the definition of SEGV_CAPBOUNDSERR
+#include <linux/signal.h>
+// This define avoids a redefinition of sigset_t in musl's alltypes.h
+#define __DEFINED_sigset_t
+#endif
+
 #include <sys/param.h>
+
+#ifdef __FreeBSD__
+#include <cheri/cheri.h>
+#endif
+#include <cheri/cheric.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -44,6 +56,10 @@
 #include <string.h>
 
 #include "cheribsdtest.h"
+
+#ifdef __linux__
+#include <morello_linux_compat.h>
+#endif
 
 #define	STR_VAL	"123"
 
@@ -74,10 +90,17 @@ CHERIBSDTEST(store_local_allowed,
 #ifndef __riscv_zcherilevels
 CHERIBSDTEST(store_local_disallowed,
     "Checks local capabilities can not be stored via non-store-local capabilities",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = SI_CODE_STORELOCAL,
-    .ct_si_trapno = TRAPNO_LOAD_STORE)
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPPERMERR
+#endif
+)
 #else
 CHERIBSDTEST(store_local_disallowed,
     "Checks tag is stripped when local capabilities are stored via non-store-local capabilities")
