@@ -36,6 +36,11 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/cdefs.h>
+#endif
+#include <cheri/cheric.h>
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
