@@ -30,6 +30,7 @@
  * SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
@@ -136,3 +137,4 @@ CHERIBSDTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
 	cheribsdtest_success();
 }
 #endif /* CHERI_PERM_COMPARTMENT_ID */
+#endif /* __FreeBSD__ */

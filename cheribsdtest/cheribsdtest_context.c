@@ -30,8 +30,18 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Morello and CHERI Linux are based on Musl libc which doesn't implement the
+ * getcontext(), setcontext(), etc system calls. Likely because they were
+ * deprecated by POSIX in 2004.
+ */
+#ifdef __FreeBSD__
+
 #include <sys/mman.h>
+
+#ifdef __FreeBSD__
 #include <sys/signal.h>
+#endif
 
 #include <ucontext.h>
 
@@ -105,3 +115,4 @@ CHERIBSDTEST(swapcontext_basic, "Check that swapcontext works",
 	CHERIBSDTEST_VERIFY(swapcontext_arg1 == SWAPCONTEXT_ARG1);
 	cheribsdtest_success();
 }
+#endif

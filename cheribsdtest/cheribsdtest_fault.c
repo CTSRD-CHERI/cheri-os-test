@@ -35,17 +35,37 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#if __linux__
+#include <linux/signal.h>
+// This avoids redefinition of sigset_t in musl's alltypes.h
+#define __DEFINED_sigset_t
+#endif
+
 #include <sys/types.h>
-#include <sys/sysctl.h>
 #include <sys/time.h>
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/auxv.h>
+#endif
+
+#ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <cheri/cheri.h>
+#endif
+#include <cheri/cheric.h>
 
 #include <err.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#ifdef __FreeBSD__
 #include <signal.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,10 +91,17 @@ static char array[ARRAY_LEN];
 static char sink;
 
 CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
-    .ct_si_trapno = TRAPNO_LOAD_STORE)
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+	.ct_signum = SIGSEGV,
+	.ct_si_code = SEGV_CAPBOUNDSERR
+#endif
+)
 {
 	char * __capability arrayp = cheri_ptr(array, sizeof(array));
 	int i;
@@ -88,10 +115,17 @@ CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
 
 CHERIBSDTEST(fault_perm_load,
     "Exercise capability load permission failure",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_PERM,
-    .ct_si_trapno = TRAPNO_LOAD_STORE)
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+	.ct_signum = SIGSEGV,
+	.ct_si_code = SEGV_CAPPERMERR
+#endif
+)
 {
 	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
 
@@ -119,12 +153,21 @@ CHERIBSDTEST(illegal_perm_seal,
 	void * __capability ip = &i;
 	void * __capability sealcap;
 	void * __capability sealed;
+#ifdef __FreeBSD__
 	size_t sealcap_size;
 
 	sealcap_size = sizeof(sealcap);
 	if (sysctlbyname("security.cheri.sealcap", &sealcap, &sealcap_size,
 	    NULL, 0) < 0)
 		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+#elif defined(__linux__)
+	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
+	sealcap = (void *) (((char *) sealcap) + 1);
+	if (!cheri_gettag(sealcap) || !(cheri_getperm(sealcap) & CHERI_PERM_SEAL))
+		cheribsdtest_failure_err("getauxptr failed");
+#else
+#error "Unsupported OS"
+#endif
 	sealcap = cheri_perms_and(sealcap, ~CHERI_PERM_SEAL);
 	sealed = cheri_seal(ip, sealcap);
 	/* cheri_seal() should tag-clear on failure on all architectures. */
@@ -147,10 +190,17 @@ CHERIBSDTEST(illegal_perm_seal,
 
 CHERIBSDTEST(fault_perm_store,
     "Exercise capability store permission failure",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_PERM,
-    .ct_si_trapno = TRAPNO_LOAD_STORE)
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+	.ct_signum = SIGSEGV,
+	.ct_si_code = SEGV_CAPPERMERR
+#endif
+)
 {
 	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
 
@@ -177,12 +227,21 @@ CHERIBSDTEST(illegal_perm_unseal,
 	void * __capability sealcap;
 	void * __capability sealed;
 	void * __capability unsealed;
+#ifdef __FreeBSD__
 	size_t sealcap_size;
 
 	sealcap_size = sizeof(sealcap);
 	if (sysctlbyname("security.cheri.sealcap", &sealcap, &sealcap_size,
 	    NULL, 0) < 0)
 		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+#elif defined(__linux__)
+	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
+	sealcap = (void *) (((char *) sealcap) + 1);
+	if (!cheri_gettag(sealcap))
+		cheribsdtest_failure_err("getauxptr failed");
+#else
+#error "Unsupported OS"
+#endif
 	if ((cheri_perms_get(sealcap) & CHERI_PERM_SEAL) == 0)
 		cheribsdtest_failure_errx("unexpected !seal perm on sealcap");
 	sealed = cheri_seal(ip, sealcap);
@@ -207,10 +266,17 @@ CHERIBSDTEST(illegal_perm_unseal,
 #endif
 
 CHERIBSDTEST(fault_tag, "Store via untagged capability",
+#ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_TAG,
-    .ct_si_trapno = TRAPNO_LOAD_STORE)
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+	.ct_signum = SIGSEGV,
+	.ct_si_code = SEGV_CAPTAGERR
+#endif
+)
 {
 	char ch;
 	char * __capability chp = cheri_ptr(&ch, sizeof(ch));

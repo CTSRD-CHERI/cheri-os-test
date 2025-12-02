@@ -30,6 +30,8 @@
  * SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
+
 #include <sys/cdefs.h>
 
 #if !__has_feature(capabilities)
@@ -166,3 +168,4 @@ CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 
 	cheribsdtest_success();
 }
+#endif

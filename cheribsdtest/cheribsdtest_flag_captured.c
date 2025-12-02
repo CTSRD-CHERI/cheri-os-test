@@ -31,6 +31,12 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * CHERI Linux and Morello Linux don't have an equivalent to the
+ * flag_captured system call.
+ */
+#ifdef __FreeBSD__
+
 #include <sys/cdefs.h>
 
 #if !__has_feature(capabilities)
@@ -117,4 +123,5 @@ CHERIBSDTEST(flag_captured_empty,
 
 	call_flag_captured(cheri_bounds_set(buf, 0), CORRECT_KEY);
 }
+#endif
 #endif
