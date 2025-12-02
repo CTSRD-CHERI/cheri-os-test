@@ -699,9 +699,14 @@ mk_exec_args(const struct cheri_test *ctp)
 {
 	char *execpath;
 	char const **exec_args;
-	int argc = 0, error;
+	int argc = 0;
+#ifdef __FreeBSD__
+	int error = 0;
+#elif defined(__linux__)
+	ssize_t len = 0;
+#endif
 
-	execpath = malloc(PATH_MAX);
+	execpath = malloc(PATH_MAX + 1);
 	if (execpath == NULL)
 		err(EX_OSERR, "malloc");
 	exec_args = calloc(5, sizeof(*exec_args));
@@ -709,9 +714,10 @@ mk_exec_args(const struct cheri_test *ctp)
 		err(EX_OSERR, "calloc");
 
 #ifdef __linux__
-	error = readlink("/proc/self/exe", execpath, PATH_MAX);
-	if (error != 0)
-		errx(EX_OSERR, "readlink: %s", strerror(error));
+	len = readlink("/proc/self/exe", execpath, PATH_MAX);
+	if (len == -1)
+		errx(EX_OSERR, "readlink: %s", strerror(errno));
+	execpath[len] = '\0';
 #elif defined(__FreeBSD__)
 	/*
 	 * XXX: This won't work for direct exec as an rtld argument.
