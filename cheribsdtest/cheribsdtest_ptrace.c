@@ -44,6 +44,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef __linux__
+#include <stddef.h>
+#include <sys/uio.h>
+#include <asm/ptrace.h>
+#include <linux/elf.h>
+#endif
+
+#include <cheri/cheric.h>
+
 #include "cheribsdtest.h"
 
 /*
@@ -89,6 +98,8 @@ finish_child(pid_t pid)
 	CHERIBSDTEST_VERIFY(wpid == pid);
 	CHERIBSDTEST_VERIFY(WIFEXITED(status));
 }
+
+#ifdef __FreeBSD__
 
 CHERIBSDTEST(ptrace_readcap, "Basic tests of PIOD_READ_CHERI_CAP")
 {
@@ -259,3 +270,158 @@ CHERIBSDTEST(ptrace_writecap, "Basic tests of PIOD_WRITE_CHERI_CAP")
 
 	cheribsdtest_success();
 }
+
+#elif defined(__linux__)
+
+// XXX: Do we have a better way to check if we are building for Morello?
+#if defined(NT_ARM_MORELLO)
+
+CHERIBSDTEST(ptrace_getcapregs, "Tests PTRACE_GETREGSET with NT_ARM_MORELLO")
+{
+	pid_t pid;
+	struct user_morello_state regs;
+	struct iovec iov = {.iov_base = &regs, .iov_len = sizeof(regs)};
+
+	pid = fork_child();
+
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
+		&iov));
+
+	uint8_t pcc_tag = (regs.tag_map >> MORELLO_PT_TAG_MAP_REG_BIT(pcc)) & 0x1;
+	CHERIBSDTEST_VERIFY2(pcc_tag == 1, "PCC tag must be set");
+	uint8_t csp_tag = (regs.tag_map >> MORELLO_PT_TAG_MAP_REG_BIT(csp)) & 0x1;
+	CHERIBSDTEST_VERIFY2(csp_tag == 1, "CSP tag must be set");
+
+	finish_child(pid);
+
+	cheribsdtest_success();
+}
+
+CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO")
+{
+	pid_t pid;
+	struct user_morello_state get_regs, set_regs;
+	struct iovec get_iov = {.iov_base = &get_regs, .iov_len = sizeof(get_regs)};
+	struct iovec set_iov = {.iov_base = &set_regs, .iov_len = sizeof(set_regs)};
+	__uint128_t c0_old_val;
+	uint8_t     c0_old_tag;
+	__uint128_t c0_new_val;
+	int ret;
+
+	memset(&get_regs, 0, sizeof(get_regs));
+	memset(&set_regs, 0, sizeof(set_regs));
+
+	pid = fork_child();
+
+	// Save original value of c0, so that we can restore it later
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
+		&get_iov));
+	c0_old_val = get_regs.cregs[0];
+	c0_old_tag = get_regs.tag_map & 0x1;
+
+	// Set reg0 to a valid capability
+	memcpy(&set_regs, &get_regs, sizeof(set_regs));
+	c0_new_val = set_regs.pcc;
+	set_regs.cregs[0] = c0_new_val;
+	set_regs.tag_map |= 0x1;
+	ret = ptrace(PTRACE_SETREGSET, pid, NT_ARM_MORELLO, &set_iov);
+	CHERIBSDTEST_VERIFY2(ret != -EPERM, "PTRACE_POKECAP is only allowed if " \
+									"the sysctl cheri.ptrace_forge_cap is set");
+
+	// Get register set to check if reg0 was set successfully
+	memset(&get_regs, 0, sizeof(get_regs));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
+		&get_iov));
+
+	CHERIBSDTEST_VERIFY2(get_regs.cregs[0] == c0_new_val, "c0 wasn't set");
+	CHERIBSDTEST_VERIFY2((get_regs.tag_map & 0x1) == 0x1, "Tag wasn't set");
+
+	// Restore c0
+	memcpy(&set_regs, &get_regs, sizeof(set_regs));
+	set_regs.cregs[0] = c0_old_val;
+	if (c0_old_tag == 0)
+		set_regs.tag_map &= ~0x1;
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_SETREGSET, pid, NT_ARM_MORELLO,
+		&set_iov));
+
+	finish_child(pid);
+
+	cheribsdtest_success();
+}
+
+#endif
+
+CHERIBSDTEST(ptrace_peekcap, "Basic tests of ptrace PTRACE_PEEKCAP")
+{
+	pid_t pid;
+	void *tracee_buf[2];
+	struct user_cap read_buf[2];
+
+	memset(tracee_buf, 0, sizeof(tracee_buf));
+	memset(read_buf, 0, sizeof(read_buf));
+
+	tracee_buf[0] = NULL;
+	tracee_buf[1] = &tracee_buf[0];
+
+	CHERIBSDTEST_VERIFY(cheri_gettag(tracee_buf[0]) == 0);
+	CHERIBSDTEST_VERIFY(cheri_gettag(tracee_buf[1]) == 1);
+
+	pid = fork_child();
+
+	CHERIBSDTEST_VERIFY(ptrace(PTRACE_PEEKCAP, pid, &tracee_buf[0],
+		&read_buf[0]) == 0);
+	CHERIBSDTEST_VERIFY(ptrace(PTRACE_PEEKCAP, pid, &tracee_buf[1],
+		&read_buf[1]) == 0);
+
+	CHERIBSDTEST_VERIFY2(read_buf[0].tag == 0,
+		"Tag set for returned integer");
+	CHERIBSDTEST_VERIFY2(read_buf[0].val == (uintcap_t) tracee_buf[0],
+		"Mismatch in non-tag bits");
+	CHERIBSDTEST_VERIFY2(read_buf[1].tag == 1,
+		"Tag not set for returned capability");
+	CHERIBSDTEST_VERIFY2(read_buf[1].val == (uintcap_t) tracee_buf[1],
+		"Mismatch in non-tag bits");
+
+	finish_child(pid);
+
+	cheribsdtest_success();
+}
+
+CHERIBSDTEST(ptrace_pokecap, "Basic tests of ptrace PTRACE_POKECAP")
+{
+	pid_t pid;
+	struct user_cap write_cap, read_cap;
+	char **map;
+	int ret;
+
+	map = aligned_alloc(16, getpagesize());
+	memset(map, 0, getpagesize());
+
+	pid = fork_child();
+
+	// Write a capability to the tracee's 'map' buffer
+	memcpy(&write_cap.val, &map, 16);
+	write_cap.tag = 1;
+	ret = ptrace(PTRACE_POKECAP, pid, (caddr_t) &map[0], &write_cap);
+	CHERIBSDTEST_VERIFY2(ret != -EPERM, "PTRACE_POKECAP is only allowed if " \
+									"the sysctl cheri.ptrace_forge_cap is set");
+	CHERIBSDTEST_VERIFY2(ret == 0, "PTRACE_POKECAP failed");
+
+	// Read the capability
+	memset(&read_cap, 0, sizeof(read_cap));
+	CHERIBSDTEST_VERIFY(ptrace(PTRACE_PEEKCAP, pid, (caddr_t) &map[0],
+		&read_cap) == 0);
+
+	CHERIBSDTEST_VERIFY2(read_cap.val == (uintcap_t) map,
+		"Written and read capabilities don't match");
+	CHERIBSDTEST_VERIFY2(read_cap.tag == 1,
+		"Tag not set for written capability");
+
+	finish_child(pid);
+
+	free(map);
+
+	cheribsdtest_success();
+}
+
+#endif
