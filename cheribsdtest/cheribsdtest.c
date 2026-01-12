@@ -105,6 +105,7 @@ static StringList* cheri_skipped_tests;
 static StringList* cheri_failed_tests;
 static StringList* cheri_xfailed_tests;
 static StringList* cheri_xpassed_tests;
+static StringList* cheri_test_warnings;
 
 /* Shared memory page with child process. */
 struct cheribsdtest_child_state *ccsp;
@@ -263,6 +264,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 	char buffer[TEST_BUFFER_LEN];
 	const char *skip_reason, *xfail_reason, *flaky_reason;
 	char* failure_message;
+	char* warn_message;
 	ssize_t len;
 	const char *disallowed_prefixes[] = { "cheribsdtest_", "test_" };
 
@@ -612,6 +614,15 @@ pass:
 		xo_emit("{d:status/%s}: {d:name/%s}\n", "PASS", ctp->ct_name);
 		tests_passed++;
 	}
+
+	if (ccsp->ccs_warn) {
+		strnvis(visreason, sizeof(visreason), ccsp->ccs_testresult_str,
+		    VIS_TAB);
+		asprintf(&warn_message, "%s: %s", ctp->ct_name, visreason);
+		xo_emit("WARN: {d:name/%s}: {:warn/%s}\n", ctp->ct_name, visreason);
+		sl_add(cheri_test_warnings, warn_message);
+	}
+
 	goto do_return;
 
 fail:
@@ -1005,6 +1016,7 @@ main(int argc, char *argv[])
 	cheri_failed_tests = sl_init();
 	cheri_xfailed_tests = sl_init();
 	cheri_xpassed_tests = sl_init();
+	cheri_test_warnings = sl_init();
 	/* Run the actual tests. */
 	xo_open_container("testsuites");
 	xo_attr("name", "%s", PROG);
@@ -1054,10 +1066,16 @@ main(int argc, char *argv[])
 		for (i = 0; (size_t)i < cheri_xpassed_tests->sl_cur; i++)
 			xo_emit("  {d:%s}\n", cheri_xpassed_tests->sl_str[i]);
 	}
+	if (cheri_test_warnings->sl_cur != 0) {
+		xo_emit("Warnings:\n");
+		for (i = 0; (size_t)i < cheri_test_warnings->sl_cur; i++)
+			xo_emit("  {d:%s}\n", cheri_test_warnings->sl_str[i]);
+	}
 	sl_free(cheri_skipped_tests, true);
 	sl_free(cheri_failed_tests, true);
 	sl_free(cheri_xfailed_tests, true);
 	sl_free(cheri_xpassed_tests, true);
+	sl_free(cheri_test_warnings, true);
 	if (tests_run + tests_skipped > 1) {
 		xo_emit("{Lc:SUMMARY}");
 		sep = " ";

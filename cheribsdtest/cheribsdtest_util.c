@@ -62,6 +62,7 @@ static void
 vcheribsdtest_failure_errx(const char *msg, va_list ap)
 {
 
+	ccsp->ccs_warn = false;
 	ccsp->ccs_testresult = TESTRESULT_FAILURE;
 	vsnprintf(ccsp->ccs_testresult_str, sizeof(ccsp->ccs_testresult_str),
 	    msg, ap);
@@ -73,6 +74,7 @@ vcheribsdtest_failure_errc(int code, const char *msg, va_list ap)
 	size_t buflen;
 	int len;
 
+	ccsp->ccs_warn = false;
 	ccsp->ccs_testresult = TESTRESULT_FAILURE;
 	buflen = sizeof(ccsp->ccs_testresult_str);
 	len = vsnprintf(ccsp->ccs_testresult_str, buflen, msg, ap);
@@ -119,6 +121,17 @@ void
 cheribsdtest_success(void)
 {
 
+	ccsp->ccs_testresult = TESTRESULT_SUCCESS;
+	ccsp->ccs_warn = false;
+	exit(0);
+}
+
+void
+cheribsdtest_success_with_warn(const char *msg)
+{
+	strncpy(ccsp->ccs_testresult_str, msg, sizeof(ccsp->ccs_testresult_str));
+	ccsp->ccs_testresult_str[sizeof(ccsp->ccs_testresult_str) - 1] = '\0';
+	ccsp->ccs_warn = true;
 	ccsp->ccs_testresult = TESTRESULT_SUCCESS;
 	exit(0);
 }

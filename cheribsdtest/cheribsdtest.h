@@ -74,6 +74,7 @@ struct cheribsdtest_child_state {
 	int		ccs_testresult;
 	char		ccs_testresult_str[TESTRESULT_STR_LEN];
 	void		*ccs_si_addr_expected;
+	bool		ccs_warn;
 };
 extern struct cheribsdtest_child_state *ccsp;
 
@@ -214,6 +215,7 @@ void	cheribsdtest_failure_errc(int code, const char *msg, ...) __dead2
     __printflike(2, 3);
 void	cheribsdtest_failure_errx(const char *msg, ...) __dead2  __printflike(1, 2);
 void	cheribsdtest_success(void) __dead2;
+void	cheribsdtest_success_with_warn(const char *msg) __dead2;
 void	signal_handler_clear(int sig);
 void	cheribsdtest_set_expected_si_addr(void *addr);
 
