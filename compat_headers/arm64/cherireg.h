@@ -41,7 +41,6 @@
  * CHERI ISA-defined constants for capabilities -- suitable for inclusion from
  * assembly source code.
  */
-#define	CHERI_PERM_GLOBAL			(1 << 0)	/* 0x00000001 */
 #define	CHERI_PERM_EXECUTIVE			(1 << 1)	/* 0x00000002 */
 #define	CHERI_PERM_SW0				(1 << 2)	/* 0x00000004 */
 #define	CHERI_PERM_SW1				(1 << 3)	/* 0x00000008 */
@@ -52,15 +51,6 @@
 #define	CHERI_PERM_BRANCH_SEALED_PAIR		(1 << 8)	/* 0x00000100 */
 #define	CHERI_PERM_INVOKE			CHERI_PERM_BRANCH_SEALED_PAIR
 #define	CHERI_PERM_SYSTEM			(1 << 9)	/* 0x00000200 */
-#define	CHERI_PERM_SYSTEM_REGS			CHERI_PERM_SYSTEM
-#define	CHERI_PERM_UNSEAL			(1 << 10)	/* 0x00000400 */
-#define	CHERI_PERM_SEAL				(1 << 11)	/* 0x00000800 */
-#define	CHERI_PERM_STORE_LOCAL_CAP		(1 << 12)	/* 0x00001000 */
-#define	CHERI_PERM_STORE_CAP			(1 << 13)	/* 0x00002000 */
-#define	CHERI_PERM_LOAD_CAP			(1 << 14)	/* 0x00004000 */
-#define	CHERI_PERM_EXECUTE			(1 << 15)	/* 0x00008000 */
-#define	CHERI_PERM_STORE			(1 << 16)	/* 0x00010000 */
-#define	CHERI_PERM_LOAD				(1 << 17)	/* 0x00020000 */
 
 /*
  * Macros defining initial permission sets:

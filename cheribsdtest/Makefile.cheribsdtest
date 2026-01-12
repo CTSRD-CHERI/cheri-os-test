@@ -24,8 +24,8 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_printf.c						\
 	cheribsdtest_ptrace.c						\
 	cheribsdtest_registers.c					\
-	#cheribsdtest_sealcap.c						\
-	cheribsdtest_signal.c						\
+	cheribsdtest_sealcap.c						\
+	#cheribsdtest_signal.c						\
 	cheribsdtest_strfcap.c						\
 	cheribsdtest_string.c						\
 	cheribsdtest_syscall.c						\

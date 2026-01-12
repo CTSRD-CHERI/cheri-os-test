@@ -28,7 +28,15 @@
  * SUCH DAMAGE.
  */
 
+#if defined(__FreeBSD__)
 #include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/auxv.h>
+
+#include <cheri/cherireg.h>
+#endif
+
+#include <stdio.h>
 
 #include "cheribsdtest.h"
 
@@ -37,11 +45,19 @@ static void * __capability
 get_sealcap(void)
 {
 	void * __capability sealcap;
+#if defined(__FreeBSD__)
 	size_t sealcap_size;
 
 	sealcap_size = sizeof(sealcap);
 	CHERIBSDTEST_CHECK_SYSCALL(sysctlbyname("security.cheri.sealcap",
 	    &sealcap, &sealcap_size, NULL, 0));
+#elif defined(__linux__)
+	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
+	/* XXX: Object type 0x0 is reserved for unsealed capabilities. */
+	sealcap = (void *) (((char *) sealcap) + CHERI_OTYPE_USER_MIN);
+	if (!cheri_gettag(sealcap))
+		cheribsdtest_failure_err("getauxptr failed");
+#endif
 
 	return (sealcap);
 }
@@ -49,7 +65,7 @@ get_sealcap(void)
 CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 {
 	void * __capability sealcap;
-	u_register_t v;
+	uintmax_t v;
 
 	sealcap = get_sealcap();
 
@@ -73,7 +89,7 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 
 	/* Type -- should have unsealed type. */
 	v = cheri_type_get(sealcap);
-	if (v != (u_register_t)CHERI_OTYPE_UNSEALED)
+	if (v != (register_t) CHERI_OTYPE_UNSEALED)
 		cheribsdtest_failure_errx("otype %jx (expected %jx)", v,
 		    (uintmax_t)CHERI_OTYPE_UNSEALED);
 
@@ -147,7 +163,9 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 	v = cheri_tag_get(sealcap);
 	if (v != 1)
 		cheribsdtest_failure_errx("tag %jx (expected 1)", v);
-	cheribsdtest_success();
+
+	cheribsdtest_success_with_warn("The design of the API for " \
+	    "getting sealer capabilities is insecure");
 }
 
 static uint8_t sealdata[4096] __attribute__ ((aligned(4096)));
@@ -157,7 +175,7 @@ CHERIBSDTEST(sealcap_seal, "Use sealcap to seal a capability")
 	void * __capability sealdatap;
 	void * __capability sealcap;
 	void * __capability sealed;
-	u_register_t v;
+	uintmax_t v;
 
 	sealcap = get_sealcap();
 
@@ -214,7 +232,7 @@ CHERIBSDTEST(sealcap_seal_unseal,
 	void * __capability sealcap;
 	void * __capability sealed;
 	void * __capability unsealed;
-	u_register_t v;
+	uintmax_t v;
 
 	sealcap = get_sealcap();
 
@@ -242,7 +260,7 @@ CHERIBSDTEST(sealcap_seal_unseal,
 
 	/* Type -- should have unsealed type. */
 	v = cheri_type_get(unsealed);
-	if (v != (u_register_t)CHERI_OTYPE_UNSEALED)
+	if (v != (register_t) CHERI_OTYPE_UNSEALED)
 		cheribsdtest_failure_errx("otype %jx (expected %jx)", v,
 		    (uintmax_t)CHERI_OTYPE_UNSEALED);
 
