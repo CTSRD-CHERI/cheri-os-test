@@ -40,6 +40,11 @@
 #include <cheribsdtest_dynamic.h>
 #include <dlfcn.h>
 #endif
+
+#if defined(__FreeBSD__)
+#include <cheri/cheri.h>
+#endif
+
 #include <string.h>
 
 #include "cheribsdtest.h"
@@ -57,10 +62,12 @@ static __thread void *tls_ptr0;
 static __thread char tls_dummy_char1 __used;
 static __thread void *tls_ptr1;
 
+#if !defined(__CHERI_PURE_CAPABILITY__)
 static __thread char tls_dummy_char2 __used;
 static __thread void * __capability tls_cap0;
 static __thread char tls_dummy_char3 __used;
 static __thread void * __capability tls_cap1;
+#endif
 
 static __thread char tls_array_4k[4096] __aligned(4096);
 
@@ -85,6 +92,7 @@ CHERIBSDTEST(tls_align_ptr, "Test alignment of TLS pointers")
 	cheribsdtest_success();
 }
 
+#if !defined(__CHERI_PURE_CAPABILITY__)
 CHERIBSDTEST(tls_align_cap, "Test alignment of TLS capabilities")
 {
 	int alignment, expected;
@@ -105,6 +113,7 @@ CHERIBSDTEST(tls_align_cap, "Test alignment of TLS capabilities")
 		    "%d; expected %d)", alignment, expected);
 	cheribsdtest_success();
 }
+#endif
 
 CHERIBSDTEST(tls_align_4k, "Test alignment of TLS 4K array")
 {
