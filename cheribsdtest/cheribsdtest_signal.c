@@ -34,17 +34,36 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#include <sys/types.h>
-
+#if defined(__FreeBSD__)
 #include <machine/vmparam.h>
+
+#include <cheri/cheri.h>
+#elif defined(__linux__)
+#include <sys/syscall.h>
+#endif
 
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #include "cheribsdtest.h"
+
+#if defined(__linux__)
+/*
+ * We perform a direct system call without going through
+ * libc and therefore need to use the struct that the
+ * syscall expects.
+ */
+struct kern_sigaction {
+	void (*handler)(int);
+	unsigned long sa_flags;
+	void (*unused)(void);
+	sigset_t sa_mask;
+};
+#endif
 
 static int handler_signum;
 
@@ -81,7 +100,7 @@ static int sigaction_info_si_signo;
 static int sigaction_info_si_code;
 
 static void
-sigaction_func(int signum, siginfo_t *siginfo, void *context __unused)
+sigaction_func(int signum, siginfo_t *siginfo, void *context __attribute__((__unused__)))
 {
 	sigaction_signum = signum;
 	sigaction_info_si_signo = siginfo->si_signo;
@@ -121,7 +140,7 @@ CHERIBSDTEST(signal_sigaction_usr1,
 static size_t sigaltstack_local_addr;
 
 static void
-sigaltstack_func(int signum __unused)
+sigaltstack_func(int signum __attribute__((__unused__)))
 {
 	int x;
 	sigaltstack_local_addr = (__cheri_addr size_t)&x;
@@ -174,7 +193,7 @@ CHERIBSDTEST(signal_sigaltstack,
 static size_t sigaltstack_disable_local_addr;
 
 static void
-sigaltstack_disable_func(int signum __unused)
+sigaltstack_disable_func(int signum __attribute__((__unused__)))
 {
 	int x;
 	sigaltstack_disable_local_addr = (__cheri_addr size_t)&x;
@@ -225,12 +244,14 @@ CHERIBSDTEST(signal_sigaltstack_disable,
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
+#if defined(__FreeBSD__)
 extern int __sys_sigaction(int, const struct sigaction *, struct sigaction *);
+#endif
 
 static void *handler_returncap;
 
 static void
-returncap_func(int signum __unused)
+returncap_func(int signum __attribute__((__unused__)))
 {
 	handler_returncap = __builtin_return_address(0);
 }
@@ -238,10 +259,14 @@ returncap_func(int signum __unused)
 CHERIBSDTEST(signal_returncap,
     "Test value of signal handler return capability")
 {
+#if defined(__FreeBSD__)
 	struct sigaction sa;
+#elif defined(__linux__)
+	struct kern_sigaction sa;
+#endif
 	uintmax_t v, expect;
 
-	sa.sa_handler = returncap_func;
+	sa.handler = returncap_func;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	/*
@@ -250,7 +275,11 @@ CHERIBSDTEST(signal_returncap,
 	 * since we want to capture the return capability for sigcode it gives to
 	 * userspace.
 	 */
+#if defined(__FreeBSD__)
 	if (__sys_sigaction(SIGUSR1, &sa, NULL) != 0)
+#elif defined(__linux__)
+	if (syscall(SYS_rt_sigaction, SIGUSR1, &sa, NULL, _NSIG/8))
+#endif
 		cheribsdtest_failure_errx("sigaction failed: %s",
 		                       strerror(errno));
 
