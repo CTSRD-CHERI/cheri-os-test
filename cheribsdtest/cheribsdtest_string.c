@@ -37,6 +37,12 @@
 
 #include <sys/types.h>
 
+#if defined(__FreeBSD__)
+#include <cheri/cheri.h>
+#endif
+
+#include <cheri/cheric.h>
+
 #include <string.h>
 
 #include "cheribsdtest.h"
@@ -107,6 +113,7 @@ invalidate(struct Test *t1)
 		*x = 0xa5;
 }
 
+#if !defined(__CHERI_PURE_CAPABILITY__)
 CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 {
 	int i;
@@ -207,6 +214,7 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 
 	cheribsdtest_success();
 }
+#endif
 
 CHERIBSDTEST(string_memcpy, "Test implicit capability memcpy")
 {
@@ -268,6 +276,7 @@ CHERIBSDTEST(string_memcpy, "Test implicit capability memcpy")
 	cheribsdtest_success();
 }
 
+#if !defined(__CHERI_PURE_CAPABILITY__)
 CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 {
 	int i;
@@ -367,6 +376,7 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 
 	cheribsdtest_success();
 }
+#endif
 
 CHERIBSDTEST(string_memmove, "Test implicit capability memmove")
 {
