@@ -34,14 +34,23 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#include <sys/types.h>
+#if defined(__FreeBSD__)
 #include <sys/aio.h>
-#include <sys/signal.h>
-#include <sys/socket.h>
 #include <sys/sysctl.h>
+#include <sys/signal.h>
+
+#include <cheri/cheri.h>
+#elif defined(__linux__)
+#include <aio.h>
+#include <signal.h>
+#endif
+
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/ptrace.h>
+
+#include <cheri/cheric.h>
 
 #include <assert.h>
 #include <err.h>
@@ -80,19 +89,19 @@ CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 
 	bzero(&sa, sizeof sa);
 
-	/* Block SIGEMT and SIGURG */
+	/* Block SIGUSR1 and SIGURG */
 	res = sigprocmask(0, NULL, &ss);
 	assert(res == 0);
-	res = sigaddset(&ss, SIGEMT);
+	res = sigaddset(&ss, SIGUSR1);
 	assert(res == 0);
 	res = sigaddset(&ss, SIGURG);
 	assert(res == 0);
 	res = sigprocmask(SIG_BLOCK, &ss, &oss);
 	assert(res == 0);
 
-	/* Install IGN as behavior for SIGEMT */
+	/* Install IGN as behavior for SIGUSR1 */
 	sa.sa_handler = SIG_IGN;
-	res = sigaction(SIGEMT, &sa, NULL);
+	res = sigaction(SIGUSR1, &sa, NULL);
 	assert(res == 0);
 
 	/* Make SIGURG a no-op */
@@ -103,7 +112,7 @@ CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 	cpid = fork();
 	if (cpid != 0) {
 		int status;
-		kill(cpid, SIGEMT); /* Ignored */
+		kill(cpid, SIGUSR1); /* Ignored */
 		kill(cpid, SIGURG); /* wake from suspend */
 		res = waitpid(cpid, &status, 0);
 		assert(res == cpid);
@@ -114,19 +123,19 @@ CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 		exit(42);
 	}
 
-	/* Use SIG_DFL for SIGEMT */
+	/* Use SIG_DFL for SIGUSR1 */
 	sa.sa_handler = SIG_DFL;
-	res = sigaction(SIGEMT, &sa, NULL);
+	res = sigaction(SIGUSR1, &sa, NULL);
 	assert(res == 0);
 
 	cpid = fork();
 	if (cpid != 0) {
 		int status;
-		kill(cpid, SIGEMT); /* Fatal */
+		kill(cpid, SIGUSR1); /* Fatal */
 		res = waitpid(cpid, &status, 0);
 		assert(res == cpid);
 		assert(WIFSIGNALED(status) == 1);
-		assert(WTERMSIG(status) == SIGEMT);
+		assert(WTERMSIG(status) == SIGUSR1);
 	} else {
 		sigsuspend(&oss);
 		exit(42);
@@ -160,10 +169,16 @@ CHERIBSDTEST(ptrace_basic,
 
 		/* Attach to process */
 		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_ATTACH, cpid, NULL, 0));
+#if defined(__FreeBSD__)
 		res = waitpid(cpid, &status, WTRAPPED);
 		stopsig = WIFSTOPPED(status) ? WSTOPSIG(status) : -1;
 		CHERIBSDTEST_CHECK_EQ_INT(res, cpid);
 		CHERIBSDTEST_CHECK_EQ_INT(stopsig, SIGSTOP);
+#elif defined(__linux__)
+		res = waitpid(cpid, &status, WSTOPPED);
+		CHERIBSDTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0");
+		CHERIBSDTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGURG");
+#endif
 
 		/* Kill it */
 		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_KILL, cpid, NULL, 0));
@@ -204,7 +219,7 @@ static int test_aio_sival_signal = 0;
 static siginfo_t test_aio_sival_info = { 0 };
 
 static void
-test_aio_sival_handler(int sig, siginfo_t *si, void *uc __unused)
+test_aio_sival_handler(int sig, siginfo_t *si, void *uc __attribute__((__unused__)))
 {
 	test_aio_sival_signal = sig;
 	test_aio_sival_info = *si;
