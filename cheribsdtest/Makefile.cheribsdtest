@@ -29,8 +29,8 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_string.c						\
 	cheribsdtest_tls.c							\
 	cheribsdtest_syscall.c						\
-	#cheribsdtest_vm.c						\
-	cheribsdtest_zlib.c		\
+	cheribsdtest_vm.c						\
+	#cheribsdtest_zlib.c		\
 	cheribsdtest_strfcap.c
 .if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheribsdtest_bounds_subobject.c			\
