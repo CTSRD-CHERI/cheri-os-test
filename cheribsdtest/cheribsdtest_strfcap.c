@@ -36,6 +36,12 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#ifdef __FreeBSD__
+#include <cheri/cheri.h>
+#elif defined(__linux__)
+#include <machine/cherireg.h>
+#endif
+
 #include <sys/param.h>
 
 #include <cheri/cheric.h>
@@ -46,6 +52,15 @@
 #include <string.h>
 
 #include "cheribsdtest.h"
+
+#ifdef __FreeBSD__
+#define STRFCAP_CAP_CAST (uintcap_t)
+#elif defined(__linux__)
+#define STRFCAP_CAP_CAST (void *)
+#endif
+
+#define SIGNATURE_WARN "The function signatures of strfcap() differ on " \
+    "Morello Linux and CheriBSD"
 
 static void
 test_strfcap_C_cap_one(void * __capability p, int expected_tokens,
@@ -60,7 +75,7 @@ test_strfcap_C_cap_one(void * __capability p, int expected_tokens,
 	assert(expected_tokens == 1 || expected_tokens == 4 ||
 	    expected_tokens == 5);
 
-	strfcap(str, sizeof(str), "%C", (uintcap_t)p);
+	strfcap(str, sizeof(str), "%C", STRFCAP_CAP_CAST p);
 	tokens = sscanf(str, "%lx [%15[^,],%lx-%lx] %31s", &addr, perms, &base,
 	    &top, attr);
 	if (tokens != expected_tokens)
@@ -203,11 +218,12 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 		const char *printf_format;
 		const char *desc;
 	} formats[] = {
-		{"%S", "%ld", "plain number"},
-		{"%.4S", "%.4ld", "precision"},
-		{"%16S", "%16ld", "padding"},
-		{"%-16S", "%-16ld", "right align padding"},
-		{"%16.4S", "%16.4ld", "padding and precision"},
+		/* XXXPM: Create a PR in the CheriBSD repo for this */
+		{"%S", "%lu", "plain number"},
+		{"%.4S", "%.4lu", "precision"},
+		{"%16S", "%16lu", "padding"},
+		{"%-16S", "%-16lu", "right align padding"},
+		{"%16.4S", "%16.4lu", "padding and precision"},
 
 		{"%xS", "%lx", "plain number"},
 		{"%#xS", "%#lx", "0x prefix"},
@@ -230,7 +246,8 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 		for (const char *scp = spec_chars; *scp != '\0'; scp++) {
 			format = strdup(formats[s].strfcap_format);
 			*strchr(format, 'S') = *scp;
-			ret_s = strfcap(str_s, sizeof(str_s), format, cap);
+			ret_s = strfcap(str_s, sizeof(str_s), format, STRFCAP_CAP_CAST cap);
+			CHERIBSDTEST_VERIFY2(ret_s > 0, "strfcap() failed with %s", format);
 
 			switch (*scp) {
 			case 'a':	value = cheri_address_get(cap); break;
@@ -255,6 +272,7 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 			else
 				snprintf(str_p, sizeof(str_p),
 				    formats[s].printf_format, value);
+
 			if (strcmp(str_s, str_p) != 0) {
 				cheribsdtest_failure_errx("strfcap (%s) and "
 				    "printf (%s) don't match when formatting "
@@ -266,7 +284,7 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 		}
 	}
 
-	ret_s = strfcap(str_s, sizeof(str_s), "%B", cap);
+	ret_s = strfcap(str_s, sizeof(str_s), "%B", STRFCAP_CAP_CAST cap);
 	if (ret_s != sizeof(void * __capability) * 2)
 		cheribsdtest_failure_errx("wrong size (%zu) returned from "
 		    "%%B format should be (%zu) string: (%s)",
@@ -289,7 +307,7 @@ CHERIBSDTEST(strfcap_numbers, "Checks of formats of a single number")
 	char foo[4];
 	char * __capability foop = foo;
 
-	test_strfcap_number_one_cap((uintcap_t)4, "scaler (4)");
+	test_strfcap_number_one_cap((uintcap_t)4, "scalar (4)");
 
 	test_strfcap_number_one_cap((uintcap_t)foop, "stack array");
 
@@ -302,7 +320,7 @@ CHERIBSDTEST(strfcap_numbers, "Checks of formats of a single number")
 	test_strfcap_number_one_cap(
 	    (uintcap_t)__builtin_cheri_program_counter_get(), "PCC");
 
-	cheribsdtest_success();
+	cheribsdtest_success_with_warn(SIGNATURE_WARN);
 }
 
 CHERIBSDTEST(strfcap_T, "Check of tag in format")
@@ -310,19 +328,19 @@ CHERIBSDTEST(strfcap_T, "Check of tag in format")
 	char str_t[128], str_u[128];
 	char * __capability cap = (__cheri_tocap char * __capability)str_t;
 
-	strfcap(str_t, sizeof(str_t), "%C", (uintcap_t)cap);
-	strfcap(str_u, sizeof(str_u), "%C", (uintcap_t)cheri_tag_clear(cap));
+	strfcap(str_t, sizeof(str_t), "%C", STRFCAP_CAP_CAST cap);
+	strfcap(str_u, sizeof(str_u), "%C", STRFCAP_CAP_CAST cheri_tag_clear(cap));
 	if (strcmp(str_t, str_u) == 0)
 		cheribsdtest_failure_errx("Tagged (%s) and untagged (%s) %%C "
 		    "formatted output is identical", str_t, str_u);
 
-	strfcap(str_u, sizeof(str_u), "%T%C", (uintcap_t)cheri_tag_clear(cap));
+	strfcap(str_u, sizeof(str_u), "%T%C", STRFCAP_CAP_CAST cheri_tag_clear(cap));
 	if (strcmp(str_t, str_u) != 0)
 		cheribsdtest_failure_errx("Tagged (%s) and untagged (%s) "
 		    "differs when untagged formatted with %%T%%C",
 		    str_t, str_u);
 
-	cheribsdtest_success();
+	cheribsdtest_success_with_warn(SIGNATURE_WARN);
 }
 
 CHERIBSDTEST(strfcap_textual, "Checks of %? and %%")
@@ -337,24 +355,24 @@ CHERIBSDTEST(strfcap_textual, "Checks of %? and %%")
 		cheribsdtest_failure_errx("(%s) produced (%s)", fmt, str);
 
 	fmt = "%?12345%a";
-	strfcap(str, sizeof(str), fmt, (uintcap_t)cap);
+	strfcap(str, sizeof(str), fmt, STRFCAP_CAP_CAST cap);
 	if (strncmp(str, "12345", 5) != 0)
 		cheribsdtest_failure_errx("(%s) did not include 12345 (%s)",
 		    fmt, str);
 
 	fmt = "%?12345%A";
-	strfcap(str, sizeof(str), fmt, (uintcap_t)cap);
+	strfcap(str, sizeof(str), fmt, STRFCAP_CAP_CAST cap);
 	if (strcmp(str, "") != 0)
 		cheribsdtest_failure_errx("(%s) of valid cap is not empty (%s)",
 		    fmt, str);
 
 	fmt = "%?12345%A";
-	strfcap(str, sizeof(str), fmt, (uintcap_t)cheri_tag_clear(cap));
+	strfcap(str, sizeof(str), fmt, STRFCAP_CAP_CAST cheri_tag_clear(cap));
 	if (strncmp(str, "12345", 5) != 0)
 		cheribsdtest_failure_errx("(%s) of untagged cap did not "
 		    "include 12345 (%s)", fmt, str);
 
-	cheribsdtest_success();
+	cheribsdtest_success_with_warn(SIGNATURE_WARN);
 }
 
 CHERIBSDTEST(strfcap_C, "Various checks of %C (%A and %P indirectly)")
@@ -365,28 +383,34 @@ CHERIBSDTEST(strfcap_C, "Various checks of %C (%A and %P indirectly)")
 #ifdef CHERI_FLAGS_CAP_MODE
 	void * __capability pcc_alt = __builtin_cheri_program_counter_get();
 #endif
+	ssize_t ret;
 
-	strfcap(data, sizeof(data), "%#C", scalar);
+	ret = strfcap(data, sizeof(data), "%#C", STRFCAP_CAP_CAST scalar);
+	CHERIBSDTEST_VERIFY2(ret > 0, "strfcap() failed");
 	if (strcmp(data, "0x4") != 0)
 		cheribsdtest_failure_errx("Wrong output for simple scalar '%s'",
 		    data);
 
-	strfcap(data, sizeof(data), "%#.4C", scalar);
+	ret = strfcap(data, sizeof(data), "%#.4C", STRFCAP_CAP_CAST scalar);
+	CHERIBSDTEST_VERIFY2(ret > 0, "strfcap() failed");
 	if (strcmp(data, "0x0004") != 0)
 		cheribsdtest_failure_errx("Wrong output for simple scalar "
 		    "with precision '%s'", data);
 
-	strfcap(data, sizeof(data), "%#8C", scalar);
+	ret = strfcap(data, sizeof(data), "%#8C", STRFCAP_CAP_CAST scalar);
+	CHERIBSDTEST_VERIFY2(ret > 0, "strfcap() failed");
 	if (strcmp(data, "     0x4") != 0)
 		cheribsdtest_failure_errx("Wrong output for simple scalar "
 		    "with padding '%s'", data);
 
-	strfcap(data, sizeof(data), "%#-8C", scalar);
+	ret = strfcap(data, sizeof(data), "%#-8C", STRFCAP_CAP_CAST scalar);
+	CHERIBSDTEST_VERIFY2(ret > 0, "strfcap() failed");
 	if (strcmp(data, "0x4     ") != 0)
 		cheribsdtest_failure_errx("Wrong output for simple scalar "
 		    "with left adjust padding '%s'", data);
 
-	strfcap(data, sizeof(data), "%#8.4C", scalar);
+	ret = strfcap(data, sizeof(data), "%#8.4C", STRFCAP_CAP_CAST scalar);
+	CHERIBSDTEST_VERIFY2(ret > 0, "strfcap() failed");
 	if (strcmp(data, "  0x0004") != 0)
 		cheribsdtest_failure_errx("Wrong output for simple scalar "
 		    "with precision and padding '%s'", data);
@@ -409,5 +433,5 @@ CHERIBSDTEST(strfcap_C, "Various checks of %C (%A and %P indirectly)")
 
 	test_strfcap_C_cap_one(cheri_tag_clear(datap), 5, "untagged stack array");
 
-	cheribsdtest_success();
+	cheribsdtest_success_with_warn(SIGNATURE_WARN);
 }
