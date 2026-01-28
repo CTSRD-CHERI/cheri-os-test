@@ -1,5 +1,7 @@
 .include <src.opts.mk>
 
+OS = uname -s
+
 SRCS=	cheribsdtest.c
 
 #XXX: Commented out test cases that haven't been ported yet
@@ -30,8 +32,7 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_tls.c							\
 	cheribsdtest_syscall.c						\
 	cheribsdtest_vm.c						\
-	cheribsdtest_strfcap.c		\
-	#cheribsdtest_zlib.c
+	cheribsdtest_strfcap.c
 .if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheribsdtest_bounds_subobject.c			\
 	cheribsdtest_bounds_varargs.c				\
@@ -44,6 +45,11 @@ SRCS+=	cheribsdtest_bounds_subobject.c			\
 #COMPARTMENT_POLICY=	${CHERIBSDTEST_DIR}/compartments.json
 #.endif
 #.endif
+
+# We currently don't have zlib available on Linux
+.if ${OS} == 'FreeBSD'
+SRCS+=	cheribsdtest_zlib.c
+.endif
 
 CHERIBSDTEST_DIR:=	${.PARSEDIR}
 .PATH: ${CHERIBSDTEST_DIR}
@@ -73,7 +79,6 @@ CFLAGS.cheribsdtest_bounds_subobject.c+=-cheri-bounds=subobject-safe
 
 MAN=
 
-OS = uname -s
 .if ${OS} == "FreeBSD"
 LIBADD+=	procstat util xo z
 .else
