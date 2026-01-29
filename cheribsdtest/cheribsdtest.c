@@ -807,7 +807,11 @@ static const char *
 _cheribsdtest_get_helper_path(const struct cheri_test *ctp)
 {
 	static char helper_path[PATH_MAX];
+#ifdef __FreeBSD__
 	const char *prefix = "/usr/libexec";
+#elif defined(__linux__)
+	const char *prefix = ".";
+#endif
 
 	if (ctp == NULL)
 		return (NULL);

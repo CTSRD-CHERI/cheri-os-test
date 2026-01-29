@@ -1,5 +1,7 @@
 .include <src.opts.mk>
 
+OS= uname -s
+
 #XXX: Commented out tests that haven't been ported yet
 #.if !${MACHINE_ABI:Mpurecap} || ${MK_LIB64} == "yes"
 #SUBDIR+=	hybrid \
@@ -29,6 +31,12 @@ SUBDIR+=	purecap
 #SUBDIR+=	benchmark-mt-c18n
 #.endif
 #.endif
+
+SUBDIR+=	malloc_early_constructor
+
+.if ${OS} == "FreeBSD"
+SUBDIR+=	malloc_revoke_enabled
+.endif
 
 SUBDIR_PARALLEL=
 

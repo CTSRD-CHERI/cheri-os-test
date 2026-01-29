@@ -156,8 +156,9 @@ skip_need_cheri_revoke(const struct cheri_test *ctp __attribute__((__unused__)))
 }
 
 const char *
-skip_need_default_cheri_revoke(const struct cheri_test *ctp __unused)
+skip_need_default_cheri_revoke(const struct cheri_test *ctp __attribute__((__unused__)))
 {
+#ifdef __FreeBSD__
 	int value = 0;
 	size_t len = sizeof(value);
 
@@ -169,4 +170,7 @@ skip_need_default_cheri_revoke(const struct cheri_test *ctp __unused)
 		return ("System disables revocation");
 	}
 	return (NULL);
+#elif defined(__linux__)
+	return ("Morello Linux and CHERI Linux don't support revocation");
+#endif
 }

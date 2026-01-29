@@ -30,14 +30,19 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/param.h>
+#ifdef __FreeBSD__
 #include <sys/procctl.h>
+
+#include <malloc_np.h>
+#endif
+
+#include <sys/param.h>
 #include <sys/wait.h>
 
 #include <errno.h>
-#include <malloc_np.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #include "cheribsdtest.h"
@@ -46,11 +51,15 @@ extern volatile void *eptr;
 volatile void *eptr;
 
 static const char *
-skip_malloc_revocation_disabled(const struct cheri_test *ctp __unused)
+skip_malloc_revocation_disabled(const struct cheri_test *ctp __attribute__((__unused__)))
 {
+#ifdef __FreeBSD__
 	if (malloc_revoke_enabled())
 		return (NULL);
 	return ("malloc quarantine disabled");
+#elif defined(__linux__)
+	return ("Morello Linux and CHERI Linux don't support revocation");
+#endif
 }
 
 CHERIBSDTEST(malloc_double_free, "malloc aborts on double free",
@@ -69,11 +78,12 @@ CHERIBSDTEST(malloc_double_free, "malloc aborts on double free",
 	cheribsdtest_failure_errx("malloc() did not abort");
 }
 
+
 CHERIBSDTEST(malloc_revoke_basic,
     "verify that a free'd pointer is revoked by malloc_revoke",
     .ct_check_skip = skip_malloc_revocation_disabled)
 {
-	volatile void *ptr __unused;
+	volatile void *ptr __attribute__((__unused__));
 
 	/*
 	 * Try to get the compiler to spill the pointer to memory.
@@ -82,10 +92,14 @@ CHERIBSDTEST(malloc_revoke_basic,
 
 	free(__DEVOLATILE(void *, ptr));
 
+#ifdef __FreeBSD__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	malloc_revoke();
 #pragma GCC diagnostic pop
+#elif defined(__linux__)
+#pragma message "Morello Linux and CHERI Linux don't support revocation"
+#endif
 	CHERIBSDTEST_VERIFY2(!cheri_tag_get(ptr),
 	    "revoked ptr not revoked %#lp", ptr);
 	CHERIBSDTEST_VERIFY2(!cheri_tag_get(eptr),
@@ -94,11 +108,12 @@ CHERIBSDTEST(malloc_revoke_basic,
 	cheribsdtest_success();
 }
 
+#ifdef __FreeBSD__
 CHERIBSDTEST(malloc_revoke_quarantine_force_flush_basic,
     "verify that a free'd pointer is revoked by malloc_revoke_quarantine_force_flush",
     .ct_check_skip = skip_malloc_revocation_disabled)
 {
-	volatile void *ptr __unused;
+	volatile void *ptr __attribute__((__unused__));
 	int ret;
 
 	/*
@@ -154,6 +169,9 @@ CHERIBSDTEST(malloc_revoke_quarantine_force_flush_twice,
 
 	cheribsdtest_success();
 }
+#elif defined(__linux__)
+#pragma message "Morello Linux and CHERI Linux don't support revocation"
+#endif
 
 CHERIBSDTEST(malloc_zero_size,
     "Check that allocators return non-NULL for size=0")
@@ -199,6 +217,11 @@ CHERIBSDTEST(malloc_zero_size,
 	cheribsdtest_success();
 }
 
+/*
+ * No else branch because CHERI Linux and Morello Linux don't support
+ * revocation yet.
+ */
+#ifdef __FreeBSD__
 static bool
 child_is_revoking(int pid)
 {
@@ -341,6 +364,7 @@ CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_enable_protctl_disable,
 	malloc_revocation_ctl_common_procctl(
 	    "malloc_revoke_enabled_suid_elfnote_enable", true, &arg);
 }
+#endif
 
 CHERIBSDTEST(malloc_early_constructor,
     "invoke malloc in an early constructor",
@@ -369,6 +393,7 @@ CHERIBSDTEST(malloc_early_constructor,
 	}
 }
 
+#ifdef __FreeBSD__
 static void
 check_mallocx(size_t size)
 {
@@ -417,3 +442,4 @@ CHERIBSDTEST(rallocx_alignment, "Check that rallocx aligns allocations")
 
 	cheribsdtest_success();
 }
+#endif
