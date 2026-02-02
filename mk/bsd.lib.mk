@@ -555,6 +555,8 @@ _libinstall:
 	    ${DESTDIR}${_LIBDIR}/${_SHLIB_LINK_LINK}
 .endfor
 .else
+.if !defined(NO_LIB_LINKS)
+# This option was added for cross builds, because GNU install doesn't understand -l.
 .if ${_SHLIBDIR} == ${_LIBDIR}
 .if ${SHLIB_LINK:Mlib*}
 	${INSTALL_RSYMLINK} ${_SHLINSTALLSYMLINKFLAGS} ${TAG_ARGS:D${TAG_ARGS},dev} \
@@ -574,6 +576,7 @@ _libinstall:
 .if exists(${DESTDIR}${_LIBDIR}/${SHLIB_NAME})
 	-chflags noschg ${DESTDIR}${_LIBDIR}/${SHLIB_NAME}
 	rm -f ${DESTDIR}${_LIBDIR}/${SHLIB_NAME}
+.endif # NO_LIB_LINK
 .endif
 .endif # _SHLIBDIR == _LIBDIR
 .endif # SHLIB_LDSCRIPT

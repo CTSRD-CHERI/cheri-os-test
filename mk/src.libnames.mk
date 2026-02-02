@@ -18,7 +18,6 @@ _PRIVATELIBS=	\
 		bsddialog \
 		bsdstat \
 		cbor \
-		cheribsdtest_dynamic \
 		devdctl \
 		event1 \
 		fido2 \

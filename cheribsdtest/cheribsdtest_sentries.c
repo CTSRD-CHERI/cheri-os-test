@@ -37,11 +37,16 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#ifdef __FreeBSD__
+/* XXXPM: Check if this is needed on CheriBSD */
+#include <sys/sysctl.h>
+#endif
+
 #include <sys/param.h>
 #include <sys/syscall.h>
-#include <sys/sysctl.h>
 
 #include <dlfcn.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #include "cheribsdtest.h"
@@ -79,21 +84,30 @@ check_fptr(uintptr_t fptr)
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 CHERIBSDTEST(sentry_dlsym,
-    "Check that a function pointer obtaine dfrom via dlsym is a sentry")
+    "Check that a function pointer obtained via dlsym is a sentry")
 {
 	double (*fptr)(double);
 	void *handle;
-	const char *libm_so;
+	const char *lib_so;
 
+#ifdef __FreeBSD__
 #ifdef COMPAT_libcompat
-	libm_so = "/usr/lib" COMPAT_libcompat "/" LIBM_SONAME;
+	lib_so = "/usr/lib" COMPAT_libcompat "/" LIBM_SONAME;
 #else
-	libm_so = "/lib/" LIBM_SONAME;
+	lib_so = "/lib/" LIBM_SONAME;
 #endif
-	if ((handle = dlopen(libm_so, RTLD_LAZY)) == NULL)
-		cheribsdtest_failure_errx("dlopen(%s) %s", libm_so, dlerror());
+	if ((handle = dlopen(lib_so, RTLD_LAZY)) == NULL)
+		cheribsdtest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
 	if ((fptr = dlsym(handle, "acos")) == NULL)
 		cheribsdtest_failure_err("dlsym(acos)");
+#elif __linux__
+	/* libm.so is not yet available on Linux */
+	lib_so = "./libcheribsdtest_dynamic.so.0";
+	if ((handle = dlopen(lib_so, RTLD_LAZY)) == NULL)
+		cheribsdtest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
+	if ((fptr = dlsym(handle, "cheribsdtest_dynamic_ifunc_impl")) == NULL)
+		cheribsdtest_failure_err("dlsym(cheribsdtest_dynamic_ifunc_impl)");
+#endif
 
 	check_fptr((uintptr_t)fptr);
 }

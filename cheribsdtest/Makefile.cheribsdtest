@@ -36,15 +36,15 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 .if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheribsdtest_bounds_subobject.c			\
 	cheribsdtest_malloc.c						\
-	cheribsdtest_bounds_varargs.c
-	#cheribsdtest_sentries.c
+	cheribsdtest_bounds_varargs.c				\
+		cheribsdtest_sentries.c
 
 #.if ${MK_COMPARTMENT_POLICY} != "no"
 #SRCS+=	cheribsdtest_compartments.c
 #CFLAGS.cheribsdtest_compartments.c+=-ffunction-sections
 #COMPARTMENT_POLICY=	${CHERIBSDTEST_DIR}/compartments.json
 #.endif
-#.endif
+.endif
 
 # We currently don't have zlib available on Linux
 .if ${OS} == 'FreeBSD'
@@ -86,16 +86,16 @@ LIBADD+=	procstat util xo z
 LIBADD+=	util xo bsd
 .endif
 
-#.ifdef CHERIBSD_DYNAMIC_TESTS
-#CFLAGS+=	-DCHERIBSD_DYNAMIC_TESTS
-#CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
+.ifdef CHERIBSD_DYNAMIC_TESTS
+CFLAGS+=	-DCHERIBSD_DYNAMIC_TESTS
+CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
 #CFLAGS+=	-I${SRCTOP}/lib/libcheribsdtest_dynamic
 #LIBADD+=	cheribsdtest_dynamic
 #SRCS+=		cheribsdtest_fptr_canon.c				\
 		cheribsdtest_lazy_bind.c
-#.else
+.else
 NO_SHARED?=	YES
-#.endif
+.endif
 
 # Both variants exist so we can test with and without libthr's interposition on
 # things like signals.

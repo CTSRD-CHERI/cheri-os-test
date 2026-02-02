@@ -11,9 +11,9 @@ OS= uname -s
 #.endif
 
 .if (${MACHINE_ABI:Mpurecap} && !${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64C} == "yes"
-SUBDIR+=	purecap
-		#purecap-dynamic \
-		purecap-dynamic-mt \
+SUBDIR+=	purecap \
+		purecap-dynamic
+		#purecap-dynamic-mt \
 		purecap-mt
 
 #.if ${MACHINE_CPUARCH} == "aarch64" && ${MACHINE_ABI:Mpurecap}
@@ -32,7 +32,8 @@ SUBDIR+=	purecap
 #.endif
 #.endif
 
-SUBDIR+=	malloc_early_constructor
+SUBDIR+=	malloc_early_constructor \
+		libcheribsdtest_dynamic
 
 .if ${OS} == "FreeBSD"
 SUBDIR+=	malloc_revoke_enabled
