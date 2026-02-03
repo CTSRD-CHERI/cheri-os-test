@@ -23,7 +23,13 @@
  * SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
+#include <cheri/cheri.h>
+#endif
+
 #include <sys/types.h>
+
+#include <cheri/cheric.h>
 
 #include <err.h>
 

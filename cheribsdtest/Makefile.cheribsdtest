@@ -89,9 +89,13 @@ LIBADD+=	util xo bsd
 .ifdef CHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	-DCHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
-#CFLAGS+=	-I${SRCTOP}/lib/libcheribsdtest_dynamic
-#LIBADD+=	cheribsdtest_dynamic
-#SRCS+=		cheribsdtest_fptr_canon.c				\
+CFLAGS+=	-I${SRCTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic
+LDFLAGS+=	-L${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/
+DPADD+=	${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/libcheribsdtest_dynamic.so
+LDADD+=	-Wl,-Bdynamic -lcheribsdtest_dynamic -Wl,-Bstatic
+# XXXPM: These fail, but the dynamic linker on some CHERI Linux flavours might
+#        be broken.
+SRCS+=		cheribsdtest_fptr_canon.c \
 		cheribsdtest_lazy_bind.c
 .else
 NO_SHARED?=	YES

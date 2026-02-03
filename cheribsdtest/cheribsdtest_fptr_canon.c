@@ -69,6 +69,7 @@ CHERIBSDTEST(fptr_canon_dlsym,
 	cheribsdtest_success();
 }
 
+#ifdef __FreeBSD__
 CHERIBSDTEST(fptr_canon_dlfunc,
     "Check that function pointers are canonical for dlfunc")
 {
@@ -84,6 +85,7 @@ CHERIBSDTEST(fptr_canon_dlfunc,
 
 	cheribsdtest_success();
 }
+#endif
 
 CHERIBSDTEST(fptr_canon_int,
     "Check that function pointers are canonical when relocated as integer "

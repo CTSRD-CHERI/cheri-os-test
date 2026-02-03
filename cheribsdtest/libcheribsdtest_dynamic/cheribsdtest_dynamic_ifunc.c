@@ -30,19 +30,35 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-
+#ifdef __FreeBSD__
 #include <machine/ifunc.h>
+#endif
+
+#include <sys/types.h>
 
 #include "cheribsdtest_dynamic.h"
 
 static int
 cheribsdtest_dynamic_ifunc_impl(void)
 {
-        return (42);
+	return (42);
 }
 
+#ifdef __FreeBSD__
 DEFINE_UIFUNC(, int, cheribsdtest_dynamic_ifunc, (void))
 {
 	return (cheribsdtest_dynamic_ifunc_impl);
 }
+#elif defined(__linux__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
+static int
+(*resolve_cheribsdtest_dynamic_ifunc(void))(void)
+{
+	return (cheribsdtest_dynamic_ifunc_impl);
+}
+#pragma clang diagnostic pop
+
+int
+cheribsdtest_dynamic_ifunc(void) __attribute__((ifunc("resolve_cheribsdtest_dynamic_ifunc")));
+#endif
