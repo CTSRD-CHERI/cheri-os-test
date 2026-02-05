@@ -218,12 +218,23 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 		const char *printf_format;
 		const char *desc;
 	} formats[] = {
-		/* XXXPM: Create a PR in the CheriBSD repo for this */
+#ifdef __FreeBSD__
+		{"%S", "%ld", "plain number"},
+		{"%.4S", "%.4ld", "precision"},
+		{"%16S", "%16ld", "padding"},
+		{"%-16S", "%-16ld", "right align padding"},
+		{"%16.4S", "%16.4ld", "padding and precision"},
+#elif defined(__linux__)
+		/*
+		 * XXPM: Double check. %lu should cause an integer overflow
+		 *       in some cases.
+		 */
 		{"%S", "%lu", "plain number"},
 		{"%.4S", "%.4lu", "precision"},
 		{"%16S", "%16lu", "padding"},
 		{"%-16S", "%-16lu", "right align padding"},
 		{"%16.4S", "%16.4lu", "padding and precision"},
+#endif
 
 		{"%xS", "%lx", "plain number"},
 		{"%#xS", "%#lx", "0x prefix"},
