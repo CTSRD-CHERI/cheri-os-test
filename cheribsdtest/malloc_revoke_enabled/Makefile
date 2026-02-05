@@ -13,13 +13,13 @@ SRCS=	malloc_revoke_enabled.c
 
 NO_SHARED=	malloc_revocation override only works in static binaries
 
-#${PROG}_elfnote_disable: ${PROG}
-#	cp ${.ALLSRC} ${.TARGET}
-#	${ELFCTL} -e +nocherirevoke ${.TARGET} || rm -f ${.TARGET}
+${PROG}_elfnote_disable: ${PROG}
+	cp ${.ALLSRC} ${.TARGET}
+	${ELFCTL} -e +nocherirevoke ${.TARGET} || rm -f ${.TARGET}
 
-#${PROG}_elfnote_enable: ${PROG}
-#	cp ${.ALLSRC} ${.TARGET}
-#	${ELFCTL} -e +cherirevoke ${.TARGET} || rm -f ${.TARGET}
+${PROG}_elfnote_enable: ${PROG}
+	cp ${.ALLSRC} ${.TARGET}
+	${ELFCTL} -e +cherirevoke ${.TARGET} || rm -f ${.TARGET}
 
 ${PROG}_suid: ${PROG}
 	cp ${.ALLSRC} ${.TARGET}
