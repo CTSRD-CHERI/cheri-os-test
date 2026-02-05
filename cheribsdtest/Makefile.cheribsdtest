@@ -93,6 +93,7 @@ CFLAGS+=	-I${SRCTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic
 LDFLAGS+=	-L${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/
 DPADD+=	${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/libcheribsdtest_dynamic.so
 
+LDFLAGS+= -Wl,-rpath=\$$ORIGIN
 .if ${OS} == "FreeBSD"
 # XXXPM: This is a bit untidy, but we plan to replace the Makefiles
 #        with cmake anyways, and so maybe its OK in the interim.
