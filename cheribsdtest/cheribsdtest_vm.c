@@ -108,9 +108,10 @@ gen_shm_obj_name(char *shm_obj_name, size_t len)
 	CHERIBSDTEST_VERIFY2(len >= 32, "Buffer for shm object name too small");
 	memset(shm_obj_name, 0, len);
 	const char *charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-	strcpy(shm_obj_name, "cheribsdtest_shm-");
-	for (size_t i = 17; i < len; i++)
+	strcpy(shm_obj_name, "/cheribsdtest_shm-");
+	for (size_t i = 18; i < len - 1; i++)
 		shm_obj_name[i] = charset[random() % (sizeof(charset) - 1)];
+	shm_obj_name[len - 1] = '\0';
 }
 
 static int
