@@ -43,31 +43,7 @@
 #define _GNU_SOURCE
 #endif
 
-#if defined(__FreeBSD__)
-#include <sys/event.h>
-#include <sys/queue.h>
-#include <sys/sysctl.h>
 
-#include <machine/frame.h>
-#include <machine/trap.h>
-#include <machine/vmparam.h>
-
-#include <cheri/cheri.h>
-
-#include <libprocstat.h>
-#elif defined(__linux__)
-#include <bits/syscall.h>
-#include <bsd/sys/queue.h>
-#include <linux/sched.h>
-#include <sys/cheri.h>
-
-#include <dirent.h>
-#include <math.h>
-#endif
-
-#if defined(CHERIBSDTEST_CHERI_REVOKE_TESTS)
-#include <cheri/revoke.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -96,6 +72,29 @@
 
 #ifdef CHERIBSD_THREAD_TESTS
 #include <pthread.h>
+#endif
+
+#if defined(__FreeBSD__)
+#include <sys/event.h>
+#include <sys/queue.h>
+#include <sys/sysctl.h>
+
+#include <machine/frame.h>
+#include <machine/trap.h>
+#include <machine/vmparam.h>
+
+#include <cheri/cheri.h>
+#include <cheri/revoke.h>
+
+#include <libprocstat.h>
+#elif defined(__linux__)
+#include <bits/syscall.h>
+#include <bsd/sys/queue.h>
+#include <linux/sched.h>
+#include <sys/cheri.h>
+
+#include <dirent.h>
+#include <math.h>
 #endif
 
 #include "cheribsdtest.h"
@@ -424,7 +423,7 @@ CHERIBSDTEST(vm_tag_shm_open_anon_shared2x,
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	vm_tag_shm_open_shared2x(fd);
-	cheribsdtest_success(SHARED_MAPPING_WARN);
+	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
 }
 #endif
 
@@ -997,7 +996,7 @@ CHERIBSDTEST(vm_cow_named_read,
 	vm_cow_read(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
 #ifdef __FreeBSD__
-	cheribsdtest_success_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
 #elif defined(__linux__)
 	cheribsdtest_failure_errx("tagged store succeeded");
 #endif
@@ -1106,7 +1105,7 @@ CHERIBSDTEST(vm_cow_named_write,
 	vm_cow_write(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
 #ifdef __FreeBSD__
-	cheribsdtest_success_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
 #elif defined(__linux__)
 	cheribsdtest_failure_errx("tagged store succeeded");
 #endif

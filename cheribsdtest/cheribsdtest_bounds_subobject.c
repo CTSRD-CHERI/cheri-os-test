@@ -36,6 +36,7 @@
 #endif
 
 #if __linux__
+#include <bsd/sys/queue.h>
 // This needs to be included for the definition of SEGV_CAPBOUNDSERR
 #include <linux/signal.h>
 // This define avoids a redefinition of sigset_t in musl's alltypes.h
@@ -43,11 +44,11 @@
 #endif
 
 #include <sys/types.h>
-#include <bsd/sys/queue.h>
 #if __FreeBSD__
 #include <sys/signal.h>
 #include <sys/stddef.h>
 #include <sys/sysctl.h>
+#include <sys/queue.h>
 #endif
 #include <sys/time.h>
 

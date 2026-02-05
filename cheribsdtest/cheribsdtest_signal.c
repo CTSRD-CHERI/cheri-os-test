@@ -34,6 +34,8 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#include <sys/types.h>
+
 #if defined(__FreeBSD__)
 #include <machine/vmparam.h>
 
@@ -266,7 +268,11 @@ CHERIBSDTEST(signal_returncap,
 #endif
 	uintmax_t v, expect;
 
+#ifdef __FreeBSD__
+	sa.sa_handler = returncap_func;
+#elif defined(__linux__)
 	sa.handler = returncap_func;
+#endif
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	/*

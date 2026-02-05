@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-OS= uname -s
+OS!=	uname -s
 
 # Don't pass -S because GNU install doesn't understand it
 NO_SAFE_LIBINSTALL=	yes
@@ -18,6 +18,7 @@ SRCS=	cheribsdtest_dynamic_fptr.c					\
 	cheribsdtest_dynamic_tls.c
 
 .if ${MACHINE_CPUARCH} == "aarch64" && ${OS} == "FreeBSD"
+# XXXPM: Why the CPUARCH condition?
 SRCS+=	cheribsdtest_dynamic_ifunc.c
 .endif
 

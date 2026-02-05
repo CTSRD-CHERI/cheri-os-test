@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-OS= unsame -s
+OS!=	uname -s
 
 SUBDIR=		purecap \
 		purecap-dynamic \

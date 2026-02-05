@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-OS = uname -s
+OS!=	uname -s
 
 SRCS=	cheribsdtest.c
 
@@ -92,7 +92,14 @@ CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
 CFLAGS+=	-I${SRCTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic
 LDFLAGS+=	-L${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/
 DPADD+=	${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/libcheribsdtest_dynamic.so
+
+.if ${OS} == "FreeBSD"
+# XXXPM: This is a bit untidy, but we plan to replace the Makefiles
+#        with cmake anyways, and so maybe its OK in the interim.
+LDADD+=	-Wl,-Bdynamic -lcheribsdtest_dynamic
+.else
 LDADD+=	-Wl,-Bdynamic -lcheribsdtest_dynamic -Wl,-Bstatic
+.endif
 # XXXPM: These fail, but the dynamic linker on some CHERI Linux flavours might
 #        be broken.
 SRCS+=		cheribsdtest_fptr_canon.c \

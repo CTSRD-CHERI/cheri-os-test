@@ -1,6 +1,22 @@
 .include <src.opts.mk>
 
-OS= uname -s
+OS!=	uname -s
+
+.if ${OS} == "FreeBSD"
+BINOWN!= whoami
+BINDIR= ${.CURDIR}/build/
+LIBDIR= ${.CURDIR}/build/
+SHLIBDIR= ${.CURDIR}/build/
+MAKEOBJDIRPREFIX= ${.CURDIR}/build/obj/
+.MAKEOVERRIDES+= MAKEOBJDIRPREFIX \
+	BINDIR \
+	BINOWN \
+	LIBDIR \
+	SHLIBDIR
+.endif
+
+SUBDIR+=	malloc_early_constructor \
+		libcheribsdtest_dynamic
 
 #XXX: Commented out tests that haven't been ported yet
 #.if !${MACHINE_ABI:Mpurecap} || ${MK_LIB64} == "yes"
@@ -31,9 +47,6 @@ SUBDIR+=	purecap \
 #SUBDIR+=	benchmark-mt-c18n
 #.endif
 #.endif
-
-SUBDIR+=	malloc_early_constructor \
-		libcheribsdtest_dynamic
 
 .if ${OS} == "FreeBSD"
 SUBDIR+=	malloc_revoke_enabled
