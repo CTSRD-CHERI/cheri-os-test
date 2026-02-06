@@ -18,7 +18,6 @@ SRCS+=	cheribsdtest_bounds_globals.c					\
 	cheribsdtest_fault.c						\
 	cheribsdtest_flag_captured.c					\
 	cheribsdtest_fs.c						\
-	cheribsdtest_ifunc.c						\
 	cheribsdtest_kbounce.c						\
 	cheribsdtest_internal.c 					\
 	cheribsdtest_local_global.c					\
@@ -107,6 +106,12 @@ SRCS+=		cheribsdtest_fptr_canon.c \
 		cheribsdtest_lazy_bind.c
 .else
 NO_SHARED?=	YES
+.endif
+
+# We don't add these tests on Linux because Musl libc doesn't support ifuncs.
+# XXXPM: Check if they are included on CheriBSD as expected
+.ifdef CHERIBSD_IFUNC_TESTS && ${OS} != "Linux"
+SRCS+=		cheribsdtest_ifunc.c
 .endif
 
 # Both variants exist so we can test with and without libthr's interposition on
