@@ -29,8 +29,13 @@ SUBDIR+=	malloc_early_constructor \
 .if (${MACHINE_ABI:Mpurecap} && !${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64C} == "yes"
 SUBDIR+=	purecap \
 		purecap-dynamic
-		#purecap-dynamic-mt \
+
+# A cast in Morello Linux's include/sched.h would causes a compile-time error
+# because it drops a const qualifier.
+.if !(${MACHINE_CPUARCH} == "aarch64" && ${OS} == "Linux")
+SUBDIR+=	purecap-dynamic-mt \
 		purecap-mt
+.endif
 
 #.if ${MACHINE_CPUARCH} == "aarch64" && ${MACHINE_ABI:Mpurecap}
 #SUBDIR+=	mt-c18n

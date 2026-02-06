@@ -36,6 +36,10 @@
 
 #include <sys/types.h>
 
+#ifdef __FreeBSD__
+#include <cheri/cheri.h>
+#endif
+
 #include <pthread.h>
 #include <string.h>
 
@@ -71,7 +75,7 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static int thread_done;
 
 static void *
-test_tls_threads_get_vars(void *arg __unused)
+test_tls_threads_get_vars(void *arg __attribute__((__unused__)))
 {
 	int error;
 
