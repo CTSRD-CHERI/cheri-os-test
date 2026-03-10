@@ -43,8 +43,6 @@
 #define _GNU_SOURCE
 #endif
 
-
-
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/mman.h>
@@ -119,11 +117,16 @@ create_named_shm_obj(char *name, size_t len)
 {
 	bool created = false;
 	int fd;
+	int attempts = 0;
 
 	while (!created) {
 		gen_shm_obj_name(name, len);
 		fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600);
 		if (fd != -1) created = true;
+		attempts++;
+		if (attempts == 10)
+			cheribsdtest_failure_errx("Couldn't create shared memory object");
+
 	}
 
 	return fd;
