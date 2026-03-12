@@ -52,6 +52,8 @@
 
 #ifdef __FreeBSD__
 #include <machine/sysarch.h>
+#elif defined(__linux__)
+#include <machine/cherireg.h>
 #endif
 
 #include <err.h>
@@ -105,21 +107,38 @@ CHERIBSDTEST(cheriabi_mincore,
 	    "whole allocation from mmap without VMEM perm");
 #endif
 
+#if defined(__aarch64__)
+#define EXEC_ONLY CHERI_PERM_EXECUTE | CHERI_PERM_GLOBAL
+#define READ_ONLY CHERI_PERM_LOAD | CHERI_PERM_GLOBAL
+#define WRITE_ONLY CHERI_PERM_STORE | CHERI_PERM_GLOBAL
+#elif defined(__riscv_zcheripurecap)
+/*
+ * XXXPM: mincore() fails if the first block of reserved permissions bits is
+ *        not set; surprisingly, the second block doesn't need to be set.
+ *        The RV64Y permission bit field has reserved blocks, as documented
+ *        in https://riscv.github.io/riscv-cheri/#CLRPERM (see Figure 6).
+ *        The first two blocks default to 1 and the third to 0.
+ *        The specification does not state whether it is legal to unset a
+ *        reserved bit that defaults to 1.
+ */
+#define EXEC_ONLY (CHERI_PERM_EXECUTE | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#define READ_ONLY (CHERI_PERM_READ | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#define WRITE_ONLY (CHERI_PERM_WRITE | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#endif
 	/* Execute-only */
-	cap = cheri_perms_and(pages, CHERI_PERM_EXECUTE | CHERI_PERM_GLOBAL);
+	cap = cheri_perms_and(pages, EXEC_ONLY);
 	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_EXECUTE");
 
 	/* Read-only */
-	cap = cheri_perms_and(pages, CHERI_PERM_LOAD | CHERI_PERM_GLOBAL);
+	cap = cheri_perms_and(pages, READ_ONLY);
 	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_LOAD");
 
 	/* Write-only */
-	cap = cheri_perms_and(pages, CHERI_PERM_STORE | CHERI_PERM_GLOBAL);
+	cap = cheri_perms_and(pages, WRITE_ONLY);
 	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_STORE");
-
 	/*
 	 * mincore(2) needs to work even if the page isn't fully covered.
 	 * Restrict bounds to cover a single byte of the first and last

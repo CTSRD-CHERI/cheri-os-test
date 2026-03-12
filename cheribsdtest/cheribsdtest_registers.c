@@ -62,23 +62,30 @@
 #include <machine/vmparam.h>
 
 #include <cheri/cheri.h>
-#elif defined(__linux__) && defined(__aarch64__)
+#elif defined(__linux__)
 #include "sys/cheri.h"
 #include "sys/resource.h"
 
+#include "cheri/cherireg.h"
 #include "machine/cherireg.h"
+
+#elif defined(__riscv)
+#include "asm/cheri.h"
+#include "cheriintrin.h"
 #endif
 
-#if defined(__linux__) && defined(__aarch64__)
-#define	CHERI_CAP_USER_CODE_PERMS	CHERI_PERMS_USERSPACE_CODE
+#if defined(__linux__)
 #define	CHERI_CAP_USER_DATA_BASE	get_minuser_address()
-#define MAXSSIZ						get_max_stack_size()
-#define CHERI_CAP_USER_DATA_PERMS	(CHERI_PERM_GLOBAL | CHERI_PERM_MUTABLE_LOAD | \
-									CHERI_PERM_STORE_LOCAL_CAP | \
-									CHERI_PERM_STORE_CAP | CHERI_PERM_LOAD_CAP | \
-									CHERI_PERM_STORE | CHERI_PERM_LOAD)
+#define	MAXSSIZ						get_max_stack_size()
 
-static unsigned long get_minuser_address() {
+#if defined(__aarch64__)
+#define	CHERI_CAP_USER_CODE_PERMS	CHERI_PERMS_USERSPACE_CODE
+#define	CHERI_CAP_USER_DATA_PERMS	(CHERI_PERM_GLOBAL | CHERI_PERM_MUTABLE_LOAD | \
+	CHERI_PERM_STORE_LOCAL_CAP | CHERI_PERM_STORE_CAP | CHERI_PERM_LOAD_CAP | \
+	CHERI_PERM_STORE | CHERI_PERM_LOAD)
+#endif
+
+static unsigned long get_minuser_address(void) {
 	FILE *f;
 	unsigned long minaddr;
 
@@ -90,7 +97,7 @@ static unsigned long get_minuser_address() {
 	return minaddr;
 }
 
-static unsigned long get_max_stack_size() {
+static unsigned long get_max_stack_size(void) {
 	struct rlimit rl;
 
 	if (getrlimit(RLIMIT_STACK, &rl) != 0)
@@ -98,7 +105,7 @@ static unsigned long get_max_stack_size() {
 
 	return rl.rlim_max;
 }
-#endif
+#endif /* defined(__linux__) */
 
 /*
  * These tests assume that the compiler and run-time libraries won't muck with
@@ -190,8 +197,8 @@ check_initreg_code(void * __capability c)
 		cheribsdtest_failure_errx("perms %jx (storecap present)", v);
 #endif
 #ifdef HAS_CHERI_PERM_CAP
-        if ((v & CHERI_PERM_CAP) == 0)
-		cheribsdtest_failure_errx("perms %jx (cap missing)", v);
+	if ((v & CHERI_PERM_CAP) == 0)
+			cheribsdtest_failure_errx("perms %jx (cap missing)", v);
 #endif
 
 	if ((v & CHERI_PERM_STORE_LOCAL_CAP) != 0)
@@ -406,7 +413,8 @@ CHERIBSDTEST(initregs_stack_user_perms,
 	if ((v & CHERI_PERMS_SWALL) != 0)
 #endif
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %x)",
-		    v & CHERI_PERMS_SWALL, CHERI_STACK_SWPERMS);
+		    (uintmax_t) v & CHERI_PERMS_SWALL,
+		    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM));
 	cheribsdtest_success();
 }
 
@@ -449,7 +457,7 @@ CHERIBSDTEST(initregs_stack,
 	 * there, regardless of consistency with the kernel headers.
 	 */
 	if ((v & CHERI_PERM_EXECUTE) != 0)
-		cheribsdtest_failure_errx("perms %jx (execute present)", v);
+		cheribsdtest_failure_errx("perms %jx (execute present)", (uintmax_t) v);
 
 	if ((v & CHERI_PERM_LOAD) == 0)
 		cheribsdtest_failure_errx("perms %jx (load missing)", (uintmax_t) v);
@@ -490,18 +498,18 @@ CHERIBSDTEST(initregs_stack,
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", (uintmax_t) v);
 
 	if (v != CHERI_CAP_USER_DATA_PERMS)
-		cheribsdtest_failure_errx("perms %jx (expected %jx)", v,
+		cheribsdtest_failure_errx("perms %jx (expected %jx)", (uintmax_t) v,
 		    (uintmax_t)(CHERI_CAP_USER_DATA_PERMS));
 
 	/* Sealed bit. */
 	v = cheri_is_sealed(c);
 	if (v != 0)
-		cheribsdtest_failure_errx("sealed %jx (expected 0)", v);
+		cheribsdtest_failure_errx("sealed %jx (expected 0)", (uintmax_t) v);
 
 	/* Tag bit. */
 	v = cheri_tag_get(c);
 	if (v != 1)
-		cheribsdtest_failure_errx("tag %jx (expected 1)", v);
+		cheribsdtest_failure_errx("tag %jx (expected 1)", (uintmax_t) v);
 	cheribsdtest_success();
 }
 

@@ -61,10 +61,40 @@
 #include <morello_linux_compat.h>
 #endif
 
+#define	NOT_IMPL_MSG "This test hasn't been fully implemented for RISC-V yet"
+
 #define	STR_VAL	"123"
 
+static const char *
+skip_local_global_required(const struct cheri_test *test __attribute__((__unused__)))
+{
+#if defined(__riscv_zcheripurecap)
+	FILE *f;
+	ssize_t buf_size = 4096;
+	char *line = malloc(buf_size);
+
+	f = fopen("/proc/cpuinfo", "r");
+	if (f == NULL)
+		cheribsdtest_failure_errx("Couldn't open /proc/cpuinfo");
+
+	while (getline(&line, &buf_size, f) != -1) {
+		if (strstr(line, "isa") != NULL) {
+			if (strstr(line, "zylevels1") != NULL) {
+				free(line);
+				return NULL;
+			}
+		}
+	}
+	free(line);
+	return ("zylevels1 required");
+#else
+	return NULL;
+#endif
+}
+
 CHERIBSDTEST(store_local_allowed,
-    "Checks local capabilities can be stored via default capabilities")
+    "Checks local capabilities can be stored via default capabilities",
+    .ct_check_skip = skip_local_global_required,)
 {
 	char str[] = STR_VAL;
 	char * __capability cap = str;
@@ -76,8 +106,12 @@ CHERIBSDTEST(store_local_allowed,
 	CHERIBSDTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
+#if defined(__aarch64__)
 	/* Make cap local */
 	cap = cheri_perms_and(cap, ~CHERI_PERM_GLOBAL);
+#elif defined(__riscv)
+	cheribsdtest_failure_errx(NOT_IMPL_MSG);
+#endif
 
 	/* Store local cap through cap with store-local permission */
 	*targetp = cap;
@@ -94,11 +128,11 @@ CHERIBSDTEST(store_local_disallowed,
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
     .ct_si_code = SI_CODE_STORELOCAL,
-    .ct_si_trapno = TRAPNO_LOAD_STORE
+    .ct_si_trapno = TRAPNO_LOAD_STORE,
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
-    .ct_si_code = SEGV_CAPPERMERR
+    .ct_si_code = SEGV_CAPPERMERR,
 #endif
 )
 #else

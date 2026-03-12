@@ -61,7 +61,12 @@
 
 #define	cheri_andperm(x, y)	__builtin_cheri_perms_and((x), (y))
 #define	cheri_clearperm(x, y)	__builtin_cheri_perms_and((x), ~(y))
-#define	cheri_cleartag(x)	__builtin_cheri_tag_clear((x))
+#ifdef __riscv_zcheripurecap
+/* This is a temporary workaround for the missing builtin */
+#define	cheri_tag_clear(x)	__builtin_cheri_high_set(x, __builtin_cheri_high_get(x))
+#else
+#define	cheri_tag_clear(x)	__builtin_cheri_tag_clear((x))
+#endif
 #define	cheri_incoffset(x, y)	__builtin_cheri_offset_increment((x), (y))
 #define	cheri_setoffset(x, y)	__builtin_cheri_offset_set((x), (y))
 #define	cheri_setaddress(x, y)	__builtin_cheri_address_set((x), (y))
@@ -184,12 +189,18 @@ cheri_can_access(const void * __capability cap, ptraddr_t perms, ptraddr_t base,
 	cheri_setbounds(    \
 	    (__cheri_tocap __typeof__((ptr)[0]) *__capability)ptr, len)
 
+#if defined(__aarch64__)
 #define cheri_ptrperm(ptr, len, perm)	\
 	cheri_andperm(cheri_ptr(ptr, len), perm | CHERI_PERM_GLOBAL)
+#elif defined(__riscv_zcheripurecap)
+#define cheri_ptrperm(ptr, len, perm)	\
+	cheri_andperm(cheri_ptr(ptr, len), perm)
+#endif
 
 #define cheri_ptrpermoff(ptr, len, perm, off)	\
 	cheri_setoffset(cheri_ptrperm(ptr, len, perm), off)
 
+#ifdef __aarch64__
 /*
  * Construct a capability suitable to describe a type identified by 'ptr';
  * set it to zero-length with the offset equal to the base.  The caller must
@@ -209,6 +220,7 @@ cheri_maketype(void * __capability root_type, register_t type)
 	c = cheri_andperm(c, CHERI_PERM_GLOBAL | CHERI_PERM_SEAL); /* Perms. */
 	return (c);
 }
+#endif
 
 static inline void * __capability
 cheri_zerocap(void)

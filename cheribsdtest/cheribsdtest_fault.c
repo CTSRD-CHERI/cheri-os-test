@@ -138,7 +138,11 @@ CHERIBSDTEST(nofault_perm_load,
     "Exercise capability load permission success")
 {
 	char * __capability arrayp = cheri_ptrperm(array, sizeof(array),
+#if defined(__riscv)
+	    CHERI_PERM_READ);
+#else
 	    CHERI_PERM_LOAD);
+#endif
 
 	sink = arrayp[0];
 	cheribsdtest_success();
@@ -188,35 +192,6 @@ CHERIBSDTEST(illegal_perm_seal,
 }
 #endif
 
-CHERIBSDTEST(fault_perm_store,
-    "Exercise capability store permission failure",
-#ifdef __FreeBSD__
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
-    .ct_signum = SIGPROT,
-    .ct_si_code = PROT_CHERI_PERM,
-    .ct_si_trapno = TRAPNO_LOAD_STORE
-#elif defined(__linux__)
-	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-	.ct_signum = SIGSEGV,
-	.ct_si_code = SEGV_CAPPERMERR
-#endif
-)
-{
-	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
-
-	arrayp[0] = sink;
-}
-
-CHERIBSDTEST(nofault_perm_store,
-    "Exercise capability store permission success")
-{
-	char * __capability arrayp = cheri_ptrperm(array, sizeof(array),
-	    CHERI_PERM_STORE);
-
-	arrayp[0] = sink;
-	cheribsdtest_success();
-}
-
 #ifdef HAS_CHERI_PERM_SEAL
 CHERIBSDTEST(illegal_perm_unseal,
     "Exercise capability unseal permission failure",
@@ -263,7 +238,40 @@ CHERIBSDTEST(illegal_perm_unseal,
 	cheribsdtest_failure_errx("cheri_unseal() performed successfully "
 	    "%#lp with bad unsealcap %#lp", unsealed, sealcap);
 }
+#endif // HAS_CHERI_PERM_SEAL
+
+CHERIBSDTEST(fault_perm_store,
+    "Exercise capability store permission failure",
+#ifdef __FreeBSD__
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
+    .ct_signum = SIGPROT,
+    .ct_si_code = PROT_CHERI_PERM,
+    .ct_si_trapno = TRAPNO_LOAD_STORE
+#elif defined(__linux__)
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPPERMERR
 #endif
+)
+{
+	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
+
+	arrayp[0] = sink;
+}
+
+CHERIBSDTEST(nofault_perm_store,
+    "Exercise capability store permission success")
+{
+	char * __capability arrayp = cheri_ptrperm(array, sizeof(array),
+#ifdef __riscv
+	    CHERI_PERM_WRITE);
+#else
+	    CHERI_PERM_STORE);
+#endif
+
+	arrayp[0] = sink;
+	cheribsdtest_success();
+}
 
 CHERIBSDTEST(fault_tag, "Store via untagged capability",
 #ifdef __FreeBSD__
@@ -272,9 +280,9 @@ CHERIBSDTEST(fault_tag, "Store via untagged capability",
     .ct_si_code = PROT_CHERI_TAG,
     .ct_si_trapno = TRAPNO_LOAD_STORE
 #elif defined(__linux__)
-	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-	.ct_signum = SIGSEGV,
-	.ct_si_code = SEGV_CAPTAGERR
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPTAGERR
 #endif
 )
 {

@@ -46,9 +46,14 @@
 
 #ifdef __linux__
 #include <stddef.h>
+#include <stdio.h>
 #include <sys/uio.h>
+#include <sys/stat.h>
 #include <asm/ptrace.h>
 #include <linux/elf.h>
+#ifdef __riscv
+#include <asm/elf.h>
+#endif
 #endif
 
 #include <cheri/cheric.h>
@@ -272,10 +277,7 @@ CHERIBSDTEST(ptrace_writecap, "Basic tests of PIOD_WRITE_CHERI_CAP")
 }
 
 #elif defined(__linux__)
-
-// XXX: Do we have a better way to check if we are building for Morello?
-#if defined(NT_ARM_MORELLO)
-
+#if defined(__aarch64__)
 CHERIBSDTEST(ptrace_getcapregs, "Tests PTRACE_GETREGSET with NT_ARM_MORELLO")
 {
 	pid_t pid;
@@ -297,8 +299,7 @@ CHERIBSDTEST(ptrace_getcapregs, "Tests PTRACE_GETREGSET with NT_ARM_MORELLO")
 	cheribsdtest_success();
 }
 
-CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO")
-{
+CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO") {
 	pid_t pid;
 	struct user_morello_state get_regs, set_regs;
 	struct iovec get_iov = {.iov_base = &get_regs, .iov_len = sizeof(get_regs)};
@@ -349,6 +350,119 @@ CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO")
 	cheribsdtest_success();
 }
 
+#elif defined(__riscv)
+/*
+ * XXXPM: The test cases "ptrace_getcapregs" and "ptrace_setcapregs" are in
+ *        principle the same on aarch64 and RISCV. It might make sense to
+ *        unify the per-architecture test cases, potentially with #ifdefs
+ *        within the test cases, to improve maintainability.
+ */
+CHERIBSDTEST(ptrace_getcapregs,
+	"Tests PTRACE_GETREGSET")
+{
+	pid_t pid;
+	elf_gregset_t regs;
+	struct iovec iov = {.iov_base = &regs, .iov_len = sizeof(regs)};
+
+	pid = fork_child();
+
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, (void *) NT_PRSTATUS,
+		&iov));
+
+	uintptr_t bitmap = regs[33];
+
+	CHERIBSDTEST_VERIFY2((bitmap & 1) == 1, "PCC tag must be set");
+	CHERIBSDTEST_VERIFY2(((bitmap >> 1) & 1) == 1, "RA tag must be set");
+	CHERIBSDTEST_VERIFY2(((bitmap >> 2) & 1) == 1, "SP tag must be set");
+	CHERIBSDTEST_VERIFY2(((bitmap >> 3) & 1) == 1, "GP tag must be set");
+	CHERIBSDTEST_VERIFY2(((bitmap >> 4) & 1) == 1, "TP tag must be set");
+
+	finish_child(pid);
+	cheribsdtest_success();
+}
+
+#ifdef __riscv_zcheripurecap
+static bool
+is_running_on_qemu()
+{
+	char buf[1024];
+	FILE *f = fopen("/sys/firmware/devicetree/base/model", "r");
+	while (fgets(buf, sizeof(buf), f)) {
+		if (strstr(buf, "qemu")) {
+			fclose(f);
+			return true;
+		}
+	}
+	fclose(f);
+	return false;
+}
+#endif
+
+CHERIBSDTEST(ptrace_setcapregs,
+	"Tests PTRACE_SETREGSET")
+{
+	pid_t pid;
+	elf_gregset_t get_regs, set_regs;
+	struct iovec get_iov = {.iov_base = &get_regs, .iov_len = sizeof(get_regs)};
+	struct iovec set_iov = {.iov_base = &set_regs, .iov_len = sizeof(set_regs)};
+	__uint128_t c5_old_val;
+	uint8_t     c5_old_tag;
+	__uint128_t c5_new_val;
+	int ret;
+
+#ifdef __riscv_zcheripurecap
+	/*
+	 * This test case trips an assert Qemu. The issue is know:
+	 * https://github.com/CHERI-Alliance/qemu/pull/16
+	 */
+	if (is_running_on_qemu()) {
+		cheribsdtest_failure_errx("This test case wasn't executed " \
+			"because it crashes Qemu");
+	}
+#endif
+
+	memset(&get_regs, 0, sizeof(get_regs));
+	memset(&set_regs, 0, sizeof(set_regs));
+
+	pid = fork_child();
+
+	// Save original value of c5, so that we can restore it later
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, (void *) NT_PRSTATUS,
+		&get_iov));
+	c5_old_val = get_regs[5];
+	c5_old_tag = get_regs[33] & 0x1;
+
+	// Set reg5 to a valid capability
+	memcpy(&set_regs, &get_regs, sizeof(set_regs));
+	c5_new_val = set_regs[0]; // PCC
+	set_regs[5] = c5_new_val;
+	set_regs[33] |= (0x1 << 5);
+	ret = ptrace(PTRACE_SETREGSET, pid, (void *) NT_PRSTATUS, &set_iov);
+	cheribsdtest_success();
+
+	CHERIBSDTEST_VERIFY2(ret != -EPERM, "PTRACE_POKECAP is only allowed if " \
+									"the sysctl cheri.ptrace_forge_cap is set");
+
+	// Get register set to check if reg5 was set successfully
+	memset(&get_regs, 0, sizeof(get_regs));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, (void *) NT_PRSTATUS,
+		&get_iov));
+
+	CHERIBSDTEST_VERIFY2(get_regs[5] == c5_new_val, "c5 wasn't set");
+	CHERIBSDTEST_VERIFY2(((get_regs[33] >> 5) & 0x1) == 0x1, "Tag wasn't set");
+
+	// Restore c5
+	memcpy(&set_regs, &get_regs, sizeof(set_regs));
+	set_regs[5] = c5_old_val;
+	if (c5_old_tag == 0)
+		set_regs[33] &= ~(0x1 << 5);
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_SETREGSET, pid, (void *) NT_PRSTATUS,
+		&set_iov));
+
+	finish_child(pid);
+
+	cheribsdtest_success();
+}
 #endif
 
 CHERIBSDTEST(ptrace_peekcap, "Basic tests of ptrace PTRACE_PEEKCAP")
@@ -387,12 +501,29 @@ CHERIBSDTEST(ptrace_peekcap, "Basic tests of ptrace PTRACE_PEEKCAP")
 	cheribsdtest_success();
 }
 
+static bool ptrace_forge_cap_sysctl_exists()
+{
+	const char *path = "/proc/sys/cheri/ptrace_forge_cap";
+	struct stat s;
+	int ret;
+
+	ret = stat(path, &s);
+	if (ret == -1 && errno == ENOENT)
+		return false;
+	CHERIBSDTEST_VERIFY2(ret == 0, "stat() failed");
+	return true;
+}
+
 CHERIBSDTEST(ptrace_pokecap, "Basic tests of ptrace PTRACE_POKECAP")
 {
 	pid_t pid;
 	struct user_cap write_cap, read_cap;
 	char **map;
 	int ret;
+
+	/* XXXPM: Test this on Morello Linux */
+	CHERIBSDTEST_VERIFY2(ptrace_forge_cap_sysctl_exists(),
+		"sysctl cheri.ptrace_forge_cap does not exist");
 
 	map = aligned_alloc(16, getpagesize());
 	memset(map, 0, getpagesize());
@@ -424,4 +555,4 @@ CHERIBSDTEST(ptrace_pokecap, "Basic tests of ptrace PTRACE_POKECAP")
 	cheribsdtest_success();
 }
 
-#endif
+#endif /* defined(__linux__) */

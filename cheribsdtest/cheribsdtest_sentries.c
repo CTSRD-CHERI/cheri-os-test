@@ -40,6 +40,8 @@
 #ifdef __FreeBSD__
 /* XXXPM: Check if this is needed on CheriBSD */
 #include <sys/sysctl.h>
+#elif __linux__
+#include "cheri/cherireg.h"
 #endif
 
 #include <sys/param.h>
@@ -81,6 +83,14 @@ check_fptr(uintptr_t fptr)
 
 	cheribsdtest_success();
 }
+
+#if defined(__linux__) && defined(__riscv_zcheripurecap)
+CHERIBSDTEST(otype_sentry_definition,
+	"Check the definition of the CHERI_OTYPE_SENTRY")
+{
+	CHERIBSDTEST_VERIFY2(CHERI_OTYPE_SENTRY == 1, "CHERI_OTYPE_SENTRY is not 1");
+}
+#endif
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 CHERIBSDTEST(sentry_dlsym,

@@ -22,8 +22,13 @@ SRCS=	cheribsdtest_dynamic_fptr.c					\
 SRCS+=	cheribsdtest_dynamic_ifunc.c
 .endif
 
+.if ${MACHINE_CPUARCH} == "aarch64"
 _RESOURCE_DIR=	\
 	${SRCTOP}/build/morello-compiler-rt-builtins-linux-morello-purecap-build
+.elif ${MACHINE_CPUARCH} == "rv64imafdczcherihybrid_zcherilevels"
+_RESOURCE_DIR=	\
+	${SRCTOP}/build/cheri-std093-compiler-rt-builtins-linux-riscv64-purecap-std093-build
+.endif
 LDFLAGS+=	-rtlib=compiler-rt \
 	-resource-dir=${_RESOURCE_DIR}
 MK_DEBUG_FILES=	"no"

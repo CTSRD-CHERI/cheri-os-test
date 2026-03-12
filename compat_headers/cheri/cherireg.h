@@ -41,7 +41,9 @@
 #ifndef __SYS_CHERIREG_H__
 #define	__SYS_CHERIREG_H__
 
+#ifdef __aarch64__
 #include <machine/cherireg.h>
+#endif
 
 /* Machine-independent capability field values. */
 

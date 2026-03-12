@@ -46,7 +46,11 @@
 #ifdef __FreeBSD__
 #include "cheribsdtest_md.h"
 #elif __linux__
+#ifdef __aarch64__
 #include "arm64/cheribsdtest_md.h"
+#elif defined(__riscv)
+#include "riscv/cheribsdtest_md.h"
+#endif
 #else
 #error "Unsupported OS"
 #endif

@@ -1414,7 +1414,8 @@ CHERIBSDTEST(vm_reservation_mmap_shared_memfd_open,
 CHERIBSDTEST(vm_mmap_invalid_cap,
     "check that mmap with invalid capability hint fails")
 {
-	void *invalid = cheri_tag_clear(cheri_address_set(cheri_pcc_get(), 0x4300beef));
+	void *invalid = cheri_tag_clear(cheri_address_set(
+	    cheri_pcc_get(), 0x4300beef));
 	void *map;
 
 	map = mmap(invalid, PAGE_SIZE, PROT_READ | PROT_WRITE,
@@ -1435,7 +1436,8 @@ CHERIBSDTEST(vm_mmap_invalid_cap,
 CHERIBSDTEST(vm_mmap_invalid_cap_fixed,
     "check that mmap MAP_FIXED with invalid capability hint fails")
 {
-	void *invalid = cheri_tag_clear(cheri_address_set(cheri_pcc_get(), 0x4300beef));
+	void *invalid = cheri_tag_clear(cheri_address_set(
+	    cheri_pcc_get(), 0x4300beef));
 	void *map;
 #ifdef __FreeBSD__
 	int flags = MAP_ANON | MAP_FIXED;

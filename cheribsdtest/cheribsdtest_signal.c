@@ -42,6 +42,8 @@
 #include <cheri/cheri.h>
 #elif defined(__linux__)
 #include <sys/syscall.h>
+
+#include "cheri/cherireg.h"
 #endif
 
 #include <errno.h>
@@ -336,6 +338,11 @@ CHERIBSDTEST(signal_returncap,
 #endif
 	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_STORE_LOCAL_CAP) == 0,
 	    "perms %jx (store_local_cap present)", v);
+
+#ifdef __riscv_zcheripurecap
+	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_CAP) != 0,
+	    "perms %jx (cap missing)", v);
+#endif
 
 	cheribsdtest_success();
 }

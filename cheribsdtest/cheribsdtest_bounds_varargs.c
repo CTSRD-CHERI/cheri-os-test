@@ -99,7 +99,11 @@ CHERIBSDTEST(bounds_varargs_vaarg_overflow,
 #else
 #error "Unsupported OS"
 #endif
-    .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
+/* CHERI Linux implements these bounds */
+#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
+    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
+#endif
+)
 {
 	varargs_test_onearg("%p", NULL);
 }
@@ -129,7 +133,10 @@ CHERIBSDTEST(bounds_varargs_empty_pointer_null,
 #else
 #error "Unsupported OS"
 #endif
-    .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
+#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
+.ct_xfail_reason = XFAIL_VARARG_BOUNDS
+#endif
+)
 {
 
 #pragma clang diagnostic push
@@ -158,7 +165,10 @@ CHERIBSDTEST(bounds_varargs_printf_load,
 #else
 #error "Unsupported OS"
 #endif
-    .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
+#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
+.ct_xfail_reason = XFAIL_VARARG_BOUNDS
+#endif
+)
 {
 
 #pragma clang diagnostic push
@@ -188,7 +198,10 @@ CHERIBSDTEST(bounds_varargs_printf_store,
 #else
 #error "Unsupported OS"
 #endif
-    .ct_xfail_reason = XFAIL_VARARG_BOUNDS)
+#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
+.ct_xfail_reason = XFAIL_VARARG_BOUNDS
+#endif
+)
 {
 
 #pragma clang diagnostic push

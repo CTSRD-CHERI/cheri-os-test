@@ -284,7 +284,7 @@ CHERIBSDTEST(aio_sival, "Test pointer passing through AIO signals")
 			test_aio_sival_info.si_code);
 		CHERIBSDTEST_VERIFY2(test_aio_sival_info.si_value.sival_ptr ==
 				  test_aio_sival_handler,
-			"Bad si_value; expected=%p got=%p",
+			"Bad si_value; expected=%#p got=%#p",
 			test_aio_sival_handler,
 			test_aio_sival_info.si_value.sival_ptr);
 		cheribsdtest_success();
