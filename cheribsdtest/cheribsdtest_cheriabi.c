@@ -179,6 +179,8 @@ CHERIBSDTEST(cheriabi_mmap_unrepresentable,
 	size_t len;
 	size_t expected_len;
 	void *cap;
+	int prot;
+	int flags;
 
 	/*
 	 * Generate the shortest unrepresentable length, for which rounding
@@ -191,8 +193,14 @@ CHERIBSDTEST(cheriabi_mmap_unrepresentable,
 	    __builtin_cheri_round_representable_length(round_page(len)));
 
 	expected_len = __builtin_cheri_round_representable_length(len);
-	if ((cap = mmap(0, len, PROT_READ|PROT_WRITE|PROT_EXEC,
-	    MAP_ANON, -1, 0)) == MAP_FAILED)
+#ifdef __linux__
+	prot = PROT_READ|PROT_WRITE;
+	flags = MAP_ANON | MAP_PRIVATE;
+#elif __FreeBSD__
+	prot = PROT_READ|PROT_WRITE|PROT_EXEC;
+	flags = MAP_ANON;
+#endif
+	if ((cap = mmap(0, len, prot, flags, -1, 0)) == MAP_FAILED)
 
 		cheribsdtest_failure_errx("mmap() failed to return a pointer "
 		   "when given an unrepresentable length (%zu)", len);
