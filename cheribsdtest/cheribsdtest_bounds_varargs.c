@@ -31,9 +31,7 @@
 
 
 #if __linux__
-#include <linux/signal.h>
-// This avoids redefinition of sigset_t in musl's alltypes.h
-#define __DEFINED_sigset_t
+#include <signal.h>
 #endif
 
 #include <sys/cdefs.h>

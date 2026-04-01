@@ -35,12 +35,6 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#if __linux__
-#include <linux/signal.h>
-// This avoids redefinition of sigset_t in musl's alltypes.h
-#define __DEFINED_sigset_t
-#endif
-
 #include <sys/types.h>
 #include <sys/time.h>
 
@@ -63,9 +57,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#ifdef __FreeBSD__
 #include <signal.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

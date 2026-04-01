@@ -37,10 +37,7 @@
 #endif
 
 #if __linux__
-// This needs to be included for the definition of SEGV_CAPBOUNDSERR
-#include <linux/signal.h>
-// This define avoids a redefinition of sigset_t in musl's alltypes.h
-#define __DEFINED_sigset_t
+#include <signal.h>
 #endif
 
 #include <sys/param.h>
