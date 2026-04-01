@@ -76,14 +76,14 @@ skip_local_global_required(const struct cheri_test *test __attribute__((__unused
 
 	while (getline(&line, &buf_size, f) != -1) {
 		if (strstr(line, "isa") != NULL) {
-			if (strstr(line, "zylevels1") != NULL) {
+			if (strstr(line, "zcherilevels") != NULL) {
 				free(line);
 				return NULL;
 			}
 		}
 	}
 	free(line);
-	return ("zylevels1 required");
+	return ("zcherilevels required");
 #else
 	return NULL;
 #endif
