@@ -103,11 +103,11 @@ CHERIBSDTEST(store_local_allowed,
 	CHERIBSDTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
-#if defined(__aarch64__)
 	/* Make cap local */
+#if defined(__aarch64__)
 	cap = cheri_perms_and(cap, ~CHERI_PERM_GLOBAL);
 #elif defined(__riscv)
-	cheribsdtest_failure_errx(NOT_IMPL_MSG);
+	cap = cheri_perms_and(cap, ~CHERI_PERM_CAPABILITY_LEVEL);
 #endif
 
 	/* Store local cap through cap with store-local permission */
@@ -127,9 +127,13 @@ CHERIBSDTEST(store_local_disallowed,
     .ct_si_code = SI_CODE_STORELOCAL,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
 #elif defined(__linux__)
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
+#ifdef __aarch64__
     .ct_si_code = SEGV_CAPPERMERR,
+#elif defined(__riscv)
+    .ct_si_code = SEGV_CAPTAGERR,
+#endif
 #endif
 )
 #else
@@ -147,17 +151,24 @@ CHERIBSDTEST(store_local_disallowed,
 	CHERIBSDTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
-	/* Make cap local */
+	/*
+	 * Make cap local, and then store local cap through cap without
+	 * store-local permission.
+	 */
+#if defined(__aarch64__)
 	cap = cheri_perms_and(cap, ~CHERI_PERM_GLOBAL);
-
-	/* Store local cap through cap without store-local permission */
 	targetp = cheri_perms_and(targetp, ~CHERI_PERM_STORE_LOCAL_CAP);
-	/* This should fault */
+#elif defined(__riscv)
+	cap = cheri_perms_and(cap, ~CHERI_PERM_CAPABILITY_LEVEL);
+	targetp = cheri_perms_and(targetp, ~CHERI_PERM_STORE_LEVEL);
+#endif
+	/* This should fault on Morello */
 	*targetp = cap;
 
+	/* RVY just strips tags. */
 #ifdef __riscv_zcherilevels
-        CHERIBSDTEST_VERIFY(cheri_tag_get(*targetp) == 0);
-        cheribsdtest_success();
+	CHERIBSDTEST_VERIFY(cheri_tag_get(*targetp) == 0);
+	cheribsdtest_success();
 #else
 	cheribsdtest_failure_errx(
 	    "No fault after storing local cap via non-store-local cap");
