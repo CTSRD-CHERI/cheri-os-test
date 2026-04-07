@@ -244,7 +244,6 @@ CHERIBSDTEST(bounds_subobject_struct_chararray2048_overflow,
 #error "Unsupported OS"
 #endif
 {
-
 	subobject_ptr_outofbounds = &sc2048_sideeffect.chararray2048[2047];
 	subobject_ptr_outofbounds++;
 	*subobject_ptr_outofbounds = 1;

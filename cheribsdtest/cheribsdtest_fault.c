@@ -66,6 +66,27 @@
 
 #include "cheribsdtest.h"
 
+#if defined(__linux__) && defined(__aarch64__)
+/*
+ * Morello Linux's muslc does not define these in signal.h.
+ * XXXPM: Create a PR to add these to the header.
+ */
+#if !defined(SEGV_CAPTAGERR)
+#define SEGV_CAPTAGERR		10
+#define SEGV_CAPTAGERR_DEF_MISSING
+#endif
+
+#if !defined(SEGV_CAPBOUNDSERR)
+#define SEGV_CAPBOUNDSERR	12
+#define SEGV_CAPBOUNDSERR_DEF_MISSING
+#endif
+
+#if !defined(SEGV_CAPPERMERR)
+#define SEGV_CAPPERMERR		13
+#define SEGV_CAPPERMERR_DEF_MISSING
+#endif
+#endif
+
 /*
  * Exercises CHERI faults outside of sandboxes.
  */
@@ -90,11 +111,14 @@ CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
     .ct_si_trapno = TRAPNO_LOAD_STORE
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-	.ct_signum = SIGSEGV,
-	.ct_si_code = SEGV_CAPBOUNDSERR
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPBOUNDSERR
 #endif
 )
 {
+#ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+#endif
 	char * __capability arrayp = cheri_ptr(array, sizeof(array));
 	int i;
 
@@ -113,12 +137,15 @@ CHERIBSDTEST(fault_perm_load,
     .ct_si_code = PROT_CHERI_PERM,
     .ct_si_trapno = TRAPNO_LOAD_STORE
 #elif defined(__linux__)
-	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-	.ct_signum = SIGSEGV,
-	.ct_si_code = SEGV_CAPPERMERR
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_CAPPERMERR
 #endif
 )
 {
+#ifdef SEGV_CAPPERMERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPPERMERR is not defined");
+#endif
 	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
 
 	sink = arrayp[0];
@@ -246,6 +273,9 @@ CHERIBSDTEST(fault_perm_store,
 #endif
 )
 {
+#ifdef SEGV_CAPPERMERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPPERMERR is not defined");
+#endif
 	char * __capability arrayp = cheri_ptrperm(array, sizeof(array), 0);
 
 	arrayp[0] = sink;
@@ -278,6 +308,9 @@ CHERIBSDTEST(fault_tag, "Store via untagged capability",
 #endif
 )
 {
+#ifdef SEGV_CAPTAGERR_DEF_MISSING
+	cheribsdtest_failure_errx("Signal code SEGV_CAPTAGERR missing");
+#endif
 	char ch;
 	char * __capability chp = cheri_ptr(&ch, sizeof(ch));
 

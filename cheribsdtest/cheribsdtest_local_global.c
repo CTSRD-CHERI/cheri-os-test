@@ -129,7 +129,7 @@ CHERIBSDTEST(store_local_disallowed,
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
-#ifdef __aarch64__
+#if defined(__aarch64__) && defined(SEGV_CAPPERMERR)
     .ct_si_code = SEGV_CAPPERMERR,
 #elif defined(__riscv)
     .ct_si_code = SEGV_CAPTAGERR,

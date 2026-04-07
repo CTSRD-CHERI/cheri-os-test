@@ -56,6 +56,22 @@
 
 #include "cheribsdtest.h"
 
+#if defined(__linux__) && defined(__aarch64__)
+/*
+ * Morello Linux's muslc does not define these in signal.h.
+ * XXXPM: Create a PR to add these to the header.
+ */
+#if !defined(SEGV_CAPTAGERR)
+#define SEGV_CAPTAGERR		10
+#define SEGV_CAPTAGERR_DEF_MISSING
+#endif
+
+#if !defined(SEGV_CAPBOUNDSERR)
+#define SEGV_CAPBOUNDSERR	12
+#define SEGV_CAPBOUNDSERR_DEF_MISSING
+#endif
+#endif
+
 /*
  * Perform a few tests relating to varargs processing to ensure that the
  * underlying ABI and code generation enforce bounds on their use.  We expect
@@ -90,19 +106,18 @@ CHERIBSDTEST(bounds_varargs_vaarg_overflow,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+    /* CHERI Linux implements these bounds */
+    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
     .ct_si_code = SEGV_CAPBOUNDSERR,
-#else
-#error "Unsupported OS"
-#endif
-/* CHERI Linux implements these bounds */
-#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
-    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #endif
 )
 {
+#ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+#endif
 	varargs_test_onearg("%p", NULL);
 }
 
@@ -124,19 +139,17 @@ CHERIBSDTEST(bounds_varargs_empty_pointer_null,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_TAG,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
     .ct_si_code = SEGV_CAPTAGERR,
-#else
-#error "Unsupported OS"
-#endif
-#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
-.ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #endif
 )
 {
-
+#ifdef SEGV_CAPTAGERR_DEF_MISSING
+	cheribsdtest_failure_errx("Signal code SEGV_CAPTAGERR missing");
+#endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%p");
@@ -156,19 +169,17 @@ CHERIBSDTEST(bounds_varargs_printf_load,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
     .ct_si_code = SEGV_CAPBOUNDSERR,
-#else
-#error "Unsupported OS"
-#endif
-#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
-.ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #endif
 )
 {
-
+#ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+#endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%c%p", 1);
@@ -189,19 +200,17 @@ CHERIBSDTEST(bounds_varargs_printf_store,
     .ct_signum = SIGPROT,
     .ct_si_code = PROT_CHERI_BOUNDS,
     .ct_si_trapno = TRAPNO_LOAD_STORE,
+    .ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #elif defined(__linux__)
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_signum = SIGSEGV,
     .ct_si_code = SEGV_CAPBOUNDSERR,
-#else
-#error "Unsupported OS"
-#endif
-#if !(defined(__linux__) && defined(__riscv_zcheripurecap))
-.ct_xfail_reason = XFAIL_VARARG_BOUNDS
 #endif
 )
 {
-
+#ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
+	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+#endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%c%n", 0);
