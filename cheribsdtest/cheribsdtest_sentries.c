@@ -88,7 +88,9 @@ check_fptr(uintptr_t fptr)
 CHERIBSDTEST(otype_sentry_definition,
 	"Check the definition of the CHERI_OTYPE_SENTRY")
 {
+	/* This is a regression test */
 	CHERIBSDTEST_VERIFY2(CHERI_OTYPE_SENTRY == 1, "CHERI_OTYPE_SENTRY is not 1");
+	cheribsdtest_success();
 }
 #endif
 
