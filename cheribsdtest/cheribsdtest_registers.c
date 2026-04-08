@@ -217,6 +217,10 @@ check_initreg_code(void * __capability c)
 	if ((v & CHERI_PERM_INVOKE) == 0)
 		cheribsdtest_failure_errx("perms %jx (invoke missing)", v);
 #elif defined(__linux__)
+	/*
+	 * XXXPM: This might need to be changed for RISC-V
+	 * CPUs with the Zyseal extension.
+	 */
 	if ((v & CHERI_PERM_INVOKE) == 1)
 		cheribsdtest_failure_errx("perms %jx (invoke set)", v);
 #endif
