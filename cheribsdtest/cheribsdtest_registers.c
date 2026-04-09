@@ -411,11 +411,7 @@ CHERIBSDTEST(initregs_stack_user_perms,
 	register_t v;
 
 	v = cheri_getperm(cheri_stack_get());
-#if defined(__FreeBSD__)
-	if ((v & CHERI_PERMS_SWALL) != CHERI_STACK_SWPERMS)
-#elif defined(__linux__)
-	if ((v & CHERI_PERMS_SWALL) != 0)
-#endif
+	if ((v & CHERI_PERMS_SWALL) != (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %x)",
 		    (uintmax_t) v & CHERI_PERMS_SWALL,
 		    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM));
