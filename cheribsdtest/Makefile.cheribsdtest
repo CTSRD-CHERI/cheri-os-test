@@ -87,9 +87,10 @@ LIBADD+=	util xo bsd
 .ifdef CHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	-DCHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
-CFLAGS+=	-I${SRCTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic
-LDFLAGS+=	-L${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/
-DPADD+=	${OBJTOP}/cheritestsuite/cheribsdtest/libcheribsdtest_dynamic/libcheribsdtest_dynamic.so
+# XXXPM: This is hacky but the Makefile will be replaced with cmake files.
+CFLAGS+=	-I${.CURDIR}/../libcheribsdtest_dynamic
+LDFLAGS+=	-L${.OBJDIR}/../libcheribsdtest_dynamic/
+DPADD+=	${.OBJDIR}/../libcheribsdtest_dynamic/libcheribsdtest_dynamic.so
 
 LDFLAGS+= -Wl,-rpath=\$$ORIGIN
 .if ${OS} == "FreeBSD"
