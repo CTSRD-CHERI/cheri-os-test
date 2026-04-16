@@ -119,6 +119,7 @@ cheri_ptr_equal_exact(void *x, void *y)
  * NOTE: This is to be replaced by LLVM intrinsic once the intrinsic and
  * related instruction arguments are stable.
  */
+#undef cheri_is_subset
 #define	cheri_is_subset(parent, ptr)					\
 	(cheri_gettag(parent) == cheri_gettag(ptr) &&			\
 	 cheri_getbase(ptr) >= cheri_getbase(parent) &&			\
