@@ -203,7 +203,7 @@ CHERIBSDTEST(cheriabi_mmap_unrepresentable,
 	if ((cap = mmap(0, len, prot, flags, -1, 0)) == MAP_FAILED)
 
 		cheribsdtest_failure_errx("mmap() failed to return a pointer "
-		   "when given an unrepresentable length (%zu)", len);
+		    "when given an unrepresentable length (%zu)", len);
 	if (cheri_length_get(cap) != expected_len)
 		cheribsdtest_failure_errx("mmap() returned a pointer with "
 		    "an unexpected length (%zu vs %zu) when given an "

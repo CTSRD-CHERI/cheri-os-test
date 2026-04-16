@@ -50,8 +50,6 @@
 #include <sys/time.h>
 #include <sys/ptrace.h>
 
-#include <cheri/cheric.h>
-
 #include <assert.h>
 #include <err.h>
 #include <errno.h>

@@ -45,7 +45,9 @@
 #endif
 #include <sys/time.h>
 
-#include <cheri/cheric.h>
+#ifdef __FreeBSD__
+#include <machine/sysarch.h>
+#endif
 
 #include <err.h>
 #include <errno.h>

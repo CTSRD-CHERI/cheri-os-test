@@ -36,12 +36,15 @@
 #include <sys/types.h>
 #include <sys/linker_set.h>
 
-#include <cheri/cherireg.h>
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
+
+#include <cheri/cherireg.h>
+
 #include <cheriintrin.h>
+
+#include "../compat_headers/morello_linux_compat.h"
 
 #ifdef __FreeBSD__
 #include "cheribsdtest_md.h"

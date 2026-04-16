@@ -43,60 +43,6 @@
 
 #if __has_feature(capabilities)
 #include "../morello_linux_compat.h"
-
-/*
- * Programmer-friendly macros for CHERI-aware C code -- requires use of
- * CHERI-aware Clang/LLVM, and full capability context switching.
- */
-#define	cheri_getlen(x)		__builtin_cheri_length_get((x))
-#define	cheri_getlength(x)	__builtin_cheri_length_get((x))
-#define	cheri_getbase(x)	__builtin_cheri_base_get((x))
-#define	cheri_getoffset(x)	__builtin_cheri_offset_get((x))
-#define	cheri_getaddress(x)	__builtin_cheri_address_get((x))
-#define	cheri_getflags(x)	__builtin_cheri_flags_get((x))
-#define	cheri_getperm(x)	__builtin_cheri_perms_get((x))
-#define	cheri_getsealed(x)	__builtin_cheri_sealed_get((x))
-#define	cheri_gettag(x)		__builtin_cheri_tag_get((x))
-#define	cheri_gettype(x)	((long)__builtin_cheri_type_get((x)))
-
-#define	cheri_andperm(x, y)	__builtin_cheri_perms_and((x), (y))
-#define	cheri_clearperm(x, y)	__builtin_cheri_perms_and((x), ~(y))
-#define	cheri_incoffset(x, y)	__builtin_cheri_offset_increment((x), (y))
-#define	cheri_setoffset(x, y)	__builtin_cheri_offset_set((x), (y))
-#define	cheri_setaddress(x, y)	__builtin_cheri_address_set((x), (y))
-#define	cheri_setflags(x, y)	__builtin_cheri_flags_set((x), (y))
-
-#define	cheri_buildcap(x, y)	__builtin_cheri_cap_build((x), (y))
-
-#define	cheri_copytype(x, y)	__builtin_cheri_cap_type_copy((x), (y))
-
-#define	cheri_seal(x, y)	__builtin_cheri_seal((x), (y))
-#define	cheri_unseal(x, y)	__builtin_cheri_unseal((x), (y))
-#define	cheri_sealentry(x)	__builtin_cheri_seal_entry((x))
-#define	cheri_condseal(x, y)	__builtin_cheri_conditional_seal((x), (y))
-
-#define	cheri_ccheckperm(c, p)	__builtin_cheri_perms_check((c), (p))
-#define	cheri_cchecktype(c, t)	__builtin_cheri_type_check((c), (t))
-
-#define	cheri_getdefault()	__builtin_cheri_global_data_get()
-#define	cheri_getpcc()		__builtin_cheri_program_counter_get()
-#define	cheri_getstack()	__builtin_cheri_stack_get()
-
-#define	cheri_local(c)		cheri_andperm((c), ~CHERI_PERM_GLOBAL)
-
-#define	cheri_setbounds(x, y)	__builtin_cheri_bounds_set((x), (y))
-#define	cheri_setboundsexact(x, y)	__builtin_cheri_bounds_set_exact((x), (y))
-
-/* Compare capabilities including bounds and perms etc. */
-#define cheri_equal_exact(x, y) __builtin_cheri_equal_exact(x, y)
-
-#ifdef __riscv
-#define	cheri_loadtags(m)						\
-	__builtin_cheri_cap_load_tags((__cheri_tocap void * __capability)(m))
-#else
-#define	cheri_loadtags(m)	__builtin_cheri_cap_load_tags((m))
-#endif
-
 /*
  * Return whether the two pointers are equal, including capability metadata if
  * in purecap mode.
@@ -106,7 +52,7 @@ cheri_ptr_equal_exact(void *x, void *y)
 {
 #ifdef __CHERI_PURE_CAPABILITY__
 	/* For purecap compare the entire capability including metadata */
-	return (cheri_equal_exact(x, y));
+	return (cheri_is_equal_exact(x, y));
 #else
 	/* In hybrid mode void * is just an address */
 	return (x == y);
@@ -121,10 +67,10 @@ cheri_ptr_equal_exact(void *x, void *y)
  */
 #undef cheri_is_subset
 #define	cheri_is_subset(parent, ptr)					\
-	(cheri_gettag(parent) == cheri_gettag(ptr) &&			\
-	 cheri_getbase(ptr) >= cheri_getbase(parent) &&			\
+	(cheri_tag_get(parent) == cheri_tag_get(ptr) &&			\
+	 cheri_base_get(ptr) >= cheri_base_get(parent) &&			\
 	 cheri_gettop(ptr) <= cheri_gettop(parent) &&			\
-	 (cheri_getperm(ptr) & cheri_getperm(parent)) == cheri_getperm(ptr))
+	 (cheri_perms_get(ptr) & cheri_perms_get(parent)) == cheri_perms_get(ptr))
 
 #define	cheri_is_null_derived(x)					\
 	__builtin_cheri_equal_exact((uintcap_t)cheri_getaddress(x), x)
@@ -138,14 +84,14 @@ cheri_ptr_equal_exact(void *x, void *y)
 /* Get the top of a capability (i.e. one byte past the last accessible one) */
 #define	cheri_gettop(cap)	__extension__({			\
 	__typeof__(cap) c = (cap);				\
-	(cheri_getbase(c) + cheri_getlen(c));			\
+	(cheri_base_get(c) + cheri_length_get(c));			\
 })
 
 /* Check if the address is between cap.base and cap.top, i.e. in bounds */
 static inline bool
 cheri_is_address_inbounds(const void * __capability cap, ptraddr_t addr)
 {
-	return (addr >= cheri_getbase(cap) && addr < cheri_gettop(cap));
+	return (addr >= cheri_base_get(cap) && addr < cheri_gettop(cap));
 }
 
 /*
@@ -156,9 +102,9 @@ static inline bool
 cheri_can_access(const void * __capability cap, ptraddr_t perms, ptraddr_t base,
     size_t length)
 {
-	return (cheri_gettag(cap) && !cheri_getsealed(cap) &&
-	    (cheri_getperm(cap) & perms) == perms &&
-	    base >= cheri_getbase(cap) && base + length <= cheri_gettop(cap));
+	return (cheri_tag_get(cap) && !cheri_is_sealed(cap) &&
+	    (cheri_perms_get(cap) & perms) == perms &&
+	    base >= cheri_base_get(cap) && base + length <= cheri_gettop(cap));
 }
 
 /*
@@ -175,25 +121,25 @@ cheri_can_access(const void * __capability cap, ptraddr_t perms, ptraddr_t base,
  * cheri_getpcc() for now.
  */
 #define cheri_codeptr(ptr, len)	\
-	cheri_setbounds(__builtin_cheri_cap_from_pointer(cheri_getpcc(), ptr), len)
+	cheri_bounds_set(__builtin_cheri_cap_from_pointer(cheri_getpcc(), ptr), len)
 
 #define cheri_codeptrperm(ptr, len, perm)	\
-	cheri_andperm(cheri_codeptr(ptr, len), perm | CHERI_PERM_GLOBAL)
+	cheri_perms_and(cheri_codeptr(ptr, len), perm | CHERI_PERM_GLOBAL)
 
 #define cheri_ptr(ptr, len)	\
-	cheri_setbounds(    \
+	cheri_bounds_set(    \
 	    (__cheri_tocap __typeof__((ptr)[0]) *__capability)ptr, len)
 
 #if defined(__aarch64__)
 #define cheri_ptrperm(ptr, len, perm)	\
-	cheri_andperm(cheri_ptr(ptr, len), perm | CHERI_PERM_GLOBAL)
+	cheri_perms_and(cheri_ptr(ptr, len), perm | CHERI_PERM_GLOBAL)
 #elif defined(__riscv_zcheripurecap)
 #define cheri_ptrperm(ptr, len, perm)	\
-	cheri_andperm(cheri_ptr(ptr, len), perm)
+	cheri_perms_and(cheri_ptr(ptr, len), perm)
 #endif
 
 #define cheri_ptrpermoff(ptr, len, perm, off)	\
-	cheri_setoffset(cheri_ptrperm(ptr, len, perm), off)
+	cheri_offset_set(cheri_ptrperm(ptr, len, perm), off)
 
 #ifdef __aarch64__
 /*
@@ -210,9 +156,9 @@ cheri_maketype(void * __capability root_type, register_t type)
 	void * __capability c;
 
 	c = root_type;
-	c = cheri_setoffset(c, type);	/* Set type as desired. */
-	c = cheri_setbounds(c, 1);	/* ISA implies length of 1. */
-	c = cheri_andperm(c, CHERI_PERM_GLOBAL | CHERI_PERM_SEAL); /* Perms. */
+	c = cheri_offset_set(c, type);	/* Set type as desired. */
+	c = cheri_bounds_set(c, 1);	/* ISA implies length of 1. */
+	c = cheri_perms_and(c, CHERI_PERM_GLOBAL | CHERI_PERM_SEAL); /* Perms. */
 	return (c);
 }
 #endif
@@ -226,9 +172,9 @@ cheri_zerocap(void)
 static inline size_t
 cheri_bytes_remaining(const void * __capability cap)
 {
-	if (cheri_getoffset(cap) >= cheri_getlen(cap))
+	if (cheri_offset_get(cap) >= cheri_length_get(cap))
 		return 0;
-	return cheri_getlen(cap) - cheri_getoffset(cap);
+	return cheri_length_get(cap) - cheri_offset_get(cap);
 }
 
 /*
@@ -252,7 +198,7 @@ cheri_bytes_remaining(const void * __capability cap)
 #define cheri_cap_to_ptr(cap, min_size)	__extension__({			\
 	typedef __typeof__(*(cap)) __underlying_type;			\
 	__underlying_type* __result = 0;				\
-	if (cheri_gettag(cap) && cheri_bytes_remaining(cap) >= min_size) { \
+	if (cheri_tag_get(cap) && cheri_bytes_remaining(cap) >= min_size) { \
 		__result = (__cheri_fromcap __underlying_type*)(cap);	\
 	} __result; })
 
@@ -265,24 +211,6 @@ cheri_bytes_remaining(const void * __capability cap)
 	(type *)cheri_cap_to_ptr(cap, sizeof(type))
 
 #endif	/* __has_feature(capabilities) */
-
-#ifdef _KERNEL
-#ifdef __CHERI_PURE_CAPABILITY__
-#define	cheri_kern_gettag(x)		cheri_gettag(x)
-#define	cheri_kern_setbounds(x, y)	cheri_setbounds(x, y)
-#define	cheri_kern_setboundsexact(x, y)	cheri_setboundsexact(x, y)
-#define	cheri_kern_setaddress(x, y)	cheri_setaddress(x, y)
-#define	cheri_kern_getaddress(x)	cheri_setaddress(x)
-#define	cheri_kern_andperm(x, y)	cheri_andperm(x, y)
-#else
-#define	cheri_kern_gettag(x)		1
-#define	cheri_kern_setbounds(x, y)	(x)
-#define	cheri_kern_setboundsexact(x, y)	(x)
-#define	cheri_kern_setaddress(x, y)	((__typeof__(x))(y))
-#define	cheri_kern_getaddress(x)	((uintptr_t)(x))
-#define	cheri_kern_andperm(x, y)	(x)
-#endif	/* __CHERI_PURE_CAPABILITY__ */
-#endif	/* _KERNEL */
 
 /*
  * The cheri_{get,set,clear}_low_pointer_bits() functions work both with and

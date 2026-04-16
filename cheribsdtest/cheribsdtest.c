@@ -52,9 +52,6 @@
 #include <sys/ucontext.h>
 #include <sys/wait.h>
 
-#include <cheri/cheri.h>
-#include <cheri/cheric.h>
-
 #ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
@@ -515,7 +512,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 	}
 #endif
 	if ((ctp->ct_flags & CT_FLAG_SI_ADDR) &&
-	    !cheri_ptr_equal_exact(ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr)) {
+	    !cheri_is_equal_exact(ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr)) {
 		snprintf(reason, sizeof(reason), "Expected si_addr %#p, got %#p",
 		    ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr);
 		goto fail;

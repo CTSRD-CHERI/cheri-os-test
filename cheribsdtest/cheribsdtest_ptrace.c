@@ -56,8 +56,6 @@
 #endif
 #endif
 
-#include <cheri/cheric.h>
-
 #include "cheribsdtest.h"
 
 /*
@@ -477,8 +475,8 @@ CHERIBSDTEST(ptrace_peekcap, "Basic tests of ptrace PTRACE_PEEKCAP")
 	tracee_buf[0] = NULL;
 	tracee_buf[1] = &tracee_buf[0];
 
-	CHERIBSDTEST_VERIFY(cheri_gettag(tracee_buf[0]) == 0);
-	CHERIBSDTEST_VERIFY(cheri_gettag(tracee_buf[1]) == 1);
+	CHERIBSDTEST_VERIFY(cheri_tag_get(tracee_buf[0]) == 0);
+	CHERIBSDTEST_VERIFY(cheri_tag_get(tracee_buf[1]) == 1);
 
 	pid = fork_child();
 

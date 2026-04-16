@@ -410,8 +410,9 @@ CHERIBSDTEST(initregs_stack_user_perms,
 {
 	register_t v;
 
-	v = cheri_getperm(cheri_stack_get());
-	if ((v & CHERI_PERMS_SWALL) != (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
+	v = cheri_perms_get(__builtin_cheri_stack_get());
+	if ((v & CHERI_PERMS_SWALL) !=
+	    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %x)",
 		    (uintmax_t) v & CHERI_PERMS_SWALL,
 		    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM));
@@ -421,7 +422,7 @@ CHERIBSDTEST(initregs_stack_user_perms,
 CHERIBSDTEST(initregs_stack,
     "Test initial value of stack capability")
 {
-	void * __capability c = cheri_stack_get();
+	void * __capability c = __builtin_cheri_stack_get();
 	register_t v;
 
 	/* Base. */

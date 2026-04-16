@@ -2348,7 +2348,8 @@ cheribsdtest_cheri_revoke_lib_init(size_t bigblock_caps, void *** obigblock,
 	for (size_t ix = 0; ix < bigblock_caps; ix++) {
 		/* Create self-referential SW_VMEM-free capabilities */
 
-		bigblock[ix] = cheri_perms_and(cheri_bounds_set(&bigblock[ix], 16), ~CHERI_PERM_SW_VMEM);
+		bigblock[ix] = cheri_perms_and(cheri_bounds_set(&bigblock[ix], 16),
+		    ~CHERI_PERM_SW_VMEM);
 	}
 	*obigblock = bigblock;
 
@@ -2404,7 +2405,8 @@ cheribsdtest_cheri_revoke_lib_run(int paranoia, int mode, size_t bigblock_caps,
 			    bigblock_caps - bigblock_offset, csz);
 		}
 
-		void **chunk = cheri_bounds_set(bigblock + bigblock_offset, csz * sizeof(void *));
+		void **chunk = cheri_bounds_set(bigblock + bigblock_offset,
+		    csz * sizeof(void *));
 
 		if (verbose > 1) {
 			fprintf(stderr, "chunk: %#.16lp\n", chunk);
@@ -2513,7 +2515,9 @@ load_split_fini:
 
 		for (size_t ix = 0; ix < csz; ix++) {
 			/* Put everything back */
-			chunk[ix] = cheri_perms_and(cheri_bounds_set(&chunk[ix], 16), ~CHERI_PERM_SW_VMEM);
+			chunk[ix] = cheri_perms_and(
+			    cheri_bounds_set(&chunk[ix], 16),
+			    ~CHERI_PERM_SW_VMEM);
 		}
 	}
 }
@@ -3051,7 +3055,8 @@ CHERIBSDTEST(cheri_revoke_cow_mapping,
 	block = mmap(NULL, blocksz, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
 	CHERIBSDTEST_VERIFY(block != MAP_FAILED);
 
-	torev = cheri_bounds_set(block + 2 * PAGE_SIZE / sizeof(void *), PAGE_SIZE);
+	torev = cheri_bounds_set(block + 2 * PAGE_SIZE / sizeof(void *),
+	    PAGE_SIZE);
 	cap1 = cheri_bounds_set(&block[0], PAGE_SIZE);
 	cap2 = cheri_bounds_set(&block[PAGE_SIZE / sizeof(void *)], PAGE_SIZE);
 	*cap1 = *cap2 = cheri_perms_and(torev, ~CHERI_PERM_SW_VMEM);

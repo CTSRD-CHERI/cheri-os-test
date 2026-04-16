@@ -55,7 +55,7 @@ get_sealcap(void)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	/* XXX: Object type 0x0 is reserved for unsealed capabilities. */
 	sealcap = (void *) (((char *) sealcap) + CHERI_OTYPE_USER_MIN);
-	if (!cheri_gettag(sealcap))
+	if (!cheri_tag_get(sealcap))
 		cheribsdtest_failure_err("getauxptr failed");
 #endif
 

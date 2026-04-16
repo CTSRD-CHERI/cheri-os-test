@@ -39,6 +39,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <cheri/cheri.h>
+
 #include "cheribsdtest.h"
 
 #define	NPAGES		1000

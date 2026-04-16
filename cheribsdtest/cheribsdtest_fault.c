@@ -186,11 +186,12 @@ CHERIBSDTEST(illegal_perm_seal,
 #elif defined(__linux__)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	sealcap = (void *) (((char *) sealcap) + 1);
-	if (!cheri_gettag(sealcap) || !(cheri_getperm(sealcap) & CHERI_PERM_SEAL))
+	if (!cheri_tag_get(sealcap) || !(cheri_perms_get(sealcap) & CHERI_PERM_SEAL))
 		cheribsdtest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"
 #endif
+
 	sealcap = cheri_perms_and(sealcap, ~CHERI_PERM_SEAL);
 	sealed = cheri_seal(ip, sealcap);
 	/* cheri_seal() should tag-clear on failure on all architectures. */
@@ -231,7 +232,7 @@ CHERIBSDTEST(illegal_perm_unseal,
 #elif defined(__linux__)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	sealcap = (void *) (((char *) sealcap) + 1);
-	if (!cheri_gettag(sealcap))
+	if (!cheri_tag_get(sealcap))
 		cheribsdtest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"

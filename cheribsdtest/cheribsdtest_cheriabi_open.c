@@ -42,8 +42,6 @@
 #endif
 #include <sys/time.h>
 
-#include <cheri/cheric.h>
-
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -255,7 +253,7 @@ CHERIBSDTEST(cheriabi_open_sealed, "Sealed path")
 	//XXX: cheri_seal() does not work if the address of the sealer is 0x0?
 	//     Is this intended?
 	sealer = (void *) (((char *) sealer) + 1);
-	if (!cheri_gettag(sealer) || !(cheri_getperm(sealer) & CHERI_PERM_SEAL))
+	if (!cheri_tag_get(sealer) || !(cheri_perms_get(sealer) & CHERI_PERM_SEAL))
 		cheribsdtest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"
