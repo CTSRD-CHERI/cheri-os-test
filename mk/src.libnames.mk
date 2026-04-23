@@ -404,7 +404,7 @@ _DP_xo=		util
 _DP_ztest=	geom m nvpair umem zpool pthread avl zfs_core spl zutil zfs uutil icp
 # The libc dependencies are not strictly needed but are defined to make the
 # assert happy.
-_DP_c=		compiler_rt sys
+_DP_c=
 # Use libssp_nonshared only on i386 and power*.  Other archs emit direct calls
 # to __stack_chk_fail, not __stack_chk_fail_local provided by libssp_nonshared.
 .if ${MK_SSP} != "no" && !${MACHINE_ABI:Mpurecap} && \
@@ -413,7 +413,7 @@ _DP_c+=		ssp_nonshared
 .endif
 _DP_stats=	sbuf pthread
 _DP_stdthreads=	pthread
-_DP_sys=	compiler_rt
+_DP_sys=
 # Use libssp_nonshared only on i386 and power*.  Other archs emit direct calls
 # to __stack_chk_fail, not __stack_chk_fail_local provided by libssp_nonshared.
 .if ${MK_SSP} != "no" && \
@@ -421,8 +421,8 @@ _DP_sys=	compiler_rt
 _DP_sys+=	ssp_nonshared
 .endif
 .if !defined(BOOTSTRAPPING)
-_DP_thr=	c sys
-_DP_pthread=	${_DP_thr}
+_DP_thr=	c
+_DP_pthread=	c
 .endif
 _DP_tacplus=	md pam
 _DP_ncursesw=	tinfow
