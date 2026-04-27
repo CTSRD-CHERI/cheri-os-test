@@ -105,6 +105,7 @@ _LIBRARIES=	\
 		be \
 		begemot \
 		bluetooth \
+		bsd \
 		bsdxml \
 		bsm \
 		bsnmp \
