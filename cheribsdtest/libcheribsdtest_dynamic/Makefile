@@ -25,7 +25,7 @@ SRCS+=	cheribsdtest_dynamic_ifunc.c
 .if ${MACHINE_CPUARCH} == "aarch64"
 _RESOURCE_DIR=	\
 	${SRCTOP}/build/morello-compiler-rt-builtins-linux-morello-purecap-build
-.elif ${MACHINE_CPUARCH} == "rv64imafdczcherihybrid_zcherilevels"
+.elif ${MACHINE_CPUARCH} == "rv64imafdc_zcherihybrid_zcherilevels"
 _RESOURCE_DIR=	\
 	${SRCTOP}/build/cheri-std093-compiler-rt-builtins-linux-riscv64-purecap-std093-build
 .endif
