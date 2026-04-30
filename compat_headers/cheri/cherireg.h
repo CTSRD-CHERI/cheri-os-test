@@ -45,54 +45,11 @@
 #include <machine/cherireg.h>
 #endif
 
-/* Machine-independent capability field values. */
-
-/*
- * The kernel snags one of the software-defined permissions for the purposes
- * of authorising system calls from $pcc.  This is a bit of an oddity:
- * normally, we check permissions on data capabilities, not code capabilities,
- * but aligns with 'privilege' checks: e.g., $epcc access.  We may wish to
- * switch to another model, such as having userspace register one or more
- * class capabilities as suitable for system-call use.
- */
-#define	CHERI_PERM_SYSCALL			CHERI_PERM_SW0
-
-/*
- * Use another software-defined permission to restrict the ability to change
- * the page mapping underlying a capability.  This can't be the same
- * permission bit as CHERI_PERM_SYSCALL because $pcc should not confer the
- * right rewrite or remap executable memory.
- *
- * This permission was historically named CHERI_PERM_CHERIABI_VMMAP.
- */
-#define	CHERI_PERM_CHERIABI_VMMAP \
-    _Pragma("GCC warning \"CHERI_PERM_CHERIABI_VMMAP is deprecated, use CHERI_PERM_SW_VMEM\"") \
-    CHERI_PERM_SW_VMEM
-
-/*
- * Definition for a highly privileged kernel capability able to name the
- * entire address space, and suitable to derive all other kernel-related
- * capabilities from, including sealing capabilities.
- */
-#define	CHERI_CAP_KERN_PERMS						\
-	(CHERI_PERMS_SWALL | CHERI_PERMS_HWALL)
-#define	CHERI_CAP_KERN_BASE		0x0
-#define	CHERI_CAP_KERN_LENGTH		0xffffffffffffffff
-#define	CHERI_CAP_KERN_OFFSET		0x0
-
 /*
  * Definition for userspace "unprivileged" capabilities able to name the user
  * portion of the address space.
  */
 #define	CHERI_CAP_USER_CODE_PERMS	CHERI_PERMS_USERSPACE_CODE
-#define	CHERI_CAP_USER_CODE_BASE	VM_MINUSER_ADDRESS
-#define	CHERI_CAP_USER_CODE_LENGTH	(VM_MAXUSER_ADDRESS - VM_MINUSER_ADDRESS)
-#define	CHERI_CAP_USER_CODE_OFFSET	0x0
-
-#define	CHERI_CAP_USER_DATA_LENGTH	(VM_MAXUSER_ADDRESS - VM_MINUSER_ADDRESS)
-#define	CHERI_CAP_USER_DATA_OFFSET	0x0
-
-#define	CHERI_CAP_USER_RODATA_PERMS	CHERI_PERMS_USERSPACE_RODATA
 
 /*
  * Root sealing capability for all userspace object capabilities.
@@ -102,26 +59,5 @@
 #define	CHERI_SEALCAP_USERSPACE_LENGTH	\
     (CHERI_OTYPE_USER_MAX - CHERI_OTYPE_USER_MIN + 1)
 #define	CHERI_SEALCAP_USERSPACE_OFFSET	0x0
-
-/*
- * Definition for mapping vm_prot_t to capability permission
- */
-#define	CHERI_PROT2PERM_READ_PERMS	CHERI_PERMS_PROT2PERM_READ
-#define	CHERI_PROT2PERM_READ_CAP_PERMS	CHERI_PERMS_PROT2PERM_READ_CAP
-#define	CHERI_PROT2PERM_WRITE_PERMS	CHERI_PERMS_PROT2PERM_WRITE
-#define	CHERI_PROT2PERM_WRITE_CAP_PERMS	CHERI_PERMS_PROT2PERM_WRITE_CAP
-#define	CHERI_PROT2PERM_EXEC_PERMS	CHERI_PERMS_PROT2PERM_EXEC
-#define	CHERI_PROT2PERM_MASK						\
-    (CHERI_PROT2PERM_READ_PERMS | CHERI_PROT2PERM_WRITE_PERMS |		\
-    CHERI_PROT2PERM_EXEC_PERMS)
-
-/*
- * Root sealing capability for kernel managed objects.
- */
-#define	CHERI_SEALCAP_KERNEL_PERMS	CHERI_PERMS_KERNEL_SEALCAP
-#define CHERI_SEALCAP_KERNEL_BASE	CHERI_OTYPE_KERN_MIN
-#define	CHERI_SEALCAP_KERNEL_LENGTH	\
-    (CHERI_OTYPE_KERN_MAX - CHERI_OTYPE_KERN_MIN + 1)
-#define	CHERI_SEALCAP_KERNEL_OFFSET	0x0
 
 #endif /* !__SYS_CHERIREG_H__ */

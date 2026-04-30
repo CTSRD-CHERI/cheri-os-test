@@ -34,9 +34,6 @@
 #ifndef _ARM64_INCLUDE_CHERIREG_H_
 #define	_ARM64_INCLUDE_CHERIREG_H_
 
-#define	CHERICAP_SIZE   16
-#define	CHERICAP_SHIFT	4
-
 /*
  * CHERI ISA-defined constants for capabilities -- suitable for inclusion from
  * assembly source code.
@@ -47,10 +44,8 @@
 #define	CHERI_PERM_SW2				(1 << 4)	/* 0x00000010 */
 #define	CHERI_PERM_SW3				(1 << 5)	/* 0x00000020 */
 #define	CHERI_PERM_MUTABLE_LOAD			(1 << 6)	/* 0x00000040 */
-#define	CHERI_PERM_COMPARTMENT_ID		(1 << 7)	/* 0x00000080 */
 #define	CHERI_PERM_BRANCH_SEALED_PAIR		(1 << 8)	/* 0x00000100 */
 #define	CHERI_PERM_INVOKE			CHERI_PERM_BRANCH_SEALED_PAIR
-#define	CHERI_PERM_SYSTEM			(1 << 9)	/* 0x00000200 */
 
 /*
  * Macros defining initial permission sets:
@@ -62,47 +57,6 @@
 	(CHERI_PERM_SW0 | CHERI_PERM_SW1 | CHERI_PERM_SW2 |		\
 	CHERI_PERM_SW3)
 
-#define	CHERI_PERMS_HWALL						\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_EXECUTIVE |			\
-	CHERI_PERM_MUTABLE_LOAD | CHERI_PERM_COMPARTMENT_ID |		\
-	CHERI_PERM_BRANCH_SEALED_PAIR | CHERI_PERM_SYSTEM |		\
-	CHERI_PERM_UNSEAL | CHERI_PERM_SEAL | 				\
-	CHERI_PERM_STORE_LOCAL_CAP | CHERI_PERM_STORE_CAP |		\
-	CHERI_PERM_LOAD_CAP | CHERI_PERM_EXECUTE | CHERI_PERM_STORE |	\
-	CHERI_PERM_LOAD)
-
-/*
- * Hardware defines a kind of tripartite taxonomy: memory, type, and CID.
- * They're all squished together in the permission bits, so define masks
- * that give us a kind of "kind" for capabilities.  A capability may belong
- * to zero, one, or more than one of these.
- */
-
-#define CHERI_PERMS_HWALL_MEMORY                                        \
-	(CHERI_PERM_EXECUTE | CHERI_PERM_LOAD | CHERI_PERM_LOAD_CAP |   \
-		CHERI_PERM_STORE | CHERI_PERM_STORE_CAP |               \
-		CHERI_PERM_STORE_LOCAL_CAP | CHERI_PERM_MUTABLE_LOAD |  \
-		CHERI_PERM_INVOKE | CHERI_PERM_BRANCH_SEALED_PAIR)
-
-#define CHERI_PERMS_HWALL_OTYPE	(CHERI_PERM_SEAL | CHERI_PERM_UNSEAL)
-
-/* TODO #define CHERI_PERMS_HWALL_CID	(CHERI_PERM_SETCID) */
-
-/*
- * vm_prot_t to capability permission bits
- */
-#define	CHERI_PERMS_PROT2PERM_READ					\
-	CHERI_PERM_LOAD
-#define	CHERI_PERMS_PROT2PERM_READ_CAP					\
-	(CHERI_PERM_LOAD_CAP | CHERI_PERM_MUTABLE_LOAD)
-#define	CHERI_PERMS_PROT2PERM_WRITE					\
-	CHERI_PERM_STORE
-#define	CHERI_PERMS_PROT2PERM_WRITE_CAP					\
-	(CHERI_PERM_STORE_CAP | CHERI_PERM_STORE_LOCAL_CAP)
-#define	CHERI_PERMS_PROT2PERM_EXEC					\
-	(CHERI_PERM_EXECUTE | CHERI_PERM_EXECUTIVE |			\
-	 CHERI_PERMS_PROT2PERM_READ | CHERI_PERMS_PROT2PERM_READ_CAP)
-
 /*
  * Basic userspace permission mask; CHERI_PERM_EXECUTE will be added for
  * executable capabilities (pcc); CHERI_PERM_STORE, CHERI_PERM_STORE_CAP,
@@ -113,50 +67,12 @@
 	CHERI_PERM_BRANCH_SEALED_PAIR |					\
 	(CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
 
-#define	CHERI_PERMS_USERSPACE_CIDCAP					\
-	(CHERI_PERM_COMPARTMENT_ID)
-
 #define	CHERI_PERMS_USERSPACE_CODE					\
 	(CHERI_PERMS_USERSPACE | CHERI_PERM_EXECUTE |			\
 	CHERI_PERM_EXECUTIVE | CHERI_PERM_MUTABLE_LOAD)
 
 #define	CHERI_PERMS_USERSPACE_SEALCAP					\
 	(CHERI_PERM_GLOBAL | CHERI_PERM_SEAL | CHERI_PERM_UNSEAL)
-
-#define	CHERI_PERMS_USERSPACE_RODATA					\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD)
-
-/*
- * Corresponding permission masks for kernel code and data; these are
- * currently a bit broad, and should be narrowed over time as the kernel
- * becomes more capability-aware.
- */
-#define	CHERI_PERMS_KERNEL						\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD | CHERI_PERM_LOAD_CAP |	\
-		CHERI_PERM_MUTABLE_LOAD)
-
-#define	CHERI_PERMS_KERNEL_PAGETABLE					\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD | CHERI_PERM_STORE)
-
-#define	CHERI_PERMS_KERNEL_CIDCAP					\
-	(CHERI_PERM_COMPARTMENT_ID)
-
-#define	CHERI_PERMS_KERNEL_CODE						\
-	(CHERI_PERMS_KERNEL | CHERI_PERM_EXECUTE |			\
-	CHERI_PERM_SYSTEM_REGS | CHERI_PERM_EXECUTIVE)
-
-#define	CHERI_PERMS_KERNEL_DATA						\
-	(CHERI_PERMS_KERNEL | CHERI_PERM_STORE | CHERI_PERM_STORE_CAP |	\
-	CHERI_PERM_STORE_LOCAL_CAP)
-
-#define	CHERI_PERMS_KERNEL_RODATA					\
-	(CHERI_PERMS_KERNEL)
-
-#define	CHERI_PERMS_KERNEL_SEALCAP					\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_SEAL | CHERI_PERM_UNSEAL)
-
-#define	CHERI_PERMS_KERNEL_DATA_NOCAP					\
-	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD | CHERI_PERM_STORE)
 
 /*
  * The CHERI object-type space is split between userspace and kernel,
@@ -171,20 +87,5 @@
 #define	CHERI_OTYPE_BITS	(14)
 #define	CHERI_OTYPE_USER_MIN	(4)
 #define	CHERI_OTYPE_USER_MAX	((1 << (CHERI_OTYPE_BITS - 1)) - 1)
-#define	CHERI_OTYPE_KERN_MIN	(1 << (CHERI_OTYPE_BITS - 1))
-#define	CHERI_OTYPE_KERN_MAX	((1 << CHERI_OTYPE_BITS) - 1)
-#define	CHERI_OTYPE_KERN_FLAG	(1 << (CHERI_OTYPE_BITS - 1))
-#define	CHERI_OTYPE_ISKERN(x)	(((x) & CHERI_OTYPE_KERN_FLAG) != 0)
-#define	CHERI_OTYPE_ISUSER(x)	(!(CHERI_OTYPE_ISKERN(x)))
-
-/*
- * Root compartment ID capablity for userspace.
- *
- * XXX: move these to sys/cheri/cherireg.h if another platform implements CIDs.
- */
-#define	CHERI_COMPARTMENT_ID_USERSPACE_PERMS	CHERI_PERMS_USERSPACE_CIDCAP
-#define	CHERI_COMPARTMENT_ID_USERSPACE_BASE	0x0
-#define	CHERI_COMPARTMENT_ID_USERSPACE_LENGTH	0x8000000000000000UL
-#define	CHERI_COMPARTMENT_ID_USERSPACE_OFFSET	0x0
 
 #endif /* _ARM64_INCLUDE_CHERIREG_H_ */
