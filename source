@@ -1,4 +1,0 @@
-export MAKEOBJDIRPREFIX=/home/morello/workspace/2nd_take/cheribsd-obj
-export MAKESYSPATH=/home/morello/workspace/2nd_take/cheribsd/share/mk/
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/morello/musl/include/:/morello/musl/include/:/morello/usr/include/:/morello/include/:/home/morello/workspace/2nd_take/local/include/:/home/morello/workspace/2nd_take/local/include/bsd/
-export LIBRARY_PATH=$LIBRARY_PATH:/home/morello/workspace/2nd_take/local/lib/
