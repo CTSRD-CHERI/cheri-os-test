@@ -44,7 +44,7 @@
 
 #include <cheriintrin.h>
 
-#include "../compat_headers/cheribsdtest_compat.h"
+#include "cheribsdtest_compat.h"
 
 #ifdef __FreeBSD__
 #include "cheribsdtest_md.h"
