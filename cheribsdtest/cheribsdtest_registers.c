@@ -126,7 +126,7 @@ check_initreg_code(void * __capability c)
 	 * length).
 	 */
 	ptraddr_t upper_bound =
-	    CHERI_REPRESENTABLE_LENGTH(cheri_address_get(c) + 0x1000000);
+	    cheri_representable_length(cheri_address_get(c) + 0x1000000);
 	CHERIBSDTEST_VERIFY2(cheri_length_get(c) < upper_bound,
 	    "code length 0x%jx should be < than 0x%jx)", cheri_length_get(c),
 	    upper_bound);

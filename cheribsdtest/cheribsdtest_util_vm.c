@@ -90,7 +90,7 @@ find_address_space_gap(size_t len, size_t align)
 	CHERIBSDTEST_VERIFY(kivp != NULL);
 
 	if (align == 0) {
-		len = CHERI_REPRESENTABLE_LENGTH(len);
+		len = cheri_representable_length(len);
 		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
 	}
 
@@ -153,7 +153,7 @@ find_address_space_gap(size_t len, size_t align)
 	fclose(f);
 
 	if (align == 0) {
-		len = CHERI_REPRESENTABLE_LENGTH(len);
+		len = cheri_representable_length(len);
 		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
 	}
 

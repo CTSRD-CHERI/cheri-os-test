@@ -87,28 +87,13 @@
     bits;                                                                      \
   })*/
 
-#if __has_feature(capabilities)
-
-//XXXPM: This is cheri_representable_length() in cheriintrin.h
-#define	CHERI_REPRESENTABLE_LENGTH(len) \
-	__builtin_cheri_round_representable_length(len)
-
-//XXXPM: This is cheri_representable_alignment_mask()
-#define	CHERI_REPRESENTABLE_ALIGNMENT_MASK(len) \
-	__builtin_cheri_representable_alignment_mask(len)
-
-#else /* !__has_feature(capabilities) */
-#define	CHERI_REPRESENTABLE_LENGTH(len) (len)
-#define	CHERI_REPRESENTABLE_ALIGNMENT_MASK(len) UINT64_MAX
-#endif /* !__has_feature(capabilities) */
-
 /* Provide macros to make it easier to work with the raw CRAM/CRRL results: */
 #define	CHERI_REPRESENTABLE_ALIGNMENT(len) \
-	(~CHERI_REPRESENTABLE_ALIGNMENT_MASK(len) + 1)
+	(~cheri_representable_alignment_mask(len) + 1)
 #define	CHERI_REPRESENTABLE_ALIGN_DOWN(base, len) \
-	((base) & CHERI_REPRESENTABLE_ALIGNMENT_MASK(len))
+	((base) & cheri_representable_alignment_mask(len))
 
-#define	CHERI_ALIGN_MASK(l)		~(CHERI_REPRESENTABLE_ALIGNMENT_MASK(l))
+#define	CHERI_ALIGN_MASK(l)		~(cheri_representable_alignment_mask(l))
 
 #endif /* _SYS_CHERIC_H_ */
 // CHERI CHANGES START

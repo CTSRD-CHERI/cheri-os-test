@@ -97,7 +97,7 @@ test_bounds_impl(void *__capability allocation, void *__capability global_ptr, s
 	size_t allocation_len = cheri_length_get(allocation);
 	size_t pointer_offset = cheri_offset_get(global_ptr);
 	size_t pointer_len = cheri_length_get(global_ptr);
-	size_t rounded_size = CHERI_REPRESENTABLE_LENGTH(size);
+	size_t rounded_size = cheri_representable_length(size);
 
 	/* Both the local cast and the global pointer should be tagged */
 	CHERIBSDTEST_VERIFY(cheri_tag_get(allocation));
