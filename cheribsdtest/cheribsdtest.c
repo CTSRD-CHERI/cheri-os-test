@@ -31,7 +31,7 @@
  */
 
 #ifdef __linux__
-#include <morello_linux_compat.h>
+#include "cheribsdtest_compat.h"
 #endif
 
 #include <sys/cdefs.h>

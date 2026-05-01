@@ -42,7 +42,6 @@
 #include <cheriintrin.h>
 
 #if __has_feature(capabilities)
-#include "../morello_linux_compat.h"
 
 /*
  * Get the top of a capability (i.e. one byte past the last accessible one)

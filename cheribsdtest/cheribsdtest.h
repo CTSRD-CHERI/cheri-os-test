@@ -44,7 +44,7 @@
 
 #include <cheriintrin.h>
 
-#include "../compat_headers/morello_linux_compat.h"
+#include "../compat_headers/cheribsdtest_compat.h"
 
 #ifdef __FreeBSD__
 #include "cheribsdtest_md.h"

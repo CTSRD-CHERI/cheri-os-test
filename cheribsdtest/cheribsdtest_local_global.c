@@ -55,7 +55,7 @@
 #include "cheribsdtest.h"
 
 #ifdef __linux__
-#include <morello_linux_compat.h>
+#include "cheribsdtest_compat.h"
 #endif
 
 #define	NOT_IMPL_MSG "This test hasn't been fully implemented for RISC-V yet"
