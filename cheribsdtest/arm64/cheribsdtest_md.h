@@ -36,8 +36,6 @@
 #ifndef _CHERIBSDTEST_MD_H_
 #define	_CHERIBSDTEST_MD_H_
 
-#include <machine/armreg.h>
-
 #define	TRAPNO_STORE_CAP_PF	EXCP_DATA_ABORT_L
 #define	TRAPNO_LOAD_STORE	EXCP_DATA_ABORT_L
 #define	TRAPNO_LOAD_PF		EXCP_DATA_ABORT_L
