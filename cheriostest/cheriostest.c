@@ -126,6 +126,7 @@ static int coredump_enabled;
 static int debugger_enabled;
 
 int verbose;
+struct cheriostest_entrystate entrystate;
 
 extern char **environ;
 
@@ -252,6 +253,14 @@ set_thread_tracing(void)
 #else
 	err(EX_OSERR, "%s", __func__);
 #endif
+}
+
+static void
+cheriostest_entrystate_snapshot(struct cheriostest_entrystate *state,
+    int argc, char *argv[])
+{
+	state->es_argc = argc;
+	state->es_argv = argv;
 }
 
 /* Maximum size of stdout data we will check if called for by a test. */
@@ -909,6 +918,8 @@ main(int argc, char *argv[])
 #endif
 	const char *sep;
 	struct cheri_test **ctp, *ct;
+
+	cheriostest_entrystate_snapshot(&entrystate, argc, argv);
 
 	argc = xo_parse_args(argc, argv);
 	if (argc < 0)

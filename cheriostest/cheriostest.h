@@ -413,6 +413,17 @@ cheri_ptr_equal_exact(void *x, void *y)
 #endif
 }
 
+/*
+ * Snapshot of the startup state upon entry to main().
+ * This is used by tests that need to verify properties that may
+ * be tampered with by the cheribsdtest runtime environment.
+ */
+struct cheriostest_entrystate {
+	int es_argc;
+	char **es_argv;
+};
+
+extern struct cheriostest_entrystate entrystate;
 
 /* For libc_memcpy and libc_memset tests and the unaligned copy tests: */
 extern void *cheriostest_memcpy(void *dst, const void *src, size_t n);
