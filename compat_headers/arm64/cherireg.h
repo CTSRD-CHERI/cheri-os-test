@@ -1,11 +1,18 @@
 /*-
- * Copyright (c) 2011-2017 Robert N. M. Watson
+ * Copyright (c) 2011-2018 Robert N. M. Watson
  * Copyright (c) 2016-2020 Andrew Turner
+ * Copyright (c) 2020 John Baldwin
  * All rights reserved.
  *
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
  * ("CTSRD"), as part of the DARPA CRASH research programme.
+ *
+ * Portions of this software were developed by SRI International and
+ * the University of Cambridge Computer Laboratory (Department of
+ * Computer Science and Technology) under DARPA contract
+ * HR0011-18-C-0016 ("ECATS"), as part of the DARPA SSITH research
+ * programme.
  *
  * This work was supported by Innovate UK project 105694, "Digital Security
  * by Design (DSbD) Technology Platform Prototype".
@@ -38,14 +45,10 @@
  * CHERI ISA-defined constants for capabilities -- suitable for inclusion from
  * assembly source code.
  */
-#define	CHERI_PERM_EXECUTIVE			(1 << 1)	/* 0x00000002 */
 #define	CHERI_PERM_SW0				(1 << 2)	/* 0x00000004 */
 #define	CHERI_PERM_SW1				(1 << 3)	/* 0x00000008 */
 #define	CHERI_PERM_SW2				(1 << 4)	/* 0x00000010 */
 #define	CHERI_PERM_SW3				(1 << 5)	/* 0x00000020 */
-#define	CHERI_PERM_MUTABLE_LOAD			(1 << 6)	/* 0x00000040 */
-#define	CHERI_PERM_BRANCH_SEALED_PAIR		(1 << 8)	/* 0x00000100 */
-#define	CHERI_PERM_INVOKE			CHERI_PERM_BRANCH_SEALED_PAIR
 
 /*
  * Macros defining initial permission sets:
@@ -64,15 +67,27 @@
  */
 #define	CHERI_PERMS_USERSPACE						\
 	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD | CHERI_PERM_LOAD_CAP |	\
-	CHERI_PERM_BRANCH_SEALED_PAIR |					\
+	CHERI_PERM_INVOKE |					\
 	(CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
 
 #define	CHERI_PERMS_USERSPACE_CODE					\
 	(CHERI_PERMS_USERSPACE | CHERI_PERM_EXECUTE |			\
-	CHERI_PERM_EXECUTIVE | CHERI_PERM_MUTABLE_LOAD)
+	ARM_CAP_PERMISSION_EXECUTIVE | CHERI_PERM_LOAD_MUTABLE)
 
 #define	CHERI_PERMS_USERSPACE_SEALCAP					\
 	(CHERI_PERM_GLOBAL | CHERI_PERM_SEAL | CHERI_PERM_UNSEAL)
+
+#define CHERI_PERMS_USERSPACE                                           \
+	(CHERI_PERM_GLOBAL | CHERI_PERM_LOAD | CHERI_PERM_LOAD_CAP |    \
+	CHERI_PERM_INVOKE |                                 \
+	(CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
+
+#define CHERI_PERMS_USERSPACE_DATA                                      \
+	(CHERI_PERMS_USERSPACE | CHERI_PERM_STORE |                     \
+	CHERI_PERM_STORE_CAP | CHERI_PERM_STORE_LOCAL_CAP |             \
+	CHERI_PERM_LOAD_MUTABLE)
+
+#define	CHERI_CAP_USER_DATA_PERMS	CHERI_PERMS_USERSPACE_DATA
 
 /*
  * The CHERI object-type space is split between userspace and kernel,

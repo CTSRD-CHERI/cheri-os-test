@@ -46,12 +46,6 @@
 #endif
 
 /*
- * Definition for userspace "unprivileged" capabilities able to name the user
- * portion of the address space.
- */
-#define	CHERI_CAP_USER_CODE_PERMS	CHERI_PERMS_USERSPACE_CODE
-
-/*
  * Root sealing capability for all userspace object capabilities.
  */
 #define	CHERI_SEALCAP_USERSPACE_PERMS	CHERI_PERMS_USERSPACE_SEALCAP

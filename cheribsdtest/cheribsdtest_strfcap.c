@@ -138,7 +138,7 @@ test_strfcap_C_cap_one(void * __capability p, int expected_tokens,
 	}
 #endif
 #ifdef __aarch64__
-	if ((cheri_perms_get(p) & CHERI_PERM_EXECUTIVE) != 0) {
+	if ((cheri_perms_get(p) & ARM_CAP_PERMISSION_EXECUTIVE) != 0) {
 		if (*permsp != 'E')
 			cheribsdtest_failure_errx("Missing 'E' permission for %s",
 			    descr);

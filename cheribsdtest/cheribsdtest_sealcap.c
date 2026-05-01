@@ -143,7 +143,7 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", v);
 
 #ifdef HAS_CHERI_PERM_EXECUTIVE
-	if ((v & CHERI_PERM_EXECUTIVE) != 0)
+	if ((v & ARM_CAP_PERMISSION_EXECUTIVE) != 0)
 		cheribsdtest_failure_errx("perms %jx (executive present)", v);
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE

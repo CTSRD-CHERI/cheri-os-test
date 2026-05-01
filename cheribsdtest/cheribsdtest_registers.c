@@ -62,28 +62,19 @@
 #include <machine/vmparam.h>
 
 #include <cheri/cheri.h>
+#include <cheriintrin.h>
+
 #elif defined(__linux__)
 #include "sys/cheri.h"
 #include "sys/resource.h"
 
 #include "cheri/cherireg.h"
 #include "machine/cherireg.h"
-
-#elif defined(__riscv)
-#include "asm/cheri.h"
-#include "cheriintrin.h"
 #endif
 
 #if defined(__linux__)
 #define	CHERI_CAP_USER_DATA_BASE	get_minuser_address()
 #define	MAXSSIZ						get_max_stack_size()
-
-#if defined(__aarch64__)
-#define	CHERI_CAP_USER_CODE_PERMS	CHERI_PERMS_USERSPACE_CODE
-#define	CHERI_CAP_USER_DATA_PERMS	(CHERI_PERM_GLOBAL | CHERI_PERM_MUTABLE_LOAD | \
-	CHERI_PERM_STORE_LOCAL_CAP | CHERI_PERM_STORE_CAP | CHERI_PERM_LOAD_CAP | \
-	CHERI_PERM_STORE | CHERI_PERM_LOAD)
-#endif
 
 static unsigned long get_minuser_address(void) {
 	FILE *f;
@@ -248,12 +239,12 @@ check_initreg_code(void * __capability c)
 		    v & CHERI_PERMS_SWALL, expect);
 
 	/* Check that the raw permission bits match the kernel header: */
-	expect = CHERI_CAP_USER_CODE_PERMS;
+	expect = CHERI_PERMS_USERSPACE_CODE;
 #ifdef CHERIBSD_C18N_TESTS
 #ifndef __ARM_MORELLO_PURECAP_BENCHMARK_ABI
 	expect &= ~CHERI_PERM_SYSCALL;
 #ifdef __aarch64__
-	expect &= ~CHERI_PERM_EXECUTIVE;
+	expect &= ~ARM_CAP_PERMISSION_EXECUTIVE;
 #endif
 #endif
 #endif
