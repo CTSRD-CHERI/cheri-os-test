@@ -275,7 +275,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 	visreason[0] = '\0';
 	xfail_reason = NULL;
 
-	for (size_t i = 0; i < nitems(disallowed_prefixes); i++) {
+	for (size_t i = 0; i < cheritest_nitems(disallowed_prefixes); i++) {
 		if (strncmp(ctp->ct_name, disallowed_prefixes[i],
 		    strlen(disallowed_prefixes[i])) == 0) {
 

@@ -413,7 +413,7 @@ CHERIBSDTEST(mallocx_alignment, "Check that mallocx aligns allocations")
 	size_t sizes[] = {0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000,
 	    0x10000};
 
-	for (size_t i = 0; i < nitems(sizes); i++)
+	for (size_t i = 0; i < cheritest_nitems(sizes); i++)
 		check_mallocx(sizes[i]);
 
 	cheribsdtest_success();
@@ -437,7 +437,7 @@ CHERIBSDTEST(rallocx_alignment, "Check that rallocx aligns allocations")
 	size_t sizes[] = {0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000,
 	    0x10000};
 
-	for (size_t i = 0; i < nitems(sizes); i++)
+	for (size_t i = 0; i < cheritest_nitems(sizes); i++)
 		check_rallocx(sizes[i]);
 
 	cheribsdtest_success();

@@ -223,7 +223,7 @@ check_initreg_code(void * __capability c)
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", v);
 
 #if defined(__FreeBSD__)
-	expect = CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM;
+	expect = CHERITEST_CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM;
 #elif defined(__linux__)
 	expect = 0;
 #endif
@@ -233,12 +233,12 @@ check_initreg_code(void * __capability c)
 	expect &= ~CHERI_PERM_SYSCALL;
 #endif
 #endif
-	if ((v & CHERI_PERMS_SWALL) != expect)
+	if ((v & CHERITEST_CHERI_PERMS_SWALL) != expect)
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %jx)",
-		    v & CHERI_PERMS_SWALL, expect);
+		    v & CHERITEST_CHERI_PERMS_SWALL, expect);
 
 	/* Check that the raw permission bits match the kernel header: */
-	expect = CHERI_PERMS_USERSPACE_CODE;
+	expect = CHERITEST_CHERI_PERMS_USERSPACE_CODE;
 #ifdef CHERIBSD_C18N_TESTS
 #ifndef __ARM_MORELLO_PURECAP_BENCHMARK_ABI
 	expect &= ~CHERI_PERM_SYSCALL;
@@ -287,10 +287,10 @@ check_initreg_data_full_addrspace(void * __capability c)
 
 	/* Permissions. */
 	v = cheri_perms_get(c);
-	if (v != (CHERI_CAP_USER_DATA_PERMS | CHERI_PERM_SW_VMEM |
-	    CHERI_PERM_SYSCALL))
+	if (v != (CHERITEST_CHERI_CAP_USER_DATA_PERMS | CHERI_PERM_SW_VMEM |
+		CHERI_PERM_SYSCALL))
 		cheribsdtest_failure_errx("perms %jx (expected %jx)", v,
-		    (uintmax_t)CHERI_CAP_USER_DATA_PERMS |
+		    (uintmax_t)CHERITEST_CHERI_CAP_USER_DATA_PERMS |
 		    CHERI_PERM_SW_VMEM | CHERI_PERM_SYSCALL);
 
 	/*
@@ -342,9 +342,9 @@ check_initreg_data_full_addrspace(void * __capability c)
 	if ((v & CHERI_PERM_SYSTEM_REGS) != 0)
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", v);
 
-	if ((v & CHERI_PERMS_SWALL) != CHERI_PERMS_SWALL)
+	if ((v & CHERITEST_CHERI_PERMS_SWALL) != CHERITEST_CHERI_PERMS_SWALL)
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %x)",
-		    v & CHERI_PERMS_SWALL, CHERI_PERMS_SWALL);
+		    v & CHERITEST_CHERI_PERMS_SWALL, CHERITEST_CHERI_PERMS_SWALL);
 
 	/* Sealed bit. */
 	v = cheri_is_sealed(c);
@@ -401,11 +401,11 @@ CHERIBSDTEST(initregs_stack_user_perms,
 	register_t v;
 
 	v = cheri_perms_get(__builtin_cheri_stack_get());
-	if ((v & CHERI_PERMS_SWALL) !=
-	    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
+	if ((v & CHERITEST_CHERI_PERMS_SWALL) !=
+	    (CHERITEST_CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM))
 		cheribsdtest_failure_errx("swperms %jx (expected swperms %x)",
-		    (uintmax_t) v & CHERI_PERMS_SWALL,
-		    (CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM));
+		    (uintmax_t) v & CHERITEST_CHERI_PERMS_SWALL,
+		    (CHERITEST_CHERI_PERMS_SWALL & ~CHERI_PERM_SW_VMEM));
 	cheribsdtest_success();
 }
 
@@ -488,9 +488,9 @@ CHERIBSDTEST(initregs_stack,
 	if ((v & CHERI_PERM_SYSTEM_REGS) != 0)
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", (uintmax_t) v);
 
-	if (v != CHERI_CAP_USER_DATA_PERMS)
+	if (v != CHERITEST_CHERI_CAP_USER_DATA_PERMS)
 		cheribsdtest_failure_errx("perms %jx (expected %jx)", (uintmax_t) v,
-		    (uintmax_t)(CHERI_CAP_USER_DATA_PERMS));
+		    (uintmax_t)(CHERITEST_CHERI_CAP_USER_DATA_PERMS));
 
 	/* Sealed bit. */
 	v = cheri_is_sealed(c);

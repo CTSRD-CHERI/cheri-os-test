@@ -121,9 +121,15 @@ CHERIBSDTEST(cheriabi_mincore,
  *        The specification does not state whether it is legal to unset a
  *        reserved bit that defaults to 1.
  */
-#define EXEC_ONLY (CHERI_PERM_EXECUTE | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
-#define READ_ONLY (CHERI_PERM_READ | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
-#define WRITE_ONLY (CHERI_PERM_WRITE | CHERI_PERMS_FIRST_RESERVED_BLOCK | CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#define EXEC_ONLY \
+	(CHERI_PERM_EXECUTE | CHERITEST_CHERI_PERMS_FIRST_RESERVED_BLOCK | \
+	CHERITEST_CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#define READ_ONLY \
+	(CHERI_PERM_READ | CHERITEST_CHERI_PERMS_FIRST_RESERVED_BLOCK | \
+	CHERITEST_CHERI_PERMS_SECOND_RESERVED_BLOCK)
+#define WRITE_ONLY \
+	(CHERI_PERM_WRITE | CHERITEST_CHERI_PERMS_FIRST_RESERVED_BLOCK | \
+	CHERITEST_CHERI_PERMS_SECOND_RESERVED_BLOCK)
 #endif
 	/* Execute-only */
 	cap = cheri_perms_and(pages, EXEC_ONLY);
@@ -144,8 +150,8 @@ CHERIBSDTEST(cheriabi_mincore,
 	 * Restrict bounds to cover a single byte of the first and last
 	 * pages.
 	 */
-	cap = trunc_page(cheri_bounds_set(pages + page_sz - 1,
-	    pages_len - 2 * (PAGE_SIZE - 1)));
+	cap = cheritest_trunc_page(cheri_bounds_set(pages + page_sz - 1,
+	    pages_len - 2 * (CHERITEST_PAGE_SIZE - 1)));
 
 	/* The whole thing */
 	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
@@ -184,13 +190,13 @@ CHERIBSDTEST(cheriabi_mmap_unrepresentable,
 
 	/*
 	 * Generate the shortest unrepresentable length, for which rounding
-	 * up to PAGE_SIZE is still unrepresentable.
+	 * up to CHERITEST_PAGE_SIZE is still unrepresentable.
 	 */
 	do {
-		len = (1 << (PAGE_SHIFT + shift)) + 1;
+		len = (1 << (CHERITEST_PAGE_SHIFT + shift)) + 1;
 		shift++;
-	} while (round_page(len) ==
-	    __builtin_cheri_round_representable_length(round_page(len)));
+	} while (cheritest_round_page(len) ==
+	    __builtin_cheri_round_representable_length(cheritest_round_page(len)));
 
 	expected_len = __builtin_cheri_round_representable_length(len);
 #ifdef __linux__
@@ -256,10 +262,10 @@ mmap_and_get_perms(int prot)
 	void *cap;
 	int perms;
 
-	cap = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE, prot,
+	cap = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE, prot,
 		MAP_ANON | MAP_PRIVATE, -1, 0));
 	perms = cheri_perms_get(cap);
-	CHERIBSDTEST_CHECK_SYSCALL(munmap(cap, PAGE_SIZE));
+	CHERIBSDTEST_CHECK_SYSCALL(munmap(cap, CHERITEST_PAGE_SIZE));
 
 	return (perms);
 }
@@ -655,10 +661,10 @@ CHERIBSDTEST(cheriabi_mprotect_upgrade_prot_cap,
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_NONE | PROT_MAX(PROT_READ | PROT_WRITE),
 	    MAP_ANON | MAP_PRIVATE, -1, 0));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), PAGE_SIZE,
+	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE));
 
 	/* Attempt to store a capability */
@@ -672,12 +678,12 @@ CHERIBSDTEST(cheriabi_mprotect_restore_prot_cap,
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), PAGE_SIZE,
-	    PROT_NONE));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), PAGE_SIZE,
-	    PROT_READ | PROT_WRITE));
+	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
+	    CHERITEST_PAGE_SIZE, PROT_NONE));
+	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
+	    CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE));
 
 	/* Attempt to store a capability */
 	*p = __DEVOLATILE(void *, p);
@@ -697,12 +703,12 @@ CHERIBSDTEST(cheriabi_mprotect_downgrade_prot_cap,
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
 	*p = __DEVOLATILE(void *, p);
 
 	/* Downgrade and attempt to load a capability */
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), PAGE_SIZE,
+	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_MAX(PROT_READ)));
 	CHERIBSDTEST_VERIFY(cheri_tag_get(*p));
 

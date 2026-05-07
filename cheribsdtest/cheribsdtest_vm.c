@@ -173,7 +173,7 @@ mmap_and_check_tag_stored(int fd, int protflags, int mapflags)
 
 	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(), protflags,
 	     mapflags, fd, 0));
-	cp_value = cheri_ptr(&v, sizeof(v));
+	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
 	cp_value = *cp;
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(cp_value) != 0, "tag lost");
@@ -228,7 +228,7 @@ CHERIBSDTEST(vm_notag_mmap_no_cap,
 		PROT_MAX(PROT_READ | PROT_WRITE | PROT_CAP) |
 		PROT_READ | PROT_WRITE | PROT_NO_CAP, MAP_ANON, -1, 0));
 	cheribsdtest_set_expected_si_addr(NULL_DERIVED_VOIDP(cp));
-	cp_value = cheri_ptr(&v, sizeof(v));
+	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
 	cheribsdtest_failure_errx("tagged store succeeded");
 #else
@@ -256,7 +256,7 @@ CHERIBSDTEST(vm_notag_mprotect_no_cap,
 	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, cp),
 	    getpagesize(), PROT_READ | PROT_WRITE | PROT_NO_CAP));
 	cheribsdtest_set_expected_si_addr(NULL_DERIVED_VOIDP(cp));
-	cp_value = cheri_ptr(&v, sizeof(v));
+	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
 	cheribsdtest_failure_errx("tagged store succeeded");
 #else
@@ -734,7 +734,7 @@ CHERIBSDTEST(vm_cap_share_fd_kqueue,
 		 * Generate a capability to a new mapping to pass to the
 		 * child, who will not have this region mapped.
 		 */
-		passme = CHERIBSDTEST_CHECK_SYSCALL(mmap(0, PAGE_SIZE,
+		passme = CHERIBSDTEST_CHECK_SYSCALL(mmap(0, CHERITEST_PAGE_SIZE,
 				PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 
 		EV_SET(&ike, 0x2BAD, EVFILT_USER, EV_ADD|EV_ONESHOT,
@@ -789,7 +789,7 @@ CHERIBSDTEST(vm_cap_share_sigaction,
 
 		/* This is a little abusive, but shows the point, I think */
 
-		passme = CHERIBSDTEST_CHECK_SYSCALL(mmap(0, PAGE_SIZE,
+		passme = CHERIBSDTEST_CHECK_SYSCALL(mmap(0, CHERITEST_PAGE_SIZE,
 		    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON, -1, 0));
 		sa.sa_handler = passme;
 
@@ -875,7 +875,7 @@ CHERIBSDTEST(vm_notag_tmpfile_shared,
 	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
 	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
 	cheribsdtest_set_expected_si_addr(NULL_DERIVED_VOIDP(cp));
-	cp_value = cheri_ptr(&v, sizeof(v));
+	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
 	cheribsdtest_failure_errx("tagged store succeeded");
 }
@@ -938,7 +938,7 @@ vm_cow_read(int fd)
 	 * Write out a tagged capability to 'real' mapping -- doesn't really
 	 * matter what it points at.  Confirm it has a tag.
 	 */
-	cp = cheri_ptr(&fd, sizeof(fd));
+	cp = cheritest_cheri_ptr(&fd, sizeof(fd));
 	cp_real[0] = cp;
 	cp = cp_real[0];
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(cp) != 0, "pretest: tag missing");
@@ -1027,7 +1027,7 @@ vm_cow_write(int fd)
 	 * Write out a tagged capability to 'real' mapping -- doesn't really
 	 * matter what it points at.  Confirm it has a tag.
 	 */
-	cp = cheri_ptr(&fd, sizeof(fd));
+	cp = cheritest_cheri_ptr(&fd, sizeof(fd));
 	cp_real[0] = cp;
 	cp = cp_real[0];
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(cp) != 0, "pretest: tag missing");
@@ -1043,7 +1043,7 @@ vm_cow_write(int fd)
 	 * Diverge from cheribsdtest_vm_cow_read(): write via the second mapping
 	 * to force a copy-on-write rather than continued sharing of the page.
 	 */
-	cp = cheri_ptr(&fd, sizeof(fd));
+	cp = cheritest_cheri_ptr(&fd, sizeof(fd));
 	cp_copy[1] = cp;
 
 	/*
@@ -1127,13 +1127,13 @@ get_unrepresentable_length(void)
 
 	/*
 	 * Generate the shortest unrepresentable length, for which rounding
-	 * up to PAGE_SIZE is still unrepresentable.
+	 * up to CHERITEST_PAGE_SIZE is still unrepresentable.
 	 */
 	do {
-		len = (1 << (PAGE_SHIFT + shift)) + 1;
+		len = (1 << (CHERITEST_PAGE_SHIFT + shift)) + 1;
 		shift++;
-	} while (round_page(len) ==
-	    __builtin_cheri_round_representable_length(round_page(len)));
+	} while (cheritest_round_page(len) ==
+	    __builtin_cheri_round_representable_length(cheritest_round_page(len)));
 	return (len);
 }
 
@@ -1168,7 +1168,7 @@ CHERIBSDTEST(vm_reservation_access_fault,
 	int *padding;
 
 	expected_len = __builtin_cheri_round_representable_length(len);
-	CHERIBSDTEST_VERIFY2(expected_len > round_page(len),
+	CHERIBSDTEST_VERIFY2(expected_len > cheritest_round_page(len),
 	    "test precondition failed: padding for length (%lx) must "
 	    "exceed one page, found %lx", len, expected_len);
 	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, len, PROT_READ | PROT_WRITE,
@@ -1204,17 +1204,17 @@ CHERIBSDTEST(vm_reservation_reuse,
 	int flags = MAP_ANON | MAP_PRIVATE;
 #endif
 
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE * 2,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE * 2,
 	    PROT_READ | PROT_WRITE, flags, -1, 0));
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0, "mmap() failed to return "
 	    "a pointer");
 
-	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map + PAGE_SIZE, PAGE_SIZE));
+	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map + CHERITEST_PAGE_SIZE, CHERITEST_PAGE_SIZE));
 	/*
 	 * XXX-AM: is this checking the right thing?
 	 * We may be failing because the reservation length is not enough.
 	 */
-	map2 = mmap((void *)(uintptr_t)((ptraddr_t)map + PAGE_SIZE), PAGE_SIZE * 2,
+	map2 = mmap((void *)(uintptr_t)((ptraddr_t)map + CHERITEST_PAGE_SIZE), CHERITEST_PAGE_SIZE * 2,
 		PROT_READ | PROT_WRITE, flags | MAP_FIXED, -1, 0);
 	if (map2 == MAP_FAILED) {
 		CHERIBSDTEST_VERIFY2(errno == ENOMEM,
@@ -1234,7 +1234,7 @@ CHERIBSDTEST(vm_reservation_align,
 {
 	void *map;
 	size_t len = get_unrepresentable_length();
-	size_t align_mask = CHERI_ALIGN_MASK(len);
+	size_t align_mask = CHERITEST_CHERI_ALIGN_MASK(len);
 #ifdef __FreeBSD__
 	size_t align_shift = CHERI_ALIGN_SHIFT(len);
 #endif
@@ -1314,12 +1314,12 @@ CHERIBSDTEST(vm_reservation_mmap_after_free_fixed,
 	CHERIBSDTEST_CHECK_SYSCALL(cheri_revoke_get_shadow(
 	    CHERI_REVOKE_SHADOW_INFO_STRUCT, NULL, __DEQUALIFY(void **, &cri)));
 
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 
-	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map, PAGE_SIZE));
+	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map, CHERITEST_PAGE_SIZE));
 
-	map = mmap(map, PAGE_SIZE, PROT_READ | PROT_WRITE,
+	map = mmap(map, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE,
 	    MAP_ANON | MAP_FIXED, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED, "mmap after free succeeded");
 
@@ -1355,12 +1355,12 @@ CHERIBSDTEST(vm_reservation_mmap_after_free,
     .ct_check_skip = skip_need_cheri_revoke)
 {
 	void *map;
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 
-	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map, PAGE_SIZE));
+	CHERIBSDTEST_CHECK_SYSCALL(munmap((char *)map, CHERITEST_PAGE_SIZE));
 
-	map = mmap(map, PAGE_SIZE, PROT_READ | PROT_WRITE,
+	map = mmap(map, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE,
 	    MAP_ANON, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED, "mmap after free succeeded");
 	CHERIBSDTEST_VERIFY2(errno == EPROT,
@@ -1378,7 +1378,7 @@ vm_reservation_mmap_shared(int fd)
 	void *map;
 	size_t len = get_unrepresentable_length();
 	size_t expected_len;
-	size_t align_mask = CHERI_ALIGN_MASK(len);
+	size_t align_mask = CHERITEST_CHERI_ALIGN_MASK(len);
 
 	expected_len = __builtin_cheri_round_representable_length(len);
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, len));
@@ -1421,7 +1421,7 @@ CHERIBSDTEST(vm_mmap_invalid_cap,
 	    cheri_pcc_get(), 0x4300beef));
 	void *map;
 
-	map = mmap(invalid, PAGE_SIZE, PROT_READ | PROT_WRITE,
+	map = mmap(invalid, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE,
 	    MAP_ANON, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED,
 	    "mmap with invalid capability succeeded");
@@ -1448,7 +1448,7 @@ CHERIBSDTEST(vm_mmap_invalid_cap_fixed,
 	int flags = MAP_ANON | MAP_PRIVATE | MAP_FIXED;
 #endif
 
-	map = mmap(invalid, PAGE_SIZE, PROT_READ | PROT_WRITE, flags, -1, 0);
+	map = mmap(invalid, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE, flags, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED,
 	    "mmap with invalid capability succeeded");
 	CHERIBSDTEST_VERIFY2(errno == EINVAL,
@@ -1475,12 +1475,12 @@ CHERIBSDTEST(vm_reservation_mmap_invalid_cap,
 	int flags = MAP_ANON | MAP_PRIVATE;
 #endif
 
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, flags, -1, 0));
 
 	invalid = cheri_tag_clear(map);
 
-	map = mmap(invalid, PAGE_SIZE, PROT_READ | PROT_WRITE,
+	map = mmap(invalid, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE,
 	    flags, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED,
 	    "mmap with invalid capability succeeded");
@@ -1505,8 +1505,8 @@ CHERIBSDTEST(vm_reservation_mmap,
 	int flags = MAP_ANON | MAP_PRIVATE;
 #endif
 
-	hint = find_address_space_gap(PAGE_SIZE, 0);
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap((void *)hint, PAGE_SIZE,
+	hint = find_address_space_gap(CHERITEST_PAGE_SIZE, 0);
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap((void *)hint, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, flags, -1, 0));
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
 	    "mmap with null-derived hint failed to return valid capability");
@@ -1531,14 +1531,14 @@ CHERIBSDTEST(vm_reservation_mmap_fixed_unreserved,
 	int flags = MAP_ANON | MAP_PRIVATE | MAP_FIXED;
 #endif
 
-	hint = find_address_space_gap(PAGE_SIZE * 2, 0);
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap((void *)(hint + PAGE_SIZE),
-	    PAGE_SIZE, PROT_MAX(PROT_READ | PROT_WRITE), flags, -1, 0));
+	hint = find_address_space_gap(CHERITEST_PAGE_SIZE * 2, 0);
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap((void *)(hint + CHERITEST_PAGE_SIZE),
+	    CHERITEST_PAGE_SIZE, PROT_MAX(PROT_READ | PROT_WRITE), flags, -1, 0));
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
 	    "mmap fixed with NULL-derived hint failed to return "
 	    "valid capability");
 
-	map = mmap((void *)hint, 2 * PAGE_SIZE, PROT_READ | PROT_WRITE,
+	map = mmap((void *)hint, 2 * CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE,
 	    flags, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED,
 	    "mmap fixed with NULL-derived hint does not imply MAP_EXCL");
@@ -1560,16 +1560,16 @@ CHERIBSDTEST(vm_reservation_mmap_insert_null_derived,
 	void *map;
 
 #ifdef __FreeBSD__
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE,
 	    PROT_MAX(PROT_READ | PROT_WRITE), MAP_GUARD, -1, 0));
 #elif defined(__linux__)
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE, PROT_NONE |
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE, PROT_NONE |
 	    PROT_MAX(PROT_READ | PROT_WRITE), MAP_ANON | MAP_PRIVATE, -1, 0));
 #endif
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
 	    "mmap failed to return valid capability");
 
-	map = mmap((void *)(uintptr_t)(ptraddr_t)map, PAGE_SIZE,
+	map = mmap((void *)(uintptr_t)(ptraddr_t)map, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0);
 	CHERIBSDTEST_VERIFY2(map == MAP_FAILED,
 	    "mmap fixed with NULL-derived hint succeded");
@@ -1587,10 +1587,10 @@ CHERIBSDTEST(vm_reservation_mmap_fixed_insert,
 	void *map;
 
 #ifdef __FreeBSD__
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE,
 	    PROT_MAX(PROT_READ | PROT_WRITE), MAP_GUARD, -1, 0));
 #elif defined(__linux__)
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE, PROT_NONE |
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE, PROT_NONE |
 		PROT_MAX(PROT_READ | PROT_WRITE), MAP_ANON | MAP_PRIVATE, -1, 0));
 #endif
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
@@ -1598,7 +1598,7 @@ CHERIBSDTEST(vm_reservation_mmap_fixed_insert,
 	CHERIBSDTEST_VERIFY2(cheri_perms_get(map) & CHERI_PERM_SW_VMEM,
 	    "mmap failed to return capability with VMEM perm");
 
-	CHERIBSDTEST_CHECK_SYSCALL(mmap((char *)(map) + PAGE_SIZE, PAGE_SIZE,
+	CHERIBSDTEST_CHECK_SYSCALL(mmap((char *)(map) + CHERITEST_PAGE_SIZE, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0));
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
 	    "mmap fixed failed to return valid capability");
@@ -1615,10 +1615,10 @@ CHERIBSDTEST(vm_reservation_mmap_fixed_insert_noperm,
 	void *not_enough_perm;
 
 #ifdef __FreeBSD__
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE,
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE,
 	    PROT_MAX(PROT_READ | PROT_WRITE), MAP_GUARD, -1, 0));
 #elif defined(__linux__)
-	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * PAGE_SIZE, PROT_NONE |
+	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, 3 * CHERITEST_PAGE_SIZE, PROT_NONE |
 		PROT_MAX(PROT_READ | PROT_WRITE), MAP_ANON | MAP_PRIVATE, -1, 0));
 #endif
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(map) != 0,
@@ -1627,7 +1627,7 @@ CHERIBSDTEST(vm_reservation_mmap_fixed_insert_noperm,
 	    "mmap failed to return capability with VMEM perm");
 
 	not_enough_perm = cheri_perms_and(map, ~CHERI_PERM_SW_VMEM);
-	map2 = mmap((char *)(not_enough_perm) + PAGE_SIZE, PAGE_SIZE,
+	map2 = mmap((char *)(not_enough_perm) + CHERITEST_PAGE_SIZE, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0);
 	CHERIBSDTEST_VERIFY2(map2 == MAP_FAILED,
 	    "mmap fixed with capability missing VMEM perm succeeds");
@@ -1647,7 +1647,7 @@ get_pagesizes(size_t ps[static MAXPAGESIZES])
 
 	count = getpagesizes(ps, MAXPAGESIZES);
 	CHERIBSDTEST_VERIFY2(count != -1, "failed to get pagesizes");
-	CHERIBSDTEST_VERIFY2(ps[0] == PAGE_SIZE, "psind 0 is not PAGE_SIZE");
+	CHERIBSDTEST_VERIFY2(ps[0] == CHERITEST_PAGE_SIZE, "psind 0 is not CHERITEST_PAGE_SIZE");
 	return (count);
 }
 #elif defined(__linux__)
@@ -1765,7 +1765,7 @@ CHERIBSDTEST(vm_large_pages_basic,
 		CHERIBSDTEST_VERIFY2(cheri_tag_get(*map_buffer) != 0, "tag lost");
 
 		map_buffer = (void * volatile *)((uintptr_t)addr +
-		    ps[psind] - PAGE_SIZE);
+		    ps[psind] - CHERITEST_PAGE_SIZE);
 		*map_buffer = &v;
 		CHERIBSDTEST_VERIFY2(cheri_tag_get(*map_buffer) != 0, "tag lost");
 
@@ -1959,7 +1959,7 @@ CHERIBSDTEST(cheri_revoke_lightly, "A gentle test of capability revocation",
 	CHERIBSDTEST_CHECK_SYSCALL(pipe(pfd));
 
 	mb = CHERIBSDTEST_CHECK_SYSCALL(
-	    mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
+	    mmap(0, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 	CHERIBSDTEST_CHECK_SYSCALL(
 	    cheri_revoke_get_shadow(CHERI_REVOKE_SHADOW_NOVMEM, mb, &sh));
 
@@ -2028,7 +2028,7 @@ CHERIBSDTEST(cheri_revoke_lightly, "A gentle test of capability revocation",
 
 	check_kqueue_cap(kq, pfd, 1);
 
-	munmap(mb, PAGE_SIZE);
+	munmap(mb, CHERITEST_PAGE_SIZE);
 	close(kq);
 	close(ekq);
 	close(pfd[0]);
@@ -2049,7 +2049,7 @@ CHERIBSDTEST(cheri_revoke_loadside, "Test load-side revoker",
 	struct cheri_revoke_syscall_info crsi;
 	unsigned char mcv[CHERIBSDTEST_VM_CHERI_REVOKE_LOADSIDE_NPG] = { 0 };
 	const size_t asz = CHERIBSDTEST_VM_CHERI_REVOKE_LOADSIDE_NPG *
-	    PAGE_SIZE;
+	    CHERITEST_PAGE_SIZE;
 
 	mb = CHERIBSDTEST_CHECK_SYSCALL(
 	    mmap(0, asz, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
@@ -2065,7 +2065,7 @@ CHERIBSDTEST(cheri_revoke_loadside, "Test load-side revoker",
 	((uint8_t *)sh)[0] = 1;
 
 	/* Write and clear a capability one page up */
-	size_t capsperpage = PAGE_SIZE/sizeof(void *);
+	size_t capsperpage = CHERITEST_PAGE_SIZE/sizeof(void *);
 	((void * volatile *)mb)[capsperpage] = revme;
 	((volatile uintptr_t *)mb)[capsperpage] = 0;
 
@@ -2183,7 +2183,7 @@ CHERIBSDTEST(cheri_revoke_async,
 	void *sh;
 
 	mb = CHERIBSDTEST_CHECK_SYSCALL(
-	    mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
+	    mmap(0, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 
 	CHERIBSDTEST_CHECK_SYSCALL(
 	    cheri_revoke_get_shadow(CHERI_REVOKE_SHADOW_NOVMEM, mb, &sh));
@@ -2269,7 +2269,7 @@ CHERIBSDTEST(cheri_revoke_async_fork,
 		cheribsdtest_failure_errc(error, "pthread_create");
 
 	mb = CHERIBSDTEST_CHECK_SYSCALL(
-	    mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
+	    mmap(0, CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
 
 	CHERIBSDTEST_CHECK_SYSCALL(
 	    cheri_revoke_get_shadow(CHERI_REVOKE_SHADOW_NOVMEM, mb, &sh));
@@ -2936,9 +2936,9 @@ CHERIBSDTEST(revoke_merge_quarantined,
 {
 	const size_t big_res_size = 0x100000000;
 	const size_t res_sizes[NRES] =
-	    { PAGE_SIZE, big_res_size, PAGE_SIZE };
+	    { CHERITEST_PAGE_SIZE, big_res_size, CHERITEST_PAGE_SIZE };
 	const size_t res_offsets[NRES] =
-	    { PAGE_SIZE, big_res_size, 3 * big_res_size };
+	    { CHERITEST_PAGE_SIZE, big_res_size, 3 * big_res_size };
 	void *res;
 	ptraddr_t res_addrs[NRES], working_space;
 	struct procstat *psp;
@@ -2958,9 +2958,9 @@ CHERIBSDTEST(revoke_merge_quarantined,
 	 * padded to prevent merging with neighbors are creation time).
 	 *
 	 * The three quarantined regions are:
-	 *  - A PAGE_SIZE entry at offset PAGE_SIZE.
+	 *  - A CHERITEST_PAGE_SIZE entry at offset CHERITEST_PAGE_SIZE.
 	 *  - A large (big_res_size) allocation at offset big_res_size.
-	 *  - A PAGE_SIZE reservation at offset 3*big_res_size.
+	 *  - A CHERITEST_PAGE_SIZE reservation at offset 3*big_res_size.
 	 */
 	working_space = find_address_space_gap(big_res_size * 4, 0);
 	for (int r = 0; r < NRES; r++) {
@@ -3051,14 +3051,14 @@ CHERIBSDTEST(cheri_revoke_cow_mapping,
 	 * mapped.  This difference exercises different code paths in the
 	 * revoker.
 	 */
-	blocksz = 3 * PAGE_SIZE;
+	blocksz = 3 * CHERITEST_PAGE_SIZE;
 	block = mmap(NULL, blocksz, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
 	CHERIBSDTEST_VERIFY(block != MAP_FAILED);
 
-	torev = cheri_bounds_set(block + 2 * PAGE_SIZE / sizeof(void *),
-	    PAGE_SIZE);
-	cap1 = cheri_bounds_set(&block[0], PAGE_SIZE);
-	cap2 = cheri_bounds_set(&block[PAGE_SIZE / sizeof(void *)], PAGE_SIZE);
+	torev = cheri_bounds_set(block + 2 * CHERITEST_PAGE_SIZE / sizeof(void *),
+	    CHERITEST_PAGE_SIZE);
+	cap1 = cheri_bounds_set(&block[0], CHERITEST_PAGE_SIZE);
+	cap2 = cheri_bounds_set(&block[CHERITEST_PAGE_SIZE / sizeof(void *)], CHERITEST_PAGE_SIZE);
 	*cap1 = *cap2 = cheri_perms_and(torev, ~CHERI_PERM_SW_VMEM);
 
 	child = fork();
@@ -3080,9 +3080,9 @@ CHERIBSDTEST(cheri_revoke_cow_mapping,
 		 * the page tables to find it, so helps exercise different code
 		 * paths.
 		 */
-		if (msync(cap1, PAGE_SIZE, MS_INVALIDATE) != 0)
+		if (msync(cap1, CHERITEST_PAGE_SIZE, MS_INVALIDATE) != 0)
 			_exit(2);
-		if (mincore(block, 2 * PAGE_SIZE, st) != 0)
+		if (mincore(block, 2 * CHERITEST_PAGE_SIZE, st) != 0)
 			_exit(3);
 		if ((st[0] & MINCORE_INCORE) != 0)
 			_exit(4);
@@ -3152,8 +3152,8 @@ CHERIBSDTEST(cheri_revoke_cow_mapping,
 	 * revoker will visit the page, but cannot use the page tables to find
 	 * it, so helps exercise different code paths.
 	 */
-	CHERIBSDTEST_CHECK_SYSCALL(msync(cap1, PAGE_SIZE, MS_INVALIDATE));
-	CHERIBSDTEST_CHECK_SYSCALL(mincore(block, 2 * PAGE_SIZE, st));
+	CHERIBSDTEST_CHECK_SYSCALL(msync(cap1, CHERITEST_PAGE_SIZE, MS_INVALIDATE));
+	CHERIBSDTEST_CHECK_SYSCALL(mincore(block, 2 * CHERITEST_PAGE_SIZE, st));
 	CHERIBSDTEST_VERIFY((st[0] & MINCORE_INCORE) == 0);
 	CHERIBSDTEST_VERIFY((st[1] & MINCORE_INCORE) != 0);
 

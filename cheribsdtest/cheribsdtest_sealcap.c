@@ -54,7 +54,7 @@ get_sealcap(void)
 #elif defined(__linux__)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	/* XXX: Object type 0x0 is reserved for unsealed capabilities. */
-	sealcap = (void *) (((char *) sealcap) + CHERI_OTYPE_USER_MIN);
+	sealcap = (void *) (((char *) sealcap) + CHERITEST_CHERI_OTYPE_USER_MIN);
 	if (!cheri_tag_get(sealcap))
 		cheribsdtest_failure_err("getauxptr failed");
 #endif
@@ -71,21 +71,21 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 
 	/* Base. */
 	v = cheri_base_get(sealcap);
-	if (v != CHERI_SEALCAP_USERSPACE_BASE)
+	if (v != CHERITEST_CHERI_SEALCAP_USERSPACE_BASE)
 		cheribsdtest_failure_errx("base %jx (expected %jx)", v,
-		    (uintmax_t)CHERI_SEALCAP_USERSPACE_BASE);
+		    (uintmax_t)CHERITEST_CHERI_SEALCAP_USERSPACE_BASE);
 
 	/* Length. */
 	v = cheri_length_get(sealcap);
-	if (v != CHERI_SEALCAP_USERSPACE_LENGTH)
+	if (v != CHERITEST_CHERI_SEALCAP_USERSPACE_LENGTH)
 		cheribsdtest_failure_errx("length 0x%jx (expected 0x%jx)", v,
-		    (uintmax_t)CHERI_SEALCAP_USERSPACE_LENGTH);
+		    (uintmax_t)CHERITEST_CHERI_SEALCAP_USERSPACE_LENGTH);
 
 	/* Offset. */
 	v = cheri_offset_get(sealcap);
-	if (v != CHERI_SEALCAP_USERSPACE_OFFSET)
+	if (v != CHERITEST_CHERI_SEALCAP_USERSPACE_OFFSET)
 		cheribsdtest_failure_errx("offset %jx (expected %jx)", v,
-		    (uintmax_t)CHERI_SEALCAP_USERSPACE_OFFSET);
+		    (uintmax_t)CHERITEST_CHERI_SEALCAP_USERSPACE_OFFSET);
 
 	/* Type -- should have unsealed type. */
 	v = cheri_type_get(sealcap);
@@ -95,9 +95,9 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 
 	/* Permissions. */
 	v = cheri_perms_get(sealcap);
-	if (v != CHERI_SEALCAP_USERSPACE_PERMS)
+	if (v != CHERITEST_CHERI_SEALCAP_USERSPACE_PERMS)
 		cheribsdtest_failure_errx("perms %jx (expected %jx)", v,
-		    (uintmax_t)CHERI_SEALCAP_USERSPACE_PERMS);
+		    (uintmax_t)CHERITEST_CHERI_SEALCAP_USERSPACE_PERMS);
 
 	/*
 	 * More overt tests for permissions that should -- or should not -- be
@@ -151,7 +151,7 @@ CHERIBSDTEST(sealcap_sysctl, "Retrieve sealcap using sysctl(3)")
 		cheribsdtest_failure_errx("perms %jx (mutable_load present)", v);
 #endif
 
-	if ((v & CHERI_PERMS_SWALL) != 0)
+	if ((v & CHERITEST_CHERI_PERMS_SWALL) != 0)
 		cheribsdtest_failure_errx("perms %jx (swperms present)", v);
 
 	/* Sealed bit. */

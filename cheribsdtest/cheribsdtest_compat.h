@@ -34,10 +34,9 @@
  * SUCH DAMAGE.
  */
 
-#define LIBBSD_NETBSD_VIS 1
-// This was taken from CheriBSD's sys/param.h
-#define	nitems(x)	(sizeof((x)) / sizeof((x)[0]))
-#define	PAGE_SIZE	getpagesize()
-#define PAGE_SHIFT	(__builtin_ctzl(PAGE_SIZE))
-#define trunc_page(x)	__align_down(x, PAGE_SIZE)
-#define round_page(x)	__align_up(x, PAGE_SIZE)
+#define	LIBBSD_NETBSD_VIS	1
+#define	cheritest_nitems(x)	(sizeof((x)) / sizeof((x)[0]))
+#define	CHERITEST_PAGE_SIZE	getpagesize()
+#define CHERITEST_PAGE_SHIFT	(__builtin_ctzl(CHERITEST_PAGE_SIZE))
+#define cheritest_trunc_page(x)	__builtin_align_down(x, CHERITEST_PAGE_SIZE)
+#define cheritest_round_page(x)	__builtin_align_up(x, CHERITEST_PAGE_SIZE)

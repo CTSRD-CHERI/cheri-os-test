@@ -44,8 +44,8 @@
 
 #include "cheribsdtest.h"
 
-#define	BUFLEN		PAGE_SIZE
-#define	GUARDLEN	PAGE_SIZE
+#define	BUFLEN		CHERITEST_PAGE_SIZE
+#define	GUARDLEN	CHERITEST_PAGE_SIZE
 
 /*
  * Fill a buffer with the offset of each byte (mod 255).
@@ -99,11 +99,11 @@ CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 	 * regions around them.  Guard regsions fare for paranoia,
 	 * mmap'd buffers insure page alignment.
 	 */
-	buf = mmap(NULL, (BUFLEN * 2) + (PAGE_SIZE * 3), PROT_READ | PROT_WRITE,
+	buf = mmap(NULL, (BUFLEN * 2) + (CHERITEST_PAGE_SIZE * 3), PROT_READ | PROT_WRITE,
 	    MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (buf == MAP_FAILED)
 		cheribsdtest_failure_err("mmap of %d failed",
-		    (BUFLEN * 2)+ (PAGE_SIZE * 3));
+		    (BUFLEN * 2)+ (CHERITEST_PAGE_SIZE * 3));
 	if (mprotect(buf, GUARDLEN, PROT_NONE) == -1)
 		cheribsdtest_failure_err("mprotect of first guard region failed");
 	if (mprotect(buf + GUARDLEN + BUFLEN, GUARDLEN, PROT_NONE) == -1)

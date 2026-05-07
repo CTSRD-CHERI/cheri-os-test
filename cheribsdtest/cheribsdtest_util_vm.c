@@ -63,7 +63,7 @@
  * - This is not concurency safe and the found region could be disrupted
  *   by any non-MAP_FIXED mmap() call.  This includes anything that
  *   allocates heap memory.
- * - The region between PAGE_SIZE and the first mapping is not currently
+ * - The region between CHERITEST_CHERITEST_PAGE_SIZE and the first mapping is not currently
  *   searched.
  * - The top of the address space will be searched due to the shared
  *   page at the topmost address.
@@ -91,7 +91,7 @@ find_address_space_gap(size_t len, size_t align)
 
 	if (align == 0) {
 		len = cheri_representable_length(len);
-		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
+		align = CHERITEST_CHERI_REPRESENTABLE_ALIGNMENT(len);
 	}
 
 	for (unsigned int i = 1; i < vmcnt; i++) {
@@ -154,7 +154,7 @@ find_address_space_gap(size_t len, size_t align)
 
 	if (align == 0) {
 		len = cheri_representable_length(len);
-		align = CHERI_REPRESENTABLE_ALIGNMENT(len);
+		align = CHERITEST_CHERI_REPRESENTABLE_ALIGNMENT(len);
 	}
 
 	// Search for gap in the address space

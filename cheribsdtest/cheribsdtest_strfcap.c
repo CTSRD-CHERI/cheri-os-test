@@ -253,7 +253,7 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 	ssize_t ret_s;
 	size_t value;
 
-	for (size_t s = 0; s < nitems(formats); s++) {
+	for (size_t s = 0; s < cheritest_nitems(formats); s++) {
 		for (const char *scp = spec_chars; *scp != '\0'; scp++) {
 			format = strdup(formats[s].strfcap_format);
 			*strchr(format, 'S') = *scp;
@@ -268,7 +268,7 @@ test_strfcap_number_one_cap(uintcap_t cap, const char *cap_desc)
 			case 'p':	value = cheri_perms_get(cap); break;
 			case 's':	value = cheri_type_get(cap); break;
 			case 'S':	value = cheri_type_get(cap); break;
-			case 't':	value = cheri_top_get(cap); break;
+			case 't':	value = cheritest_cheri_gettop(cap); break;
 			case 'v':	value = cheri_tag_get(cap); break;
 			default:
 				cheribsdtest_failure_errx("Internal error: "
