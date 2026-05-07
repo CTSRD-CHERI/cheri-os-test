@@ -53,7 +53,7 @@
 #ifdef __FreeBSD__
 #include <machine/sysarch.h>
 #elif defined(__linux__)
-#include <machine/cherireg.h>
+#include "cheri/cherireg.h"
 #endif
 
 #include <err.h>

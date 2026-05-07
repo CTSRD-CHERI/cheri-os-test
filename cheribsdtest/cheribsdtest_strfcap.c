@@ -39,7 +39,7 @@
 #ifdef __FreeBSD__
 #include <cheri/cheri.h>
 #elif defined(__linux__)
-#include <machine/cherireg.h>
+#include "cheri/cherireg.h"
 #endif
 
 #include <sys/param.h>

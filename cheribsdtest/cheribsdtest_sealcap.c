@@ -33,7 +33,7 @@
 #elif defined(__linux__)
 #include <sys/auxv.h>
 
-#include <cheri/cherireg.h>
+#include "cheri/cherireg.h"
 #endif
 
 #include <stdio.h>

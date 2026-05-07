@@ -69,7 +69,6 @@
 #include "sys/resource.h"
 
 #include "cheri/cherireg.h"
-#include "machine/cherireg.h"
 #endif
 
 #if defined(__linux__)
