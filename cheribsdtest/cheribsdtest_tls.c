@@ -28,8 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif
@@ -57,15 +55,15 @@
  * from multiple threads, bounds on TLS variables, etc.  And, likely, also in
  * sandboxes.
  */
-static __thread char tls_dummy_char0 __used;
+static __thread char tls_dummy_char0 __attribute__((__used__));
 static __thread void *tls_ptr0;
-static __thread char tls_dummy_char1 __used;
+static __thread char tls_dummy_char1 __attribute__((__used__));
 static __thread void *tls_ptr1;
 
 #if !defined(__CHERI_PURE_CAPABILITY__)
-static __thread char tls_dummy_char2 __used;
+static __thread char tls_dummy_char2 __attribute__((__used__));
 static __thread void * __capability tls_cap0;
-static __thread char tls_dummy_char3 __used;
+static __thread char tls_dummy_char3 __attribute__((__used__));
 static __thread void * __capability tls_cap1;
 #endif
 

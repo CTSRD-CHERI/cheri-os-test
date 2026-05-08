@@ -33,8 +33,6 @@
  * A few non-faulting CHERI-related virtual-memory tests.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif
@@ -1117,7 +1115,7 @@ CHERIBSDTEST(vm_cow_named_write,
 
 #ifdef __CHERI_PURE_CAPABILITY__
 
-static int __used sink;
+static int __attribute__((__used__)) sink;
 
 static size_t
 get_unrepresentable_length(void)

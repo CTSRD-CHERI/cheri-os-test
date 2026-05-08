@@ -29,29 +29,27 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #include <sys/param.h>
 #include <sys/user.h>
-#ifdef __FreeBSD__
-#include <sys/sysctl.h>
-#elif defined(__linux__)
-#include <bsd/sys/queue.h>
-#else
-#error "Unsupported OS"
-#endif
 
-#include <cheri/cheric.h>
-
-#include <unistd.h>
 #ifdef __FreeBSD__
 #include <libprocstat.h>
+
+#include <sys/sysctl.h>
+
+#include <cheri/cheric.h>
 #elif defined(__linux__)
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <bsd/sys/queue.h>
+
+#include "cheri/cheric.h"
 #endif
+
+#include <unistd.h>
 
 #include "cheribsdtest.h"
 
@@ -95,7 +93,7 @@ find_address_space_gap(size_t len, size_t align)
 	}
 
 	for (unsigned int i = 1; i < vmcnt; i++) {
-		ptraddr_t aligned_start = __align_up(kivp[i-1].kve_end, align);
+		ptraddr_t aligned_start = __builtin_align_up(kivp[i-1].kve_end, align);
 		ptraddr_t end = kivp[i].kve_start;
 		if (aligned_start > end)
 			continue;
@@ -162,7 +160,7 @@ find_address_space_gap(size_t len, size_t align)
 	for (unsigned int i = 0; i < vmcnt - 1; i++) {
 		ptraddr_t end = it->start;
 		it = LIST_NEXT(it, link);
-		ptraddr_t aligned_start = __align_up(it->end, align);
+		ptraddr_t aligned_start = __builtin_align_up(it->end, align);
 		if (aligned_start > end)
 			continue;
 		if (end - aligned_start >= len) {

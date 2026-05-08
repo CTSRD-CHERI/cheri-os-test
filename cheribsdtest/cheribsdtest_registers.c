@@ -33,8 +33,6 @@
  * Exercise CHERI functions without an expectation of a signal.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif
@@ -62,7 +60,6 @@
 #include <machine/vmparam.h>
 
 #include <cheri/cheri.h>
-#include <cheriintrin.h>
 
 #elif defined(__linux__)
 #include "sys/cheri.h"

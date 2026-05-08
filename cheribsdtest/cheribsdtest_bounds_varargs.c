@@ -34,7 +34,6 @@
 #include <signal.h>
 #endif
 
-#include <sys/cdefs.h>
 #include <sys/types.h>
 #ifdef __FreeBSD__
 #include <sys/signal.h>
@@ -82,7 +81,7 @@
  * Directly overflow the varargs array by accessing off the end using
  * va_arg() one too many times.
  */
-static __noinline void
+static __attribute__((__noinline__)) void
 varargs_test_onearg(const char *fmt, ...)
 {
 	volatile int i __attribute__((__unused__));

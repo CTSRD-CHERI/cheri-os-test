@@ -29,8 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif

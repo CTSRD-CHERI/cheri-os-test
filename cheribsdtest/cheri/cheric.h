@@ -32,10 +32,6 @@
 #ifndef _SYS_CHERIC_H_
 #define	_SYS_CHERIC_H_
 
-#include <sys/cdefs.h>
-#include <sys/types.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <cheriintrin.h>
 
 /*

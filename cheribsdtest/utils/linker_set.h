@@ -36,18 +36,7 @@
  * For ELF, this is done by constructing a separate segment for each set.
  */
 
-#if defined(__powerpc64__) && (!defined(_CALL_ELF) || _CALL_ELF == 1)
-/*
- * ELFv1 pointers to functions are actaully pointers to function
- * descriptors.
- *
- * Move the symbol pointer from ".text" to ".data" segment, to make
- * the GCC compiler happy:
- */
-#define	__MAKE_SET_CONST
-#else
 #define	__MAKE_SET_CONST const
-#endif
 
 /*
  * Private macros, not to be used outside this header file.
@@ -57,19 +46,19 @@
  * The userspace address sanitizer inserts redzones around global variables,
  * violating the assumption that linker set elements are packed.
  */
-#ifdef _KERNEL
-#define	__NOASAN
-#else
-#define	__NOASAN	__nosanitizeaddress
-#endif
+#define	__NOASAN	__attribute__((no_sanitize("address")))
+
+#define _LINKER_SET_STR(x)	#x
+#define _LINKER_SET_XSTR(x)	_LINKER_SET_STR(x)
+#define _LINKER_SET_CONC(x, y)	x ## y
 
 #define __MAKE_SET_QV(set, sym, qv)			\
-	__WEAK(__CONCAT(__start_set_,set));		\
-	__WEAK(__CONCAT(__stop_set_,set));		\
+	__asm__(".weak " _LINKER_SET_XSTR(_LINKER_SET_CONC(__start_set_,set)));	\
+	__asm__(".weak " _LINKER_SET_XSTR(_LINKER_SET_CONC(__stop_set_,set)));	\
 	static void const * qv				\
 	__NOASAN					\
-	__set_##set##_sym_##sym __section("set_" #set)	\
-	__used = &(sym)
+	__set_##set##_sym_##sym __attribute__((__section__("set_" #set)))	\
+	__attribute__((__used__)) = &(sym)
 #define __MAKE_SET(set, sym)	__MAKE_SET_QV(set, sym, __MAKE_SET_CONST)
 
 /*
@@ -86,13 +75,13 @@
  * Initialize before referring to a given linker set.
  */
 #define SET_DECLARE(set, ptype)					\
-	extern ptype __weak_symbol *__CONCAT(__start_set_,set);	\
-	extern ptype __weak_symbol *__CONCAT(__stop_set_,set)
+	extern ptype __attribute__((__weak__)) *_LINKER_SET_CONC(__start_set_,set);	\
+	extern ptype __attribute__((__weak__)) *_LINKER_SET_CONC(__stop_set_,set)
 
 #define SET_BEGIN(set)							\
-	(&__CONCAT(__start_set_,set))
+	(&_LINKER_SET_CONC(__start_set_,set))
 #define SET_LIMIT(set)							\
-	(&__CONCAT(__stop_set_,set))
+	(&_LINKER_SET_CONC(__stop_set_,set))
 
 /*
  * Iterate over all the elements of a set.

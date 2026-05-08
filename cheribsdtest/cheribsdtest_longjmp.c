@@ -32,8 +32,6 @@
  * Exercise setjmp(3) and longjmp(3) -- for now, only outside of sandboxes.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif

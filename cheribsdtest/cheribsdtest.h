@@ -34,21 +34,25 @@
 #define	_CHERIBSDTEST_H_
 
 #include <sys/types.h>
-#include <sys/linker_set.h>
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-
-#include <cheri/cherireg.h>
 
 #include <cheriintrin.h>
 
 #include "cheribsdtest_compat.h"
 
 #ifdef __FreeBSD__
+#include <sys/linker_set.h>
+#include <cheri/cherireg.h>
+
 #include "cheribsdtest_md.h"
 #elif __linux__
+#include <bsd/sys/cdefs.h>
+
+#include "cheri/cherireg.h"
+#include "utils/linker_set.h"
 #ifdef __aarch64__
 #include "arm64/cheribsdtest_md.h"
 #elif defined(__riscv)
@@ -57,6 +61,15 @@
 #else
 #error "Unsupported OS"
 #endif
+
+/*
+ * We define our own macros for these because they are not portable.
+ * Some implementations of CONCAT() do not expand the arguments
+ * before concatenating them.
+ */
+#define CHERITEST_STR(x)		#x
+#define CHERITEST_CONC1(x, y)	x ## y
+#define CHERITEST_CONC(x, y)	CHERITEST_CONC1(x, y)
 
 /*
  * Convert a pointer to a null-derived void * with the same address. This is
@@ -190,13 +203,13 @@ struct cheri_test {
 
 #define	_CHERIBSDTEST_DECLARE(func, desc, ...)				\
 	static void func(void);						\
-	static struct cheri_test __CONCAT(__cheri_test, __LINE__) = {	\
+	static struct cheri_test CHERITEST_CONC(__cheri_test, __LINE__) = {	\
 		.ct_name = #func,					\
 		.ct_desc = (desc),					\
 		.ct_func = func,					\
 		__VA_ARGS__						\
 	};								\
-	DATA_SET(cheri_tests_set, __CONCAT(__cheri_test, __LINE__))
+	DATA_SET(cheri_tests_set, CHERITEST_CONC(__cheri_test, __LINE__))
 
 #define	CHERIBSDTEST(func, desc, ...)					\
 	_CHERIBSDTEST_DECLARE(func, (desc), __VA_ARGS__);		\
@@ -217,12 +230,12 @@ enum spawn_child_mode {
  * success or failure with a test-defined, human-readable string describing
  * the error.
  */
-void	cheribsdtest_failure_err(const char *msg, ...) __dead2  __printflike(1, 2);
-void	cheribsdtest_failure_errc(int code, const char *msg, ...) __dead2
+void	cheribsdtest_failure_err(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
+void	cheribsdtest_failure_errc(int code, const char *msg, ...) __attribute__((__noreturn__))
     __printflike(2, 3);
-void	cheribsdtest_failure_errx(const char *msg, ...) __dead2  __printflike(1, 2);
-void	cheribsdtest_success(void) __dead2;
-void	cheribsdtest_success_with_warn(const char *msg) __dead2;
+void	cheribsdtest_failure_errx(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
+void	cheribsdtest_success(void) __attribute__((__noreturn__));
+void	cheribsdtest_success_with_warn(const char *msg) __attribute__((__noreturn__));
 void	signal_handler_clear(int sig);
 void	cheribsdtest_set_expected_si_addr(void *addr);
 
@@ -247,13 +260,13 @@ void	cheribsdtest_set_expected_si_addr(void *addr);
 	} while (0)
 
 #define CHERIBSDTEST_CHECK_EQ_BOOL(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(_Bool, "%d", a, b, __STRING(a), __STRING(b))
+	CHERIBSDTEST_CHECK_EQ(_Bool, "%d", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 #define CHERIBSDTEST_CHECK_EQ_INT(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(int, "0x%x", a, b, __STRING(a), __STRING(b))
+	CHERIBSDTEST_CHECK_EQ(int, "0x%x", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 #define CHERIBSDTEST_CHECK_EQ_LONG(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(long, "0x%lx", a, b, __STRING(a), __STRING(b))
+	CHERIBSDTEST_CHECK_EQ(long, "0x%lx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 #define CHERIBSDTEST_CHECK_EQ_SIZE(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(size_t, "0x%zx", a, b, __STRING(a), __STRING(b))
+	CHERIBSDTEST_CHECK_EQ(size_t, "0x%zx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 
 static inline void
 _cheribsdtest_check_cap_eq(void *__capability a, void *__capability b,
@@ -262,7 +275,7 @@ _cheribsdtest_check_cap_eq(void *__capability a, void *__capability b,
 	/* TODO: This should use CExEq instead once RISC-V has it */
 #define CHECK_CAP_ATTR(accessor, fmt)						\
 	CHERIBSDTEST_VERIFY2(accessor(a) == accessor(b),			\
-	    __STRING(accessor) "(%s) (" fmt ") == " __STRING(accessor)		\
+	    CHERITEST_STR(accessor) "(%s) (" fmt ") == " CHERITEST_STR(accessor)	\
 	    "(%s) (" fmt ") failed!", a_str, accessor(a), b_str, accessor(b))
 	CHECK_CAP_ATTR(cheri_address_get, "0x%lx");
 	CHECK_CAP_ATTR(cheri_tag_get, "%d");
@@ -274,7 +287,7 @@ _cheribsdtest_check_cap_eq(void *__capability a, void *__capability b,
 #undef CHECK_CAP_ATTR
 }
 #define CHERIBSDTEST_CHECK_EQ_CAP(a, b)	\
-	_cheribsdtest_check_cap_eq(a, b, __STRING(a), __STRING(b))
+	_cheribsdtest_check_cap_eq(a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 
 #ifdef __CHERI_PURE_CAPABILITY__
 #define	CHERIBSDTEST_CHECK_EQ_PTR(a, b)	\

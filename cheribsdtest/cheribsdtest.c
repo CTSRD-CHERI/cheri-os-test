@@ -34,8 +34,6 @@
 #include "cheribsdtest_compat.h"
 #endif
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif
@@ -842,13 +840,13 @@ cheribsdtest_skip_no_helper(const struct cheri_test *ctp)
 	return (NULL);
 }
 
-__noinline void *
+__attribute__((__noinline__)) void *
 cheribsdtest_memcpy(void *dst, const void *src, size_t n)
 {
 	return memcpy(dst, src, n);
 }
 
-__noinline void *
+__attribute__((__noinline__)) void *
 cheribsdtest_memmove(void *dst, const void *src, size_t n)
 {
 	return memmove(dst, src, n);

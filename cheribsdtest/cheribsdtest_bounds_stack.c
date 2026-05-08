@@ -33,8 +33,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #if !__has_feature(capabilities)
 #error "This code requires a CHERI-aware compiler"
 #endif
@@ -90,7 +88,7 @@ test_bounds_precise(void * __capability c, size_t expected_len)
 	cheribsdtest_success();
 }
 
-static __noinline void
+static __attribute__((__noinline__)) void
 test_bounds_stack_alloca(size_t len)
 {
 	void * __capability c = (__cheri_tocap void * __capability)alloca(len);
@@ -98,7 +96,7 @@ test_bounds_stack_alloca(size_t len)
 	test_bounds_precise(c, len);
 }
 
-static __noinline void
+static __attribute__((__noinline__)) void
 test_bounds_stack_vla(size_t len)
 {
 	char vla[len];
