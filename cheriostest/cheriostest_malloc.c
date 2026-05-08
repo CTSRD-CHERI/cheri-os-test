@@ -192,6 +192,32 @@ CHERIOSTEST(malloc_revoke_quarantine_force_flush_twice,
 
 	cheriostest_success();
 }
+
+#if defined(__CheriBSD_version) && __CheriBSD_version >= 20260801
+CHERIOSTEST(malloc_no_quarantine_not_revoked,
+	"verify that a malloc_no_quarantine is not revoked",
+	.ct_check_skip = skip_malloc_revocation_disabled)
+{
+	volatile void *ptr __unused;
+	int ret;
+
+	/*
+	 * Try to get the compiler to spill the pointer to memory.
+	 */
+	eptr = ptr = malloc_no_quarantine(1);
+
+	free(__DEVOLATILE(void *, ptr));
+
+	CHERIOSTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
+		"malloc_revoke_quarantine_force_flush returned %d", ret);
+	CHERIOSTEST_VERIFY2(cheri_tag_get(ptr),
+		"freed no-quarantine ptr revoked %#lp", ptr);
+	CHERIOSTEST_VERIFY2(cheri_tag_get(eptr),
+		"freed no-quarantine eptr revoked %#lp", eptr);
+
+	cheriostest_success();
+}
+#endif
 #elif defined(__linux__)
 #pragma message "The CHERI Linux Project does not support revocation"
 #endif
