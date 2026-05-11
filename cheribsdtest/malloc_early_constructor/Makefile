@@ -9,7 +9,7 @@ SUBDIR=		purecap \
 
 .if ${MACHINE_ABI:Mpurecap} || ${MK_LIB64C} == "yes"
 .if ${MACHINE_CPUARCH} == "aarch64"
-SUBDIR+=	mt-c18n
+#SUBDIR+=	mt-c18n
 .endif
 .endif
 
