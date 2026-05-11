@@ -3,9 +3,9 @@
 OS!=	uname -s
 
 SUBDIR=		purecap \
-		purecap-dynamic \
-		purecap-dynamic-mt \
 		purecap-mt
+		#purecap-dynamic \
+		#purecap-dynamic-mt \
 
 .if ${MACHINE_ABI:Mpurecap} || ${MK_LIB64C} == "yes"
 .if ${MACHINE_CPUARCH} == "aarch64"

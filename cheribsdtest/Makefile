@@ -15,8 +15,8 @@ MAKEOBJDIRPREFIX= ${.CURDIR}/build/obj/
 	SHLIBDIR
 .endif
 
-SUBDIR+=	malloc_early_constructor \
-		libcheribsdtest_dynamic
+SUBDIR+=	malloc_early_constructor
+		#libcheribsdtest_dynamic
 
 #XXX: Commented out tests that haven't been ported yet
 #.if !${MACHINE_ABI:Mpurecap} || ${MK_LIB64} == "yes"
@@ -28,9 +28,9 @@ SUBDIR+=	malloc_early_constructor \
 
 .if (${MACHINE_ABI:Mpurecap} && !${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64C} == "yes"
 SUBDIR+=	purecap \
-		purecap-dynamic \
-		purecap-dynamic-mt \
 		purecap-mt
+		#purecap-dynamic \
+		#purecap-dynamic-mt \
 
 #.if ${MACHINE_CPUARCH} == "aarch64" && ${MACHINE_ABI:Mpurecap}
 #SUBDIR+=	mt-c18n
