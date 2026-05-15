@@ -42,15 +42,10 @@
 #ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
-#elif defined(__linux__)
-#include <sys/cheri.h>
-#endif
 
-#include <cheri/cheric.h>
-
-#ifdef __FreeBSD__
 #include <machine/sysarch.h>
 #elif defined(__linux__)
+#include "cheri/cheric.h"
 #include "cheri/cherireg.h"
 #endif
 

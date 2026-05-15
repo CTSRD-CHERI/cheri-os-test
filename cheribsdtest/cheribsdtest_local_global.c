@@ -42,8 +42,10 @@
 
 #ifdef __FreeBSD__
 #include <cheri/cheri.h>
-#endif
 #include <cheri/cheric.h>
+#elif defined(__linux__)
+#include "cheri/cheric.h"
+#endif
 
 #include <assert.h>
 #include <stdio.h>

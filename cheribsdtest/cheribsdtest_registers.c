@@ -54,6 +54,8 @@
 #include "cheribsdtest.h"
 
 #if defined(__FreeBSD__)
+#include <cheri/cheric.h>
+
 #include <sys/sysctl.h>
 
 #include <machine/pte.h>
@@ -62,10 +64,11 @@
 #include <cheri/cheri.h>
 
 #elif defined(__linux__)
-#include "sys/cheri.h"
-#include "sys/resource.h"
-
+#include "cheri/cheric.h"
 #include "cheri/cherireg.h"
+
+#include <sys/cheri.h>
+#include <sys/resource.h>
 #endif
 
 #if defined(__linux__)

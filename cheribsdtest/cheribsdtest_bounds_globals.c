@@ -34,11 +34,14 @@
 
 #include <sys/types.h>
 #ifdef __FreeBSD__
+#include <cheri/cheric.h>
+
 #include <sys/sysctl.h>
+#elif defined(__linux__)
+#include "cheri/cheric.h"
 #endif
 #include <sys/time.h>
 
-#include <cheri/cheric.h>
 
 #include <err.h>
 #include <errno.h>

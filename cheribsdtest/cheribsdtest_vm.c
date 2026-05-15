@@ -37,8 +37,12 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#ifdef __linux__
+#if defined(__FreeBSD__)
+#include <cheri/cheric.h>
+#elif defined(__linux__)
 #define _GNU_SOURCE
+
+#include "cheri/cheric.h"
 #endif
 
 #include <sys/types.h>
@@ -50,8 +54,6 @@
 #include <sys/ucontext.h>
 #include <sys/user.h>
 #include <sys/wait.h>
-
-#include <cheri/cheric.h>
 
 #include <err.h>
 #include <errno.h>

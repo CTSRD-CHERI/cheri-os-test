@@ -37,20 +37,18 @@
 #include <sys/time.h>
 
 #ifdef __FreeBSD__
+#include <cheri/cheric.h>
 #include <sys/sysctl.h>
-#elif defined(__linux__)
-#include <sys/auxv.h>
-#endif
 
-#ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
-#endif
 
-#ifdef __FreeBSD__
 #include <cheri/cheri.h>
+#elif defined(__linux__)
+#include "cheri/cheric.h"
+
+#include <sys/auxv.h>
 #endif
-#include <cheri/cheric.h>
 
 #include <err.h>
 #include <fcntl.h>

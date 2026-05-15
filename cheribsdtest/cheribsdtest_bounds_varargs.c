@@ -35,18 +35,20 @@
 #endif
 
 #include <sys/types.h>
+
 #ifdef __FreeBSD__
+#include <cheri/cheric.h>
+
 #include <sys/signal.h>
 #include <sys/sysctl.h>
-#endif
-#include <sys/time.h>
 
-#ifdef __FreeBSD__
 #include <machine/frame.h>
 #include <machine/trap.h>
+#elif defined(__linux__)
+#include "cheri/cheric.h"
 #endif
 
-#include <cheri/cheric.h>
+#include <sys/time.h>
 
 #include <err.h>
 #include <errno.h>

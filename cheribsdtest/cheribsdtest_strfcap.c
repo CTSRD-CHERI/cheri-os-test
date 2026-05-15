@@ -36,13 +36,13 @@
 
 #ifdef __FreeBSD__
 #include <cheri/cheri.h>
+#include <cheri/cheric.h>
 #elif defined(__linux__)
 #include "cheri/cherireg.h"
+#include "cheri/cheric.h"
 #endif
 
 #include <sys/param.h>
-
-#include <cheri/cheric.h>
 
 #include <assert.h>
 #include <stdio.h>
