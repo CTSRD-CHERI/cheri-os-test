@@ -970,9 +970,6 @@ main(int argc, char *argv[])
 		case 'K':
 			execed_child_has_extra_argv = true;
 			break;
-		case 'K':
-			execed_child_has_extra_argv = 1;
-			break;
 		case 'l':
 			list = true;
 			break;
