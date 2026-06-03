@@ -457,9 +457,9 @@ CHERIBSDTEST(initregs_stack,
 
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
 	if ((v & CHERI_PERM_LOAD_CAP) == 0)
-		cheribsdtest_failure_errx("perms %jx (loadcap missing)", v);
+		cheribsdtest_failure_errx("perms %jx (loadcap missing)", (uintmax_t) v);
 	if ((v & CHERI_PERM_STORE_CAP) == 0)
-		cheribsdtest_failure_errx("perms %jx (storecap missing)", v);
+		cheribsdtest_failure_errx("perms %jx (storecap missing)", (uintmax_t) v);
 #endif
 #ifdef HAS_CHERI_PERM_CAP
 	if ((v & CHERI_PERM_CAP) == 0)
@@ -477,13 +477,13 @@ CHERIBSDTEST(initregs_stack,
 #endif
 #ifdef HAS_CHERI_PERM_SEAL
 	if ((v & CHERI_PERM_SEAL) != 0)
-		cheribsdtest_failure_errx("perms %jx (seal present)", v);
+		cheribsdtest_failure_errx("perms %jx (seal present)", (uintmax_t) v);
 
 	if ((v & CHERI_PERM_INVOKE) == 0)
-		cheribsdtest_failure_errx("perms %jx (invoke missing)", v);
+		cheribsdtest_failure_errx("perms %jx (invoke missing)", (uintmax_t) v);
 
 	if ((v & CHERI_PERM_UNSEAL) != 0)
-		cheribsdtest_failure_errx("perms %jx (unseal present)", v);
+		cheribsdtest_failure_errx("perms %jx (unseal present)", (uintmax_t) v);
 #endif
 	if ((v & CHERI_PERM_SYSTEM_REGS) != 0)
 		cheribsdtest_failure_errx("perms %jx (system_regs present)", (uintmax_t) v);

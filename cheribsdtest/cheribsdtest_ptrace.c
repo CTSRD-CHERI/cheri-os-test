@@ -284,8 +284,8 @@ CHERIBSDTEST(ptrace_getcapregs, "Tests PTRACE_GETREGSET with NT_ARM_MORELLO")
 
 	pid = fork_child();
 
-	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
-		&iov));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid,
+		(void *)(uintptr_t)NT_ARM_MORELLO, &iov));
 
 	uint8_t pcc_tag = (regs.tag_map >> MORELLO_PT_TAG_MAP_REG_BIT(pcc)) & 0x1;
 	CHERIBSDTEST_VERIFY2(pcc_tag == 1, "PCC tag must be set");
@@ -313,8 +313,8 @@ CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO") {
 	pid = fork_child();
 
 	// Save original value of c0, so that we can restore it later
-	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
-		&get_iov));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid,
+		(void *)(uintptr_t)NT_ARM_MORELLO, &get_iov));
 	c0_old_val = get_regs.cregs[0];
 	c0_old_tag = get_regs.tag_map & 0x1;
 
@@ -323,14 +323,15 @@ CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO") {
 	c0_new_val = set_regs.pcc;
 	set_regs.cregs[0] = c0_new_val;
 	set_regs.tag_map |= 0x1;
-	ret = ptrace(PTRACE_SETREGSET, pid, NT_ARM_MORELLO, &set_iov);
+	ret = ptrace(PTRACE_SETREGSET, pid, (void *)(uintptr_t)NT_ARM_MORELLO,
+		&set_iov);
 	CHERIBSDTEST_VERIFY2(ret != -EPERM, "PTRACE_POKECAP is only allowed if " \
 									"the sysctl cheri.ptrace_forge_cap is set");
 
 	// Get register set to check if reg0 was set successfully
 	memset(&get_regs, 0, sizeof(get_regs));
-	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid, NT_ARM_MORELLO,
-		&get_iov));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_GETREGSET, pid,
+		(void *)(uintptr_t)NT_ARM_MORELLO, &get_iov));
 
 	CHERIBSDTEST_VERIFY2(get_regs.cregs[0] == c0_new_val, "c0 wasn't set");
 	CHERIBSDTEST_VERIFY2((get_regs.tag_map & 0x1) == 0x1, "Tag wasn't set");
@@ -340,8 +341,8 @@ CHERIBSDTEST(ptrace_setcapregs, "Tests PTRACE_SETREGSET with NT_ARM_MORELLO") {
 	set_regs.cregs[0] = c0_old_val;
 	if (c0_old_tag == 0)
 		set_regs.tag_map &= ~0x1;
-	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_SETREGSET, pid, NT_ARM_MORELLO,
-		&set_iov));
+	CHERIBSDTEST_CHECK_SYSCALL(ptrace(PTRACE_SETREGSET, pid,
+		(void *)(uintptr_t)NT_ARM_MORELLO, &set_iov));
 
 	finish_child(pid);
 
