@@ -5,6 +5,6 @@ NEED_COMPAT=	64C
 .include <bsd.compat.mk>
 .endif
 
-PROG=	cheribsdtest-purecap
+PROG=	cheriostests-purecap
 
 .include "../Makefile.purecap"
