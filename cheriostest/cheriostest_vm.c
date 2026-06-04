@@ -167,6 +167,17 @@ skip_need_writable_tmp(const struct cheri_test *ctp __attribute__((__unused__)))
 	return (reason);
 }
 
+static int
+create_tempfile(void)
+{
+	char template[] = "/tmp/cheribsdtest.XXXXXXXX";
+	int fd = CHERIOSTEST_CHECK_SYSCALL2(mkstemp(template),
+	    "mkstemp %s", template);
+	CHERIOSTEST_CHECK_SYSCALL(unlink(template));
+	CHERIOSTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
+	return fd;
+}
+
 /*
  * Tests to check that tags are ... or aren't ... preserved for various page
  * types.  Pages from the filesystem should not preserve tags -- unless they are
@@ -307,14 +318,21 @@ CHERIOSTEST(vm_notag_mprotect_no_cap,
 }
 
 static void
-mmap_check_bad_protections(int prot, int expected_errno)
+mmap_check_bad_protections_fd(int prot, int fd, int expected_errno)
 {
 	CHERIOSTEST_CHECK_CALL_ERROR(mmap(NULL, getpagesize(),
 #ifdef __FreeBSD__
-	    prot, MAP_ANON, -1, 0), expected_errno);
+	    prot, fd == -1 ? MAP_ANON : MAP_SHARED, fd, 0), expected_errno);
 #elif defined(__linux__)
-	    prot, MAP_ANON | MAP_PRIVATE, -1, 0), expected_errno);
+	    prot, fd == -1 ? MAP_ANON | MAP_PRIVATE : MAP_SHARED, fd, 0),
+			expected_errno);
 #endif
+}
+
+static void
+mmap_check_bad_protections(int prot, int expected_errno)
+{
+	mmap_check_bad_protections_fd(prot, -1, expected_errno);
 }
 
 CHERIOSTEST(vm_mmap_disallowed_prot,
@@ -333,6 +351,11 @@ CHERIOSTEST(vm_mmap_disallowed_prot,
 	mmap_check_bad_protections(PROT_CAP, ENOTSUP);
 	mmap_check_bad_protections(PROT_MAX(PROT_CAP), ENOTSUP);
 #endif
+
+	int fd = CHERIOSTEST_CHECK_SYSCALL(create_tempfile());
+	CHERIOSTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
+	mmap_check_bad_protections_fd(PROT_READ|PROT_WRITE|PROT_CAP, fd,
+	    EACCES);
 
 	cheriostest_success();
 }
@@ -967,17 +990,6 @@ CHERIOSTEST(vm_tag_dev_zero_private,
 	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE,
 		MAP_PRIVATE, false);
 	cheriostest_success();
-}
-
-static int
-create_tempfile(void)
-{
-	char template[] = "/tmp/cheriostest.XXXXXXXX";
-	int fd = CHERIOSTEST_CHECK_SYSCALL2(mkstemp(template),
-	    "mkstemp %s", template);
-	CHERIOSTEST_CHECK_SYSCALL(unlink(template));
-	CHERIOSTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
-	return fd;
 }
 
 /*
