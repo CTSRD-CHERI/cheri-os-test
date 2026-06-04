@@ -201,8 +201,16 @@ CHERIBSDTEST(vm_tag_mmap_anon_cap,
 {
 	/* CHERI and Morello Linux do not have the flags PROT_NO_CAP and PROT_CAP. */
 #ifdef PROT_CAP
+	int flags;
+
+#ifdef __FreeBSD__
+	flags = MAP_ANON;
+#elif defined(__linux__)
+	flags = MAP_ANON | MAP_PRIVATE;
+#endif
+
 	mmap_and_check_tag_stored(-1, PROT_READ | PROT_WRITE | PROT_CAP,
-	    MAP_ANON);
+	    flags);
 	cheribsdtest_success();
 #else
 	cheribsdtest_failure_errx("PROT_CAP is not defined");
@@ -223,10 +231,17 @@ CHERIBSDTEST(vm_notag_mmap_no_cap,
 	void * __capability volatile *cp;
 	void * __capability cp_value;
 	int v;
+	int flags;
+
+#ifdef __FreeBSD__
+	flags = MAP_ANON;
+#elif defined(__linux__)
+	flags = MAP_ANON | MAP_PRIVATE;
+#endif
 
 	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
 		PROT_MAX(PROT_READ | PROT_WRITE | PROT_CAP) |
-		PROT_READ | PROT_WRITE | PROT_NO_CAP, MAP_ANON, -1, 0));
+		PROT_READ | PROT_WRITE | PROT_NO_CAP, flags, -1, 0));
 	cheribsdtest_set_expected_si_addr(NULL_DERIVED_VOIDP(cp));
 	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
@@ -250,9 +265,16 @@ CHERIBSDTEST(vm_notag_mprotect_no_cap,
 	void * __capability volatile *cp;
 	void * __capability cp_value;
 	int v;
+	int flags;
+
+#ifdef __FreeBSD__
+	flags = MAP_ANON;
+#elif defined(__linux__)
+	flags = MAP_ANON | MAP_PRIVATE;
+#endif
 
 	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_ANON, -1, 0));
+	    PROT_READ | PROT_WRITE, flags, -1, 0));
 	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, cp),
 	    getpagesize(), PROT_READ | PROT_WRITE | PROT_NO_CAP));
 	cheribsdtest_set_expected_si_addr(NULL_DERIVED_VOIDP(cp));
