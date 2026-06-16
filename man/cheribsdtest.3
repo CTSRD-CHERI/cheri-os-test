@@ -1,0 +1,257 @@
+.\"-
+.\" Copyright (c) 2026 Paul Metzger
+.\" Copyright (c) 2012-2018, 2020-2021 Robert N. M. Watson
+.\" Copyright (c) 2014 SRI International
+.\" Copyright (c) 2021 Microsoft Corp.
+.\" All rights reserved.
+.\"
+.\" The code is taken from software developed by SRI International and the
+.\" University of Cambridge Computer Laboratory under DARPA/AFRL contract
+.\" (FA8750-10-C-0237) ("CTSRD"), as part of the DARPA CRASH research
+.\" programme.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+
+.Dd June 2026
+.Dt CHERIBSDTEST 3
+.Os
+
+.Sh NAME
+.Nm CHERIBSDTEST
+
+.Sh SYNOPSIS
+.In cheribsdtest.h
+.Bd -literal
+CHERIBSDTEST(func, desc, ...) {...}
+.Ed
+.Ft void
+.Fn cheribsdtest_failure_err "const char *msg"  "..."
+.Ft void
+.Fn cheribsdtest_failure_errc "int code" "const char *msg"  "..."
+.Ft void
+.Fn cheribsdtest_failure_errx "const char *msg"  "..."
+.Ft void
+.Fn cheribsdtest_success
+.Ft void
+.Fn cheribsdtest_success_with_warn "const char *msg"
+
+.Sh DESCRIPTION
+The
+.Fn CHERIBSDTEST
+macro declares a test, the body of which is implemented in a code block
+following the macro invocation.
+The
+.Ar func
+and
+.Ar desc
+parameters specify the test name and a description, respectively.
+Additional parameters, setting fields of the
+.Vt "struct cheri_test" ,
+may be set by passing optional arguments in the form
+.Li .field = parameter.
+.Bd -literal -offset indent
+struct cheri_test {
+	/* Test name */
+	const char	*ct_name;
+	/* Test description */
+	const char	*ct_desc;
+	/* Test implementation */
+	void		(*ct_func)(void);
+	/* Function executed by a child process */
+	void		(*ct_child_func)(void);
+	/* Check if the test should be skipped  */
+	const char *	(*ct_check_skip)(const struct cheri_test *);
+	/* Check if the test is expected to fail */
+	const char *	(*ct_check_xfail)(const char *);
+	/* Expected signal */
+	int		 ct_signum;
+	/* Expected signal code */
+	int		 ct_si_code;
+#ifdef __FreeBSD__
+	/* Expected signal trap number */
+	int		 ct_si_trapno;
+#endif
+	/* Input */
+	const char	*ct_stdin_string;
+	/* Expected output */
+	const char	*ct_stdout_string;
+	/* Reason the test is expected to fail */
+	const char	*ct_xfail_reason;
+	/* Reason the test might fail */
+	const char	*ct_flaky_reason;
+	/* Configuration flags */
+	unsigned int	 ct_flags;
+};
+.Ed
+
+.Pp
+The fields are:
+.Bl -tag -width "Fa ct_stdout_string"
+.It Va ct_name
+The name of the test, specified by the
+.Ar func
+parameter to
+.Fn CHERIBSDTEST .
+.It Va ct_desc
+A description of the test.
+.It Va ct_func
+The test implemention, provided by the code block
+enclosed in braces following the
+.Fn CHERIBSDTEST
+invocation. This must not be set explicitly by passing
+.Li .ct_func = func
+to
+.Fn CHERIBSDTEST .
+.It Va ct_child_func
+For tests that spawn a child process, this field specifies the function
+executed by the child.
+.It Va ct_check_skip
+The test will be skipped if this function returns a string with the reason.
+.It Va ct_check_xfail
+Returns a string describing why the test is expected to fail, or NULL if no
+failure is expected.
+.It Va ct_signum
+The expected signal for tests that are designed to trigger a signal.
+For example, tests that cause a SIGSEGV.
+.It Va ct_si_code
+The expected signal code.
+.It Va ct_si_trapno
+On
+.Fx ,
+the expected trap number delivered with a signal.
+.It Va ct_stdin_string
+A string written to the standard input of the test.
+.It Va ct_stdout_string
+A string expected on standard output after the test has completed.
+.It Va ct_xfail_reason
+A string describing why the test is expected to fail.
+.It Fa ct_flaky_reason
+A string describing why the test may fail. If the test case fails, it is
+reported as expected failure.
+.It Fa ct_flags
+Configuration flags. Multiple flags may be combined. Some struct fields are
+only used if the matching flag is set:
+.Bl -tag -width "Dv CT_FLAG_STDOUT_IGNORE"
+.It Dv CT_FLAG_SIGNAL
+The test case is expected to raise the signal specified by
+.Fa ct_si_code .
+.It Dv CT_FLAG_SI_TRAPNO
+On
+.Fx ,
+the signal is expected to be delivered with the trap number specified by
+.Fa ct_si_trapno .
+.It Dv CT_FLAG_STDOUT_STRING
+After test execution, check if standard output contains exactly the string in
+.Fa ct_stdout_string .
+.It Dv CT_FLAG_STDIN_STRING
+Write the string specified by
+.Fa ct_stdin_string
+to the standard input of the test.
+.It Dv CT_FLAG_STDOUT_IGNORE
+Ignore standard output after test execution. If neither this flag nor
+.Dv CT_FLAG_STDOUT_STRING
+is set, the test framework expects standard output to be empty and reports
+the test as failed otherwise.
+.It Dv CT_FLAG_SLOW
+Tests with this flag are not executed if the user wants to execute only fast
+tests (refer to cheribsdtest(1)).
+.It Dv CT_FLAG_SI_CODE
+The test is expected to trigger a signal. Check if the delivered signal matches
+the signal code specified by
+.Fa ct_si_code .
+.It Dv CT_FLAG_SIGEXIT
+Set this if the test is expected to exit with the signal specified by
+.Fa ct_signum .
+Not applicable to SIGALRM, SIGPROT, SIGSEGV, SIGBUS, SIGEMT or SIGTRAP,
+for which the test framework installs its own signal handlers.
+.It Dv CT_FLAG_SI_ADDR
+The test is expected to trigger a signal whose
+.Fa si_addr
+matches the address set by
+.Fa cheribsdtest_set_expected_si_addr()
+in the test's implementation.
+.El
+.El
+
+The
+.Fn cheribsdtest_failure_err
+group of functions stops a test and reports it as failed. An explanatory
+message must be provided in the printf-style format string specified in
+.Fa msg
+followed by format string arguments.
+.Fn cheribsdtest_failure_err
+also reports the error message matching
+the current errno value.
+.Fn cheribsdtest_failure_errx
+does not report on the errno value.
+.Fn cheribsdtest_failure_errc
+reports the error message matching the
+error number specified in
+.Fa code .
+
+The
+.Fn cheribsdtest_success
+group of functions end a test and report it as passed.
+.Fn cheribsdtest_success_with_warn
+additionally emits the warning specified in
+.Fa msg .
+
+.Sh EXAMPLE
+The following example expects a SIGSEGV or SIGPROT to be raised when attempting
+to overflow a small buffer.
+The
+.Fa .ct_flags
+and
+.Fa .ct_signum
+arguments configure the test framework to expect a signal.
+The test fails if the expected signal is not raised.
+.Bd -literal
+
+CHERIBSDTEST(buffer_overflow,
+	"Test if a simple buffer overflow is mitigated by CHERI as expected",
+	.ct_flags = CT_FLAG_SIGNAL,
+#if defined(__linux__)
+	/* Linux on CHERI raises a SIGSEGV when an out-of-bounds write occurs */
+	.ct_signum = SIGSEGV
+#elif defined(__FreeBSD__)
+	/* CheriBSD raises a SIGPROT instead */
+	.ct_signum = SIGBPROT
+#endif
+)
+{
+	const size_t buf_sz = 4;
+	char *buf = malloc(buf_sz);
+	for (size_t i = 0; i < buf_sz + 1; i++)
+	{
+		buf[i] = 'a';
+	}
+	cheribsdtest_failure_err("Buffer overflow was not mitigated");
+}
+.Ed
+.Sh AUTHOR
+This manual page was written by Paul Metzger (paul.metzger@cl.cam.ac.uk),
+and the struct definition was taken from the test suite source code.
+
+.Sh "SEE ALSO"
+This test framework is an adaptation of CheriBSD's test framework and test suite 'cheribsdtest':
+https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest
