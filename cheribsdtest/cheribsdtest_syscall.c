@@ -142,8 +142,11 @@ CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 
 CHERIBSDTEST(ptrace_basic,
     "Test basic handling of ptrace functionality",
+#if defined(__FreeBSD__)
     /* Tracked as https://github.com/CTSRD-CHERI/cheribsd/issues/2621 */
-    .ct_xfail_reason = "ptrace(PT_KILL) does not appear to deliver signal")
+    .ct_xfail_reason = "ptrace(PT_KILL) does not appear to deliver signal"
+#endif
+    )
 {
 	int cpid, res;
 	int pfd[2];
