@@ -965,9 +965,10 @@ create_tempfile(void)
 CHERIBSDTEST(vm_notag_tmpfile_shared,
     "check tags are not stored for tmpfile() MAP_SHARED pages",
 #if !defined(__riscv_zcheripurecap)
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO | CT_FLAG_SI_ADDR,
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_ADDR,
     .ct_signum = SIGSEGV,
 #ifdef __FreeBSD__
+    .ct_flags |= CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_si_code = SEGV_STORETAG,
     .ct_si_trapno = TRAPNO_STORE_CAP_PF,
 #endif
@@ -977,10 +978,6 @@ CHERIBSDTEST(vm_notag_tmpfile_shared,
 	void * __capability volatile *cp;
 	void * __capability cp_value;
 	int fd, v;
-
-#if !defined(SEGV_STORETAG)
-	cheribsdtest_failure_errx("The signal code SEGV_STORETAG is not defined");
-#endif
 
 	fd = create_tempfile();
 	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
