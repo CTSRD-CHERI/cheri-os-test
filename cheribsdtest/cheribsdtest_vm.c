@@ -1098,22 +1098,8 @@ CHERIBSDTEST(vm_cow_anon_read,
 #endif
 
 CHERIBSDTEST(vm_cow_named_read,
-    "read capabilities from a copy-on-write page",
-#ifdef __linux__
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-    .ct_signum = SIGSEGV
-#ifdef SEGV_LOADTAG
-    /* Linux does not define this signal code currently. */
-    .ct_si_code = SEGV_LOADTAG,
-#endif
-#endif
-)
+    "read capabilities from a copy-on-write page")
 {
-#if !defined(SEGV_LOADTAG) && defined(__linux__)
-	cheribsdtest_failure_errx("Linux does not define the signal code " \
-	    "SEGV_LOADTAG");
-#endif
-#ifdef PROT_CAP
 	/*
 	 * Create anonymous shared memory object.
 	 */
@@ -1122,14 +1108,7 @@ CHERIBSDTEST(vm_cow_named_read,
 	CHERIBSDTEST_CHECK_SYSCALL(shm_unlink(shm_name));
 	vm_cow_read(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
-#ifdef __FreeBSD__
 	cheribsdtest_success();
-#elif defined(__linux__)
-	cheribsdtest_failure_errx("tagged store succeeded");
-#endif
-#else
-	cheribsdtest_failure_errx("PROT_CAP is not defined");
-#endif
 }
 
 static void
@@ -1209,27 +1188,8 @@ CHERIBSDTEST(vm_cow_anon_write,
 #endif
 
 CHERIBSDTEST(vm_cow_named_write,
-    "read capabilities from a faulted copy-on-write page",
-#ifdef __linux__
-    /*
-     * We only expect SIGSEGV on Linux because CheriBSD currently
-     * supports capabilities in shared mappings by default, but this
-     * will change in the future.
-     */
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
-    .ct_signum = SIGSEGV,
-#ifdef SEGV_STORETAG
-    /* Linux does not define this signal. */
-    .ct_si_code = SEGV_STORETAG,
-#endif
-#endif
-)
+    "read capabilities from a faulted copy-on-write page")
 {
-#if !defined(SEGV_STORETAG) && defined(__linux__)
-	cheribsdtest_failure_errx("Linux does not define the signal code " \
-	    "SEGV_STORETAG");
-#endif
-#ifdef PROT_CAP
 	/*
 	 * Create anonymous shared memory object.
 	 */
@@ -1238,14 +1198,7 @@ CHERIBSDTEST(vm_cow_named_write,
 	CHERIBSDTEST_CHECK_SYSCALL(shm_unlink(shm_name));
 	vm_cow_write(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
-#ifdef __FreeBSD__
 	cheribsdtest_success();
-#elif defined(__linux__)
-	cheribsdtest_failure_errx("tagged store succeeded");
-#endif
-#else
-	cheribsdtest_failure_errx("PROT_CAP is not defined");
-#endif
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
