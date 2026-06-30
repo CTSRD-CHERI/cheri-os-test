@@ -29,8 +29,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _SYS_CHERIC_H_
-#define	_SYS_CHERIC_H_
+#ifndef	_CHERIC_H_
+#define	_CHERIC_H_
 
 #include <cheriintrin.h>
 
