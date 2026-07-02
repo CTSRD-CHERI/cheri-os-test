@@ -78,7 +78,7 @@
 #define	BUFFER_SIZE	8192
 #endif
 
-CHERIBSDTEST(ipc_pipe_sleep_signal,
+CHERIOSTEST(ipc_pipe_sleep_signal,
     "check that direct write pipe IPC of a capability can be interrupted",
     .ct_flags = CT_FLAG_SIGNAL,
     .ct_signum = SIGALRM)
@@ -93,7 +93,7 @@ CHERIBSDTEST(ipc_pipe_sleep_signal,
 #endif
 	int fds[2];
 
-	CHERIBSDTEST_CHECK_SYSCALL(pipe(fds));
+	CHERIOSTEST_CHECK_SYSCALL(pipe(fds));
 
 #ifdef __FreeBSD__
 	memset(buffer, 0, sizeof(buffer));
@@ -105,19 +105,19 @@ CHERIBSDTEST(ipc_pipe_sleep_signal,
 
 	buffer[0] = (__cheri_tocap void * __capability)buffer;
 
-	CHERIBSDTEST_CHECK_SYSCALL(alarm(1));
+	CHERIOSTEST_CHECK_SYSCALL(alarm(1));
 #ifdef __FreeBSD__
-	CHERIBSDTEST_CHECK_SYSCALL(write(fds[0], buffer, sizeof(buffer)));
+	CHERIOSTEST_CHECK_SYSCALL(write(fds[0], buffer, sizeof(buffer)));
 #elif defined(__linux__)
 	// Pipes are unidirectional on Linux and fds[1] is the write-end.
-	CHERIBSDTEST_CHECK_SYSCALL(write(fds[1], buffer, buffer_size));
+	CHERIOSTEST_CHECK_SYSCALL(write(fds[1], buffer, buffer_size));
 #endif
 	close(fds[0]);
 	close(fds[1]);
-	cheribsdtest_failure_errx("write didn't block");
+	cheriostest_failure_errx("write didn't block");
 }
 
-CHERIBSDTEST(ipc_pipe_nocaps,
+CHERIOSTEST(ipc_pipe_nocaps,
     "check that read/write of a pipe(2) strips tags")
 {
 	void * __capability *buffer;
@@ -130,23 +130,23 @@ CHERIBSDTEST(ipc_pipe_nocaps,
 	buffer = calloc(1, len);
 	buffer2 = calloc(1, len);
 	buffer[0] = (__cheri_tocap void * __capability)buffer;
-	CHERIBSDTEST_VERIFY2(cheri_tag_get(buffer[0]) != 0,
+	CHERIOSTEST_VERIFY2(cheri_tag_get(buffer[0]) != 0,
 	    "pretest: tag missing");
 
-	CHERIBSDTEST_CHECK_SYSCALL(pipe(fds));
-	rv = CHERIBSDTEST_CHECK_SYSCALL(write(fds[1], buffer, len));
-	CHERIBSDTEST_CHECK_EQ_SIZE(rv, len);
-	rv = CHERIBSDTEST_CHECK_SYSCALL(read(fds[0], buffer2, len));
-	CHERIBSDTEST_CHECK_EQ_SIZE(rv, len);
+	CHERIOSTEST_CHECK_SYSCALL(pipe(fds));
+	rv = CHERIOSTEST_CHECK_SYSCALL(write(fds[1], buffer, len));
+	CHERIOSTEST_CHECK_EQ_SIZE(rv, len);
+	rv = CHERIOSTEST_CHECK_SYSCALL(read(fds[0], buffer2, len));
+	CHERIOSTEST_CHECK_EQ_SIZE(rv, len);
 
-	CHERIBSDTEST_VERIFY2(cheri_tag_get(buffer[0]) != 0,
+	CHERIOSTEST_VERIFY2(cheri_tag_get(buffer[0]) != 0,
 	    "posttest: source tag missing");
-	CHERIBSDTEST_VERIFY2(cheri_tag_get(buffer2[0]) == 0,
+	CHERIOSTEST_VERIFY2(cheri_tag_get(buffer2[0]) == 0,
 	    "posttest: destination tag present");
-	CHERIBSDTEST_VERIFY2(cheri_is_equal_exact(cheri_tag_clear(buffer[0]),
+	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(cheri_tag_clear(buffer[0]),
 	     buffer2[0]), "untagged value not copied");
 
-	CHERIBSDTEST_CHECK_SYSCALL(close(fds[0]));
-	CHERIBSDTEST_CHECK_SYSCALL(close(fds[1]));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_SYSCALL(close(fds[0]));
+	CHERIOSTEST_CHECK_SYSCALL(close(fds[1]));
+	cheriostest_success();
 }

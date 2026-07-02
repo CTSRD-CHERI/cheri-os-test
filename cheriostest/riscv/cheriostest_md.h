@@ -33,8 +33,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CHERIBSDTEST_MD_H_
-#define	_CHERIBSDTEST_MD_H_
+#ifndef _CHERIOSTEST_MD_H_
+#define	_CHERIOSTEST_MD_H_
 
 #define	TRAPNO_CHERI		(SCAUSE_CHERI)
 #ifdef __riscv_xcheri
@@ -68,4 +68,4 @@
 
 #define	CAPREG_PCC(capreg)	((capreg)->sepcc)
 
-#endif /* !_CHERIBSDTEST_H_ */
+#endif /* !_CHERIOSTEST_H_ */

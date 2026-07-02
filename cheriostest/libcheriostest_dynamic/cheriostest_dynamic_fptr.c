@@ -35,20 +35,20 @@
 #include "cheriostest_dynamic.h"
 
 void
-cheribsdtest_dynamic_dummy_func(void)
+cheriostest_dynamic_dummy_func(void)
 {
 }
 
 void
-(*cheribsdtest_dynamic_get_dummy_fptr(void))(void)
+(*cheriostest_dynamic_get_dummy_fptr(void))(void)
 {
-	return (&cheribsdtest_dynamic_dummy_func);
+	return (&cheriostest_dynamic_dummy_func);
 }
 
 ptraddr_t
-cheribsdtest_dynamic_get_dummy_fptr_addr(void)
+cheriostest_dynamic_get_dummy_fptr_addr(void)
 {
 	static volatile ptraddr_t addr =
-	    (ptraddr_t)&cheribsdtest_dynamic_dummy_func;
+	    (ptraddr_t)&cheriostest_dynamic_dummy_func;
 	return (addr);
 }

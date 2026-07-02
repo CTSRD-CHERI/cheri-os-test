@@ -28,7 +28,7 @@
 #include "cheriostest_dynamic.h"
 
 void * __capability
-cheribsdtest_dynamic_identity_cap(void * __capability cap)
+cheriostest_dynamic_identity_cap(void * __capability cap)
 {
 
 	return (cap);

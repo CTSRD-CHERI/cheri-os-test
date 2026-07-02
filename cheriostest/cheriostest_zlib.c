@@ -76,11 +76,11 @@ check_compressed_data(const uint8_t *data, size_t datalen)
 	size_t i;
 
 	if (datalen != compressed_zeroes_len)
-		cheribsdtest_failure_errx("compressed data length wrong ("
+		cheriostest_failure_errx("compressed data length wrong ("
 		    "expected %zu, got %zu)", compressed_zeroes_len, datalen);
 	for (i = 0; i < compressed_zeroes_len; i++) {
 		if (data[i] != compressed_zeroes[i])
-			cheribsdtest_failure_errx("compressed data wrong at "
+			cheriostest_failure_errx("compressed data wrong at "
 			    "byte %zu", i);
 	}
 }
@@ -91,16 +91,16 @@ check_uncompressed_data(const uint8_t *data, size_t datalen)
 	size_t i;
 
 	if (datalen != uncompressed_zeroes_len)
-		cheribsdtest_failure_errx("uncompressed data length wrong ("
+		cheriostest_failure_errx("uncompressed data length wrong ("
 		    "expected %zu, got %zu)", uncompressed_zeroes_len, datalen);
 	for (i = 0; i < uncompressed_zeroes_len; i++) {
 		if (data[i] != uncompressed_zeroes[i])
-			cheribsdtest_failure_errx("uncompressed data wrong at "
+			cheriostest_failure_errx("uncompressed data wrong at "
 			    "byte %zu", i);
 	}
 }
 
-CHERIBSDTEST(deflate_zeroes, "Deflate a buffer of zeroes")
+CHERIOSTEST(deflate_zeroes, "Deflate a buffer of zeroes")
 {
 	int ret;
 	size_t compsize;
@@ -113,35 +113,35 @@ CHERIBSDTEST(deflate_zeroes, "Deflate a buffer of zeroes")
 	 */
 	compsize = uncompressed_zeroes_len * 2;
 	if ((compbuf = malloc(compsize)) == NULL)
-		cheribsdtest_failure_err("malloc compbuf");
+		cheriostest_failure_err("malloc compbuf");
 
 	memset(&zs, 0, sizeof(zs));
 	zs.zalloc = Z_NULL;
 	zs.zfree = Z_NULL;
 	if ((ret = deflateInit(&zs, Z_DEFAULT_COMPRESSION)) != Z_OK)
-		cheribsdtest_failure_errx("deflateInit returned %d", ret);
+		cheriostest_failure_errx("deflateInit returned %d", ret);
 
 	zs.next_in = uncompressed_zeroes;
 	zs.avail_in = uncompressed_zeroes_len;
 	zs.next_out = compbuf;
 	zs.avail_out = compsize;
 	if ((ret = deflate(&zs, Z_FINISH)) != Z_STREAM_END)
-		cheribsdtest_failure_errx("deflate returned %d", ret);
+		cheriostest_failure_errx("deflate returned %d", ret);
 	if ((ret = deflateEnd(&zs)) != Z_OK)
-		cheribsdtest_failure_errx("deflateEnd returned %d", ret);
+		cheriostest_failure_errx("deflateEnd returned %d", ret);
 	check_compressed_data(compbuf, zs.total_out);
 	free(compbuf);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(inflate_zeroes, "Inflate a compressed buffer of zeroes")
+CHERIOSTEST(inflate_zeroes, "Inflate a compressed buffer of zeroes")
 {
 	int ret;
 	uint8_t *outbuf;
 	z_stream zs;
 
 	if ((outbuf = malloc(uncompressed_zeroes_len)) == NULL)
-		cheribsdtest_failure_err("malloc outbuf");
+		cheriostest_failure_err("malloc outbuf");
 	memset(&zs, 0, sizeof(zs));
 	zs.zalloc = Z_NULL;
 	zs.zfree = Z_NULL;
@@ -150,15 +150,15 @@ CHERIBSDTEST(inflate_zeroes, "Inflate a compressed buffer of zeroes")
 	zs.next_out = outbuf;
 	zs.avail_out = uncompressed_zeroes_len;
 	if ((ret = inflateInit(&zs)) != Z_OK)
-		cheribsdtest_failure_errx("inflateInit returned %d", ret);
+		cheriostest_failure_errx("inflateInit returned %d", ret);
 	if ((ret = inflate(&zs, Z_FINISH)) != Z_STREAM_END)
-		cheribsdtest_failure_errx("inflate returned %d", ret);
+		cheriostest_failure_errx("inflate returned %d", ret);
 	if ((ret = inflateEnd(&zs)) != Z_OK)
-		cheribsdtest_failure_errx("inflateEnd returned %d", ret);
+		cheriostest_failure_errx("inflateEnd returned %d", ret);
 	if (zs.total_in != compressed_zeroes_len)
-		cheribsdtest_failure_errx("expected to consume %zu bytes, got %zu",
+		cheriostest_failure_errx("expected to consume %zu bytes, got %zu",
 		    compressed_zeroes_len, zs.total_in);
 	check_uncompressed_data(outbuf, zs.total_out);
 	free(outbuf);
-	cheribsdtest_success();
+	cheriostest_success();
 }

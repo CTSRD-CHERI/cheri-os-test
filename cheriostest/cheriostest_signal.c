@@ -80,7 +80,7 @@ handler_func(int signum)
 	handler_signum = signum;
 }
 
-CHERIBSDTEST(signal_handler_usr1,
+CHERIOSTEST(signal_handler_usr1,
     "Install a signal handler (sa_handler) for SIGUSR1 and check it works")
 {
 	struct sigaction sa;
@@ -88,18 +88,18 @@ CHERIBSDTEST(signal_handler_usr1,
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	if (sigaction(SIGUSR1, &sa, NULL) != 0)
-		cheribsdtest_failure_errx("sigaction failed: %s", strerror(errno));
+		cheriostest_failure_errx("sigaction failed: %s", strerror(errno));
 
 	handler_signum = 0;
 	if (kill(getpid(), SIGUSR1) != 0)
-		cheribsdtest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
+		cheriostest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
 		                       strerror(errno));
 
 	if (handler_signum != SIGUSR1)
-		cheribsdtest_failure_errx("handler_signum (%d) != SIGUSR1 (%d)",
+		cheriostest_failure_errx("handler_signum (%d) != SIGUSR1 (%d)",
 		                       handler_signum, SIGUSR1);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 static int sigaction_signum;
@@ -114,7 +114,7 @@ sigaction_func(int signum, siginfo_t *siginfo, void *context __attribute__((__un
 	sigaction_info_si_code = siginfo->si_code;
 }
 
-CHERIBSDTEST(signal_sigaction_usr1,
+CHERIOSTEST(signal_sigaction_usr1,
     "Install a signal handler (sa_sigaction) for SIGUSR1 and check it works")
 {
 	struct sigaction sa;
@@ -122,26 +122,26 @@ CHERIBSDTEST(signal_sigaction_usr1,
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGUSR1, &sa, NULL) != 0)
-		cheribsdtest_failure_errx("sigaction failed: %s", strerror(errno));
+		cheriostest_failure_errx("sigaction failed: %s", strerror(errno));
 
 	sigaction_signum = 0;
 	if (kill(getpid(), SIGUSR1) != 0)
-		cheribsdtest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
+		cheriostest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
 		                       strerror(errno));
 
 	if (sigaction_signum != SIGUSR1)
-		cheribsdtest_failure_errx("signum (%d) != SIGUSR1 (%d)",
+		cheriostest_failure_errx("signum (%d) != SIGUSR1 (%d)",
 		                       sigaction_signum, SIGUSR1);
 
 	if (sigaction_info_si_signo != SIGUSR1)
-		cheribsdtest_failure_errx("si_signo (%d) != SIGUSR1 (%d)",
+		cheriostest_failure_errx("si_signo (%d) != SIGUSR1 (%d)",
 		                       sigaction_info_si_signo, SIGUSR1);
 
 	if (sigaction_info_si_code != SI_USER)
-		cheribsdtest_failure_errx("si_code (%d) != SI_USER (%d)",
+		cheriostest_failure_errx("si_code (%d) != SI_USER (%d)",
 		                       sigaction_info_si_code, SI_USER);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 static size_t sigaltstack_local_addr;
@@ -153,7 +153,7 @@ sigaltstack_func(int signum __attribute__((__unused__)))
 	sigaltstack_local_addr = (__cheri_addr size_t)&x;
 }
 
-CHERIBSDTEST(signal_sigaltstack,
+CHERIOSTEST(signal_sigaltstack,
     "Check signal handlers use the alternate stack when enabled",
     .ct_xfail_reason = XFAIL_C18N_SIGALTSTACK)
 {
@@ -162,39 +162,39 @@ CHERIBSDTEST(signal_sigaltstack,
 	size_t altstack_addr;
 
 	if ((sigstk.ss_sp = malloc(SIGSTKSZ)) == NULL)
-		cheribsdtest_failure_errx("malloc(SIGSTKSZ) failed: %s",
+		cheriostest_failure_errx("malloc(SIGSTKSZ) failed: %s",
 		                       strerror(errno));
 
 	altstack_addr = (__cheri_addr size_t)sigstk.ss_sp;
 	sigstk.ss_size = SIGSTKSZ;
 	sigstk.ss_flags = 0;
 	if (sigaltstack(&sigstk, NULL) != 0)
-		cheribsdtest_failure_errx("sigaltstack failed: %s",
+		cheriostest_failure_errx("sigaltstack failed: %s",
 		                       strerror(errno));
 
 	sa.sa_handler = sigaltstack_func;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_ONSTACK;
 	if (sigaction(SIGUSR1, &sa, NULL) != 0)
-		cheribsdtest_failure_errx("sigaction failed: %s",
+		cheriostest_failure_errx("sigaction failed: %s",
 		                       strerror(errno));
 
 	sigaltstack_local_addr = 0;
 	if (kill(getpid(), SIGUSR1) != 0)
-		cheribsdtest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
+		cheriostest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
 		                       strerror(errno));
 
 	if (sigaltstack_local_addr < altstack_addr)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "stack local (0x%zx) < sigstk.ss_sp (0x%zx)",
 		    sigaltstack_local_addr, altstack_addr);
 
 	if (sigaltstack_local_addr >= altstack_addr + SIGSTKSZ)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "stack local (0x%zx) >= sigstk.ss_sp+SIGSTKSZ (0x%zx)",
 		    sigaltstack_local_addr, altstack_addr + SIGSTKSZ);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 static size_t sigaltstack_disable_local_addr;
@@ -206,7 +206,7 @@ sigaltstack_disable_func(int signum __attribute__((__unused__)))
 	sigaltstack_disable_local_addr = (__cheri_addr size_t)&x;
 }
 
-CHERIBSDTEST(signal_sigaltstack_disable,
+CHERIOSTEST(signal_sigaltstack_disable,
     "Check signal handlers don't use a given alternate stack when re-disabled")
 {
 	stack_t sigstk;
@@ -214,40 +214,40 @@ CHERIBSDTEST(signal_sigaltstack_disable,
 	size_t altstack_addr;
 
 	if ((sigstk.ss_sp = malloc(SIGSTKSZ)) == NULL)
-		cheribsdtest_failure_errx("malloc(SIGSTKSZ) failed: %s",
+		cheriostest_failure_errx("malloc(SIGSTKSZ) failed: %s",
 		                       strerror(errno));
 
 	altstack_addr = (__cheri_addr size_t)sigstk.ss_sp;
 	sigstk.ss_size = SIGSTKSZ;
 	sigstk.ss_flags = 0;
 	if (sigaltstack(&sigstk, NULL) != 0)
-		cheribsdtest_failure_errx("sigaltstack failed: %s",
+		cheriostest_failure_errx("sigaltstack failed: %s",
 		                       strerror(errno));
 
 	sigstk.ss_flags = SS_DISABLE;
 	if (sigaltstack(&sigstk, NULL) != 0)
-		cheribsdtest_failure_errx("sigaltstack (disable) failed: %s",
+		cheriostest_failure_errx("sigaltstack (disable) failed: %s",
 		                       strerror(errno));
 
 	sa.sa_handler = sigaltstack_disable_func;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_ONSTACK;
 	if (sigaction(SIGUSR1, &sa, NULL) != 0)
-		cheribsdtest_failure_errx("sigaction failed: %s", strerror(errno));
+		cheriostest_failure_errx("sigaction failed: %s", strerror(errno));
 
 	sigaltstack_disable_local_addr = 0;
 	if (kill(getpid(), SIGUSR1) != 0)
-		cheribsdtest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
+		cheriostest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
 		                       strerror(errno));
 
 	if (sigaltstack_disable_local_addr >= altstack_addr &&
 	    sigaltstack_disable_local_addr < altstack_addr + SIGSTKSZ)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "stack local (0x%zx) in range of sigstk.ss_sp (0x%zx-0x%zx)",
 		    sigaltstack_disable_local_addr, altstack_addr,
 		    altstack_addr+SIGSTKSZ);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
@@ -263,7 +263,7 @@ returncap_func(int signum __attribute__((__unused__)))
 	handler_returncap = __builtin_return_address(0);
 }
 
-CHERIBSDTEST(signal_returncap,
+CHERIOSTEST(signal_returncap,
     "Test value of signal handler return capability")
 {
 #if defined(__FreeBSD__)
@@ -291,12 +291,12 @@ CHERIBSDTEST(signal_returncap,
 #elif defined(__linux__)
 	if (syscall(SYS_rt_sigaction, SIGUSR1, &sa, NULL, _NSIG/8))
 #endif
-		cheribsdtest_failure_errx("sigaction failed: %s",
+		cheriostest_failure_errx("sigaction failed: %s",
 		                       strerror(errno));
 
 	handler_returncap = NULL;
 	if (kill(getpid(), SIGUSR1) != 0)
-		cheribsdtest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
+		cheriostest_failure_errx("kill(getpid(), SIGUSR1) failed: %s",
 		                       strerror(errno));
 
 	/* Length. */
@@ -311,43 +311,43 @@ CHERIBSDTEST(signal_returncap,
 	/* 256 bytes should be more than enough to cover sigcode. */
 	expect = 0x100;
 #endif
-	CHERIBSDTEST_VERIFY2(v <= expect, "length %#jx (expected <= %#jx)",
+	CHERIOSTEST_VERIFY2(v <= expect, "length %#jx (expected <= %#jx)",
 	    v, expect);
 
 	/* Type -- should be a sentry capability. */
 	v = cheri_type_get(handler_returncap);
-	CHERIBSDTEST_VERIFY2(v == (uintmax_t)CHERI_OTYPE_SENTRY,
+	CHERIOSTEST_VERIFY2(v == (uintmax_t)CHERI_OTYPE_SENTRY,
 	    "otype %jx (expected %jx)", v, (uintmax_t)CHERI_OTYPE_SENTRY);
 
 	/* Sealed bit. */
-	CHERIBSDTEST_VERIFY(cheri_is_sealed(handler_returncap));
+	CHERIOSTEST_VERIFY(cheri_is_sealed(handler_returncap));
 
 	/* Tag bit. */
-	CHERIBSDTEST_VERIFY(cheri_tag_get(handler_returncap));
+	CHERIOSTEST_VERIFY(cheri_tag_get(handler_returncap));
 
 	/* Permissions -- should have execute but no store permissions. */
 	v = cheri_perms_get(handler_returncap);
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_EXECUTE) == CHERI_PERM_EXECUTE,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_EXECUTE) == CHERI_PERM_EXECUTE,
 	    "perms %jx (execute missing)", v);
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_STORE) == 0,
 	    "perms %jx (store present)", v);
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_STORE_CAP) == 0,
 	    "perms %jx (storecap present)", v);
 #endif
 #ifdef HAS_CHERI_PERM_CAP
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_CAP) != 0,
 	    "perms %jx (cap missing)", v);
 #endif
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_STORE_LOCAL_CAP) == 0,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_STORE_LOCAL_CAP) == 0,
 	    "perms %jx (store_local_cap present)", v);
 
 #ifdef __riscv_zcheripurecap
-	CHERIBSDTEST_VERIFY2((v & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((v & CHERI_PERM_CAP) != 0,
 	    "perms %jx (cap missing)", v);
 #endif
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
@@ -356,7 +356,7 @@ CHERIBSDTEST(signal_returncap,
  * Ensure that invalid addresses still raise SIGSEGV (rather than
  * SIGPROT) for hybrid mode.
  */
-CHERIBSDTEST(null_pointer_load_sigsegv,
+CHERIOSTEST(null_pointer_load_sigsegv,
     "Check that loading from NULL raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -366,10 +366,10 @@ CHERIBSDTEST(null_pointer_load_sigsegv,
 	volatile char *p = (void *)(uintptr_t)1;
 
 	(void)*p;
-	cheribsdtest_failure_errx("Unexpected load from NULL pointer");
+	cheriostest_failure_errx("Unexpected load from NULL pointer");
 }
 
-CHERIBSDTEST(null_pointer_store_sigsegv,
+CHERIOSTEST(null_pointer_store_sigsegv,
     "Check that storing to NULL raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -379,10 +379,10 @@ CHERIBSDTEST(null_pointer_store_sigsegv,
 	char *p = (void *)(uintptr_t)1;
 
 	*p = 1;
-	cheribsdtest_failure_errx("Unexpected store to NULL pointer");
+	cheriostest_failure_errx("Unexpected store to NULL pointer");
 }
 
-CHERIBSDTEST(null_pointer_exec_sigsegv,
+CHERIOSTEST(null_pointer_exec_sigsegv,
     "Check that branching to NULL raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -392,10 +392,10 @@ CHERIBSDTEST(null_pointer_exec_sigsegv,
 	void (*p)(void) = (void *)(uintptr_t)4;
 
 	p();
-	cheribsdtest_failure_errx("Unexpected branch to NULL pointer");
+	cheriostest_failure_errx("Unexpected branch to NULL pointer");
 }
 
-CHERIBSDTEST(kernel_pointer_load_sigsegv,
+CHERIOSTEST(kernel_pointer_load_sigsegv,
     "Check that loading from a kernel address raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -405,10 +405,10 @@ CHERIBSDTEST(kernel_pointer_load_sigsegv,
 	volatile char *p = (void *)(uintptr_t)VM_MIN_KERNEL_ADDRESS;
 
 	(void)*p;
-	cheribsdtest_failure_errx("Unexpected load from kernel address");
+	cheriostest_failure_errx("Unexpected load from kernel address");
 }
 
-CHERIBSDTEST(kernel_pointer_store_sigsegv,
+CHERIOSTEST(kernel_pointer_store_sigsegv,
     "Check that storing to a kernel address raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -427,10 +427,10 @@ CHERIBSDTEST(kernel_pointer_store_sigsegv,
 	char *p = (void *)(uintptr_t)VM_MIN_KERNEL_ADDRESS;
 
 	*p = 1;
-	cheribsdtest_failure_errx("Unexpected store to kernel address");
+	cheriostest_failure_errx("Unexpected store to kernel address");
 }
 
-CHERIBSDTEST(kernel_pointer_exec_sigsegv,
+CHERIOSTEST(kernel_pointer_exec_sigsegv,
     "Check that branching to a kernel address raises SIGSEGV",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGSEGV,
@@ -440,6 +440,6 @@ CHERIBSDTEST(kernel_pointer_exec_sigsegv,
 	void (*p)(void) = (void *)(uintptr_t)VM_MIN_KERNEL_ADDRESS;
 
 	p();
-	cheribsdtest_failure_errx("Unexpected branch to kernel address");
+	cheriostest_failure_errx("Unexpected branch to kernel address");
 }
 #endif

@@ -62,7 +62,7 @@
 #include "cheriostest.h"
 
 static void
-vcheribsdtest_failure_errx(const char *msg, va_list ap)
+vcheriostest_failure_errx(const char *msg, va_list ap)
 {
 
 	ccsp->ccs_warn = false;
@@ -72,7 +72,7 @@ vcheribsdtest_failure_errx(const char *msg, va_list ap)
 }
 
 static void
-vcheribsdtest_failure_errc(int code, const char *msg, va_list ap)
+vcheriostest_failure_errc(int code, const char *msg, va_list ap)
 {
 	size_t buflen;
 	int len;
@@ -90,38 +90,38 @@ vcheribsdtest_failure_errc(int code, const char *msg, va_list ap)
 }
 
 void
-cheribsdtest_failure_errx(const char *msg, ...)
+cheriostest_failure_errx(const char *msg, ...)
 {
 	va_list ap;
 
 	va_start(ap, msg);
-	vcheribsdtest_failure_errx(msg, ap);
+	vcheriostest_failure_errx(msg, ap);
 	va_end(ap);
 	exit(EX_SOFTWARE);
 }
 
 void
-cheribsdtest_failure_errc(int code, const char *msg, ...)
+cheriostest_failure_errc(int code, const char *msg, ...)
 {
 	va_list ap;
 	va_start(ap, msg);
-	vcheribsdtest_failure_errc(code, msg, ap);
+	vcheriostest_failure_errc(code, msg, ap);
 	va_end(ap);
 	exit(EX_SOFTWARE);
 }
 
 void
-cheribsdtest_failure_err(const char *msg, ...)
+cheriostest_failure_err(const char *msg, ...)
 {
 	va_list ap;
 	va_start(ap, msg);
-	vcheribsdtest_failure_errc(errno, msg, ap);
+	vcheriostest_failure_errc(errno, msg, ap);
 	va_end(ap);
 	exit(EX_SOFTWARE);
 }
 
 void
-cheribsdtest_success(void)
+cheriostest_success(void)
 {
 
 	ccsp->ccs_testresult = TESTRESULT_SUCCESS;
@@ -130,7 +130,7 @@ cheribsdtest_success(void)
 }
 
 void
-cheribsdtest_success_with_warn(const char *msg)
+cheriostest_success_with_warn(const char *msg)
 {
 	strncpy(ccsp->ccs_testresult_str, msg, sizeof(ccsp->ccs_testresult_str));
 	ccsp->ccs_testresult_str[sizeof(ccsp->ccs_testresult_str) - 1] = '\0';
@@ -140,7 +140,7 @@ cheribsdtest_success_with_warn(const char *msg)
 }
 
 void
-cheribsdtest_set_expected_si_addr(void *addr)
+cheriostest_set_expected_si_addr(void *addr)
 {
 
 	ccsp->ccs_si_addr_expected = cheri_tag_clear(addr);

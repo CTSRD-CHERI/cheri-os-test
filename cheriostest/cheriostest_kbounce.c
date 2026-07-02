@@ -84,12 +84,12 @@ checkbuf(const char *buf, size_t offset, size_t len, const char *where)
 
 	for (i = offset; i < offset + len; i++) {
 		if (buf[i] != (char)(i & 0xFF))
-			cheribsdtest_failure_errx("%s: buf[%zu] != 0x%02x (0x%02x)",
+			cheriostest_failure_errx("%s: buf[%zu] != 0x%02x (0x%02x)",
 			    where, i, (char)(i & 0xFF), buf[i]);
 	}
 }
 
-CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
+CHERIOSTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 {
 	char *buf, *dst, *src;
 
@@ -102,15 +102,15 @@ CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 	buf = mmap(NULL, (BUFLEN * 2) + (CHERITEST_PAGE_SIZE * 3), PROT_READ | PROT_WRITE,
 	    MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (buf == MAP_FAILED)
-		cheribsdtest_failure_err("mmap of %d failed",
+		cheriostest_failure_err("mmap of %d failed",
 		    (BUFLEN * 2)+ (CHERITEST_PAGE_SIZE * 3));
 	if (mprotect(buf, GUARDLEN, PROT_NONE) == -1)
-		cheribsdtest_failure_err("mprotect of first guard region failed");
+		cheriostest_failure_err("mprotect of first guard region failed");
 	if (mprotect(buf + GUARDLEN + BUFLEN, GUARDLEN, PROT_NONE) == -1)
-		cheribsdtest_failure_err("mprotect of second guard region failed");
+		cheriostest_failure_err("mprotect of second guard region failed");
 	if (mprotect(buf + (2 * (GUARDLEN + BUFLEN)), GUARDLEN, PROT_NONE) ==
 	    -1)
-		cheribsdtest_failure_err("mprotect of third guard region failed");
+		cheriostest_failure_err("mprotect of third guard region failed");
 
 	src = buf + GUARDLEN;
 	dst = src + BUFLEN + GUARDLEN;
@@ -120,7 +120,7 @@ CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 
 	spoilbuf(dst, BUFLEN);
 	if (kbounce(src, dst, BUFLEN, 0) != 0)
-		cheribsdtest_failure_err("kbounce(%p, %p, %d, 0)", src,
+		cheriostest_failure_err("kbounce(%p, %p, %d, 0)", src,
 		    dst, BUFLEN);
 	checkbuf(src, 0, BUFLEN, "full buffer");
 
@@ -160,12 +160,12 @@ CHERIBSDTEST(sys_kbounce, "Exercise copyin/out via kbounce(2) syscall")
 				len = lengths[l];
 
 			if (kbounce(srcptr, dstptr, len, 0) != 0)
-				cheribsdtest_failure_err("kbounce(\n  %#p,\n  %#p,\n%zu, 0)",
+				cheriostest_failure_err("kbounce(\n  %#p,\n  %#p,\n%zu, 0)",
 				    srcptr, dstptr, len);
 			checkbuf(src, off, len, "partial buffer");
 		}
 	}
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

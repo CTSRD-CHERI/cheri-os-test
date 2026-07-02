@@ -33,8 +33,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CHERIBSDTEST_MD_H_
-#define	_CHERIBSDTEST_MD_H_
+#ifndef _CHERIOSTEST_MD_H_
+#define	_CHERIOSTEST_MD_H_
 
 #define	TRAPNO_STORE_CAP_PF	EXCP_DATA_ABORT_L
 #define	TRAPNO_LOAD_STORE	EXCP_DATA_ABORT_L
@@ -65,4 +65,4 @@
 
 #define	CAPREG_PCC(capreg)	((capreg)->celr)
 
-#endif /* !_CHERIBSDTEST_H_ */
+#endif /* !_CHERIOSTEST_H_ */

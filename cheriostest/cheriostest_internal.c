@@ -47,70 +47,70 @@ exec_child_cf(void)
 	exit(0);
 }
 
-CHERIBSDTEST(internal_spawn_child_posix_spawn,
+CHERIOSTEST(internal_spawn_child_posix_spawn,
     "check that directly spawning a child process with posix_spawn runs properly",
     .ct_child_func = exec_child_cf)
 {
 	int res;
 	pid_t pid;
 
-	pid = cheribsdtest_spawn_child(SC_MODE_POSIX_SPAWN);
+	pid = cheriostest_spawn_child(SC_MODE_POSIX_SPAWN);
 
-	CHERIBSDTEST_VERIFY2(pid > 0, "spawning child process failed");
+	CHERIOSTEST_VERIFY2(pid > 0, "spawning child process failed");
 	waitpid(pid, &res, 0);
 	if (res != 0)
-		cheribsdtest_failure_errx("Bad child process exit");
+		cheriostest_failure_errx("Bad child process exit");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(internal_spawn_child_fork, "spawn a child process with fork",
+CHERIOSTEST(internal_spawn_child_fork, "spawn a child process with fork",
     .ct_child_func = exec_child_cf)
 {
 	int res;
 	pid_t pid;
 
-	pid = cheribsdtest_spawn_child(SC_MODE_FORK);
+	pid = cheriostest_spawn_child(SC_MODE_FORK);
 
-	CHERIBSDTEST_VERIFY2(pid > 0, "spawning child process failed");
+	CHERIOSTEST_VERIFY2(pid > 0, "spawning child process failed");
 	waitpid(pid, &res, 0);
 	if (res != 0)
-		cheribsdtest_failure_errx("Bad child process exit");
+		cheriostest_failure_errx("Bad child process exit");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 ///XXX: Should we test clone() instead on Linux?
 #ifdef __FreeBSD__
-CHERIBSDTEST(internal_spawn_child_rfork, "spawn a process with rfork",
+CHERIOSTEST(internal_spawn_child_rfork, "spawn a process with rfork",
     .ct_child_func = exec_child_cf)
 {
 	int res;
 	pid_t pid;
 
-	pid = cheribsdtest_spawn_child(SC_MODE_RFORK);
+	pid = cheriostest_spawn_child(SC_MODE_RFORK);
 
-	CHERIBSDTEST_VERIFY2(pid > 0, "spawning child process failed");
+	CHERIOSTEST_VERIFY2(pid > 0, "spawning child process failed");
 	waitpid(pid, &res, 0);
 	if (res != 0)
-		cheribsdtest_failure_errx("Bad child process exit");
+		cheriostest_failure_errx("Bad child process exit");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
-CHERIBSDTEST(internal_spawn_child_vfork, "spawn a process with vfork",
+CHERIOSTEST(internal_spawn_child_vfork, "spawn a process with vfork",
     .ct_child_func = exec_child_cf)
 {
 	int res;
 	pid_t pid;
 
-	pid = cheribsdtest_spawn_child(SC_MODE_VFORK);
+	pid = cheriostest_spawn_child(SC_MODE_VFORK);
 
-	CHERIBSDTEST_VERIFY2(pid > 0, "spawning child process failed");
+	CHERIOSTEST_VERIFY2(pid > 0, "spawning child process failed");
 	waitpid(pid, &res, 0);
 	if (res != 0)
-		cheribsdtest_failure_errx("Bad child process exit");
+		cheriostest_failure_errx("Bad child process exit");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }

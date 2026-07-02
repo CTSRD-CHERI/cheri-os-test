@@ -69,7 +69,7 @@ static __thread void * __capability tls_cap1;
 
 static __thread char tls_array_4k[4096] __aligned(4096);
 
-CHERIBSDTEST(tls_align_ptr, "Test alignment of TLS pointers")
+CHERIOSTEST(tls_align_ptr, "Test alignment of TLS pointers")
 {
 	int alignment, expected;
 
@@ -79,19 +79,19 @@ CHERIBSDTEST(tls_align_ptr, "Test alignment of TLS pointers")
 	/* First of two pointers to test. */
 	alignment = 1 << (ffsl((unsigned long)&tls_ptr0) - 1);
 	if (alignment < expected)
-		cheribsdtest_failure_errx("Underaligned TLS pointer 0 (got: %d; "
+		cheriostest_failure_errx("Underaligned TLS pointer 0 (got: %d; "
 		    "expected %d)", alignment, expected);
 
 	/* Second of two pointers to test. */
 	alignment = 1 << (ffsl((unsigned long)&tls_ptr1) - 1);
 	if (alignment < expected)
-		cheribsdtest_failure_errx("Underaligned TLS pointer 1 (got: %d; "
+		cheriostest_failure_errx("Underaligned TLS pointer 1 (got: %d; "
 		    "expected %d)", alignment, expected);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #if !defined(__CHERI_PURE_CAPABILITY__)
-CHERIBSDTEST(tls_align_cap, "Test alignment of TLS capabilities")
+CHERIOSTEST(tls_align_cap, "Test alignment of TLS capabilities")
 {
 	int alignment, expected;
 
@@ -101,42 +101,42 @@ CHERIBSDTEST(tls_align_cap, "Test alignment of TLS capabilities")
 	/* First of two capabilities to test. */
 	alignment = 1 << (ffsl((unsigned long)&tls_cap0) - 1);
 	if (alignment < expected)
-		cheribsdtest_failure_errx("Underaligned TLS capability 0 (got: "
+		cheriostest_failure_errx("Underaligned TLS capability 0 (got: "
 		    "%d; expected %d)", alignment, expected);
 
 	/* Second of two pointers to test. */
 	alignment = 1 << (ffsl((unsigned long)&tls_cap1) - 1);
 	if (alignment < expected)
-		cheribsdtest_failure_errx("Underaligned TLS capability 1 (got: "
+		cheriostest_failure_errx("Underaligned TLS capability 1 (got: "
 		    "%d; expected %d)", alignment, expected);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
-CHERIBSDTEST(tls_align_4k, "Test alignment of TLS 4K array")
+CHERIOSTEST(tls_align_4k, "Test alignment of TLS 4K array")
 {
 	int alignment, expected;
 
 	alignment = 1 << (ffsl((unsigned long)&tls_array_4k) - 1);
 	expected = 4096;
 	if (alignment < expected)
-		cheribsdtest_failure_errx("Underaligned TLS 4K array (got: %d; "
+		cheriostest_failure_errx("Underaligned TLS 4K array (got: %d; "
 		    "expected %d)", alignment, expected);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
-CHERIBSDTEST(tls_dlsym, "Test dlsym(3) for TLS matches direct reference")
+CHERIOSTEST(tls_dlsym, "Test dlsym(3) for TLS matches direct reference")
 {
-	int *cheribsdtest_dynamic_tls_var_dlsym;
+	int *cheriostest_dynamic_tls_var_dlsym;
 
-	cheribsdtest_dynamic_tls_var_dlsym = dlsym(RTLD_DEFAULT,
-	    "cheribsdtest_dynamic_tls_var");
-	if (cheribsdtest_dynamic_tls_var_dlsym == NULL)
-		cheribsdtest_failure_errx("dlsym(3) failed: %s", dlerror());
+	cheriostest_dynamic_tls_var_dlsym = dlsym(RTLD_DEFAULT,
+	    "cheriostest_dynamic_tls_var");
+	if (cheriostest_dynamic_tls_var_dlsym == NULL)
+		cheriostest_failure_errx("dlsym(3) failed: %s", dlerror());
 
-	CHERIBSDTEST_CHECK_EQ_PTR(cheribsdtest_dynamic_tls_var_dlsym,
-	    &cheribsdtest_dynamic_tls_var);
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_EQ_PTR(cheriostest_dynamic_tls_var_dlsym,
+	    &cheriostest_dynamic_tls_var);
+	cheriostest_success();
 }
 #endif

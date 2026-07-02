@@ -63,42 +63,42 @@ check_fptr(uintptr_t fptr)
 
 	perms = cheri_perms_get((void *)fptr);
 
-	CHERIBSDTEST_VERIFY(cheri_tag_get((void *)fptr));
+	CHERIOSTEST_VERIFY(cheri_tag_get((void *)fptr));
 	/* Check that execute is present and store permissions aren't */
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == CHERI_PERM_EXECUTE,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == CHERI_PERM_EXECUTE,
 	    "perms %jx (execute missing)", (uintmax_t)perms);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
 	    "perms %jx (store present)", (uintmax_t)perms);
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "perms %jx (storecap present)", (uintmax_t)perms);
 #endif
 #ifdef HAS_CHERI_PERM_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "perms %jx (cap present)", (uintmax_t)perms);
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_LOCAL_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_LOCAL_CAP) == 0,
 	    "perms %jx (store_local_cap present)", (uintmax_t)perms);
 
-	CHERIBSDTEST_VERIFY2(cheri_type_get((void *)fptr) == CHERI_OTYPE_SENTRY,
+	CHERIOSTEST_VERIFY2(cheri_type_get((void *)fptr) == CHERI_OTYPE_SENTRY,
 	    "otype %jx (expected %jx)", cheri_type_get((void *)fptr),
 	    (uintmax_t)CHERI_OTYPE_SENTRY);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #if defined(__linux__) && defined(__riscv_zcheripurecap)
-CHERIBSDTEST(otype_sentry_definition,
+CHERIOSTEST(otype_sentry_definition,
 	"Check the definition of the CHERI_OTYPE_SENTRY")
 {
 	/* This is a regression test */
-	CHERIBSDTEST_VERIFY2(CHERI_OTYPE_SENTRY == 1, "CHERI_OTYPE_SENTRY is not 1");
-	cheribsdtest_success();
+	CHERIOSTEST_VERIFY2(CHERI_OTYPE_SENTRY == 1, "CHERI_OTYPE_SENTRY is not 1");
+	cheriostest_success();
 }
 #endif
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
-CHERIBSDTEST(sentry_dlsym,
+CHERIOSTEST(sentry_dlsym,
     "Check that a function pointer obtained via dlsym is a sentry")
 {
 	double (*fptr)(double);
@@ -112,23 +112,23 @@ CHERIBSDTEST(sentry_dlsym,
 	lib_so = "/lib/" LIBM_SONAME;
 #endif
 	if ((handle = dlopen(lib_so, RTLD_LAZY)) == NULL)
-		cheribsdtest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
+		cheriostest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
 	if ((fptr = dlsym(handle, "acos")) == NULL)
-		cheribsdtest_failure_err("dlsym(acos)");
+		cheriostest_failure_err("dlsym(acos)");
 #elif __linux__
 	/* libm.so is not yet available on Linux */
 	lib_so = "./libcheriostest_dynamic.so.0";
 	if ((handle = dlopen(lib_so, RTLD_LAZY)) == NULL)
-		cheribsdtest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
-	if ((fptr = dlsym(handle, "cheribsdtest_dynamic_ifunc_impl")) == NULL)
-		cheribsdtest_failure_err("dlsym(cheribsdtest_dynamic_ifunc_impl)");
+		cheriostest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
+	if ((fptr = dlsym(handle, "cheriostest_dynamic_ifunc_impl")) == NULL)
+		cheriostest_failure_err("dlsym(cheriostest_dynamic_ifunc_impl)");
 #endif
 
 	check_fptr((uintptr_t)fptr);
 }
 #endif
 
-CHERIBSDTEST(sentry_libc,
+CHERIOSTEST(sentry_libc,
     "Check that a function pointer from libc is a sentry")
 {
 	unsigned int (*fptr)(unsigned int) = sleep;
@@ -136,7 +136,7 @@ CHERIBSDTEST(sentry_libc,
 	check_fptr((uintptr_t)fptr);
 }
 
-CHERIBSDTEST(sentry_static,
+CHERIOSTEST(sentry_static,
     "Check that a statically initialized function pointer is a sentry")
 {
 	static unsigned int (*volatile fptr)(unsigned int) = sleep;

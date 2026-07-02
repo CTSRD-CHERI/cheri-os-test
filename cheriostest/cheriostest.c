@@ -106,7 +106,7 @@ static StringList* cheri_xpassed_tests;
 static StringList* cheri_test_warnings;
 
 /* Shared memory page with child process. */
-struct cheribsdtest_child_state *ccsp;
+struct cheriostest_child_state *ccsp;
 
 static const struct cheri_test *running_test;
 
@@ -223,7 +223,7 @@ signal_handler_clear(int sig)
 	sa.sa_handler = SIG_DFL;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(sig, &sa, NULL) < 0)
-		cheribsdtest_failure_err("clearing handler for sig %d", sig);
+		cheriostest_failure_err("clearing handler for sig %d", sig);
 }
 
 static inline void
@@ -252,7 +252,7 @@ set_thread_tracing(void)
 #define	TEST_BUFFER_LEN	1024
 
 static void
-cheribsdtest_run_test(const struct cheri_test *ctp)
+cheriostest_run_test(const struct cheri_test *ctp)
 {
 	struct sigaction sa;
 	pid_t childpid;
@@ -264,7 +264,7 @@ cheribsdtest_run_test(const struct cheri_test *ctp)
 	char* failure_message;
 	char* warn_message;
 	ssize_t len;
-	const char *disallowed_prefixes[] = { "cheribsdtest_", "test_" };
+	const char *disallowed_prefixes[] = { "cheriostest_", "test_" };
 
 	xo_attr("classname", "%s.%s", PROG, ctp->ct_name);
 	xo_attr("name", "%s", ctp->ct_desc);
@@ -667,14 +667,14 @@ do_return:
 }
 
 static void
-cheribsdtest_run_test_name(const char *name)
+cheriostest_run_test_name(const char *name)
 {
 	struct cheri_test **ctp, *ct;
 
 	SET_FOREACH(ctp, cheri_tests_set) {
 		ct = *ctp;
 		if (strcmp(name, ct->ct_name) == 0) {
-			cheribsdtest_run_test(ct);
+			cheriostest_run_test(ct);
 			return;
 		}
 	}
@@ -682,7 +682,7 @@ cheribsdtest_run_test_name(const char *name)
 }
 
 static void
-cheribsdtest_run_child(struct cheri_test *ctp)
+cheriostest_run_child(struct cheri_test *ctp)
 {
 	if (ctp->ct_child_func == NULL)
 		errx(EX_SOFTWARE, "%s has no child function", ctp->ct_name);
@@ -691,14 +691,14 @@ cheribsdtest_run_child(struct cheri_test *ctp)
 }
 
 static void
-cheribsdtest_run_child_name(const char *name)
+cheriostest_run_child_name(const char *name)
 {
 	struct cheri_test **ctpp, *ctp;
 
 	SET_FOREACH(ctpp, cheri_tests_set) {
 		ctp = *ctpp;
 		if (strcmp(name, ctp->ct_name) == 0)
-			cheribsdtest_run_child(ctp);
+			cheriostest_run_child(ctp);
 	}
 	errx(EX_USAGE, "unknown test: %s", name);
 }
@@ -754,7 +754,7 @@ mk_exec_args(const struct cheri_test *ctp)
 }
 
 pid_t
-cheribsdtest_spawn_child(enum spawn_child_mode mode)
+cheriostest_spawn_child(enum spawn_child_mode mode)
 {
 	char **exec_args;
 	int error;
@@ -802,7 +802,7 @@ cheribsdtest_spawn_child(enum spawn_child_mode mode)
 }
 
 static const char *
-_cheribsdtest_get_helper_path(const struct cheri_test *ctp)
+_cheriostest_get_helper_path(const struct cheri_test *ctp)
 {
 	static char helper_path[PATH_MAX];
 #ifdef __FreeBSD__
@@ -821,13 +821,13 @@ _cheribsdtest_get_helper_path(const struct cheri_test *ctp)
 }
 
 const char *
-cheribsdtest_get_helper_path(void)
+cheriostest_get_helper_path(void)
 {
-	return (_cheribsdtest_get_helper_path(running_test));
+	return (_cheriostest_get_helper_path(running_test));
 }
 
 const char *
-cheribsdtest_skip_no_helper(const struct cheri_test *ctp)
+cheriostest_skip_no_helper(const struct cheri_test *ctp)
 {
 	struct stat sb;
 	const char *path;
@@ -837,20 +837,20 @@ cheribsdtest_skip_no_helper(const struct cheri_test *ctp)
 	 * of it does and there's something wrong with it (e.g., it's not
 	 * executable).
 	 */
-	path = _cheribsdtest_get_helper_path(ctp);
+	path = _cheriostest_get_helper_path(ctp);
 	if (path != NULL && stat(path, &sb) != 0)
 		return ("couldn't stat helper");
 	return (NULL);
 }
 
 __attribute__((__noinline__)) void *
-cheribsdtest_memcpy(void *dst, const void *src, size_t n)
+cheriostest_memcpy(void *dst, const void *src, size_t n)
 {
 	return memcpy(dst, src, n);
 }
 
 __attribute__((__noinline__)) void *
-cheribsdtest_memmove(void *dst, const void *src, size_t n)
+cheriostest_memmove(void *dst, const void *src, size_t n)
 {
 	return memmove(dst, src, n);
 }
@@ -993,7 +993,7 @@ main(int argc, char *argv[])
 	 * We've been execed so look up our child function and run it.
 	 */
 	if (is_execed_child)
-		cheribsdtest_run_child_name(argv[0]);
+		cheriostest_run_child_name(argv[0]);
 
 	/*
 	 * Allocate a page shared with children processes to return success/
@@ -1027,7 +1027,7 @@ main(int argc, char *argv[])
 	if (run_all) {
 		SET_FOREACH(ctp, cheri_tests_set) {
 			ct = *ctp;
-			cheribsdtest_run_test(ct);
+			cheriostest_run_test(ct);
 		}
 	} else if (glob) {
 		for (i = 0; i < argc; i++) {
@@ -1035,12 +1035,12 @@ main(int argc, char *argv[])
 				ct = *ctp;
 				if (fnmatch(argv[i], ct->ct_name, 0) != 0)
 					continue;
-				cheribsdtest_run_test(ct);
+				cheriostest_run_test(ct);
 			}
 		}
 	} else {
 		for (i = 0; i < argc; i++) {
-			cheribsdtest_run_test_name(argv[i]);
+			cheriostest_run_test_name(argv[i]);
 		}
 	}
 	xo_close_list("test");

@@ -80,7 +80,7 @@
  * offsets and sizes as desired.
  */
 #define TEST_BOUNDS(test, desc, ...)						\
-	CHERIBSDTEST(bounds_##test,				\
+	CHERIOSTEST(bounds_##test,				\
 	"Check bounds on " desc,					\
 	.ct_xfail_reason = XFAIL_HYBRID_BOUNDS_GLOBALS_STATIC,		\
 	__VA_ARGS__)							\
@@ -101,33 +101,33 @@ test_bounds_impl(void *__capability allocation, void *__capability global_ptr, s
 	size_t rounded_size = cheri_representable_length(size);
 
 	/* Both the local cast and the global pointer should be tagged */
-	CHERIBSDTEST_VERIFY(cheri_tag_get(allocation));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(global_ptr));
+	CHERIOSTEST_VERIFY(cheri_tag_get(allocation));
+	CHERIOSTEST_VERIFY(cheri_tag_get(global_ptr));
 
 	/* Global offset. */
 	if (allocation_offset != 0)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "global: non-zero offset (%ju)", allocation_offset);
 
 	/* Global length. */
 	if (allocation_len != rounded_size)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "global: incorrect length (expected %ju, "
 		    "rounded from %ju, got %ju)",
 		    rounded_size, size, allocation_len);
 
 	/* Pointer offset. */
 	if (pointer_offset != 0)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "pointer: non-zero offset (%ju)", pointer_offset);
 
 	/* Pointer length. */
 	if (pointer_len != rounded_size)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "pointer: incorrect length (expected %ju, "
 		    "rounded from %ju, got %ju)",
 		    rounded_size, size, pointer_len);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -485,7 +485,7 @@ TEST_BOUNDS(extern_global_array65536, "extern global uint8_t[16] (C size)");
  * variable is a correct source of size information.
  */
 #define	TEST_DYNAMIC_BOUNDS(test, type, ...)				\
-	CHERIBSDTEST(bounds_##test,				\
+	CHERIOSTEST(bounds_##test,				\
 	"Check bounds on extern global " #type " (dynamic size)",	\
 	.ct_xfail_reason = XFAIL_HYBRID_BOUNDS_GLOBALS_EXTERN,		\
 	__VA_ARGS__)							\

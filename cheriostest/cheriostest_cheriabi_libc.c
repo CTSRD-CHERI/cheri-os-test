@@ -36,16 +36,16 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(cheriabi_libc_memchr,
+CHERIOSTEST(cheriabi_libc_memchr,
     "Check that memchr() works as required")
 {
 	_Alignas(16) char string[] = "0123456789abcde";
 
 	/* Full length, aligned end */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)memchr(string, 'e', sizeof(string)),
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)memchr(string, 'e', sizeof(string)),
 	    'e');
 	/* Length does not include char */
-	CHERIBSDTEST_VERIFY(memchr(string, 'e', sizeof(string) - 2) == NULL);
+	CHERIOSTEST_VERIFY(memchr(string, 'e', sizeof(string) - 2) == NULL);
 
 	/*
 	 * Length longer than cap, char in bounds
@@ -57,21 +57,21 @@ CHERIBSDTEST(cheriabi_libc_memchr,
 	 * This means the implementation needs to not trust the supplied
 	 * length when doing optimized word-wise reads and compares.
 	 */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)memchr(cheri_bounds_set(string,
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)memchr(cheri_bounds_set(string,
 	    sizeof(string) - 1), 'e', sizeof(string)), 'e');
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_libc_strchr,
+CHERIOSTEST(cheriabi_libc_strchr,
     "Check that strchr() works as required")
 {
 	_Alignas(16) char string[] = "0123456789abcdefghij";
 
 	/* Full length, aligned end */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)strchr(string, 'e'), 'e');
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)strchr(string, 'e'), 'e');
 	/* String that does not include char */
-	CHERIBSDTEST_VERIFY(strchr(string, 'z') == NULL);
+	CHERIOSTEST_VERIFY(strchr(string, 'z') == NULL);
 
 	/*
 	 * char in bounds, but last word not fully in bounds
@@ -80,22 +80,22 @@ CHERIBSDTEST(cheriabi_libc_strchr,
 	 * spurious exception if the character is in bounds even if
 	 * the containing word is not in bounds.
 	 */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)strchr(string, 'g'), 'g');
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)strchr(string, 'g'), 'g');
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #if defined(__FreeBSD__) || defined (__GLIBC__)
 // Musl libc does not provide strchrnul()
-CHERIBSDTEST(cheriabi_libc_strchrnul,
+CHERIOSTEST(cheriabi_libc_strchrnul,
     "Check that strchrnul() works as required")
 {
 	_Alignas(16) char string[] = "0123456789abcdefghij";
 
 	/* Full length, aligned end */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'e'), 'e');
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'e'), 'e');
 	/* String that does not include char */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'z'), '\0');
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'z'), '\0');
 
 	/*
 	 * char in bounds, but last word not fully in bounds
@@ -104,8 +104,8 @@ CHERIBSDTEST(cheriabi_libc_strchrnul,
 	 * spurious exception if the character is in bounds even if
 	 * the containing word is not in bounds.
 	 */
-	CHERIBSDTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'g'), 'g');
+	CHERIOSTEST_CHECK_EQ_INT(*(char *)strchrnul(string, 'g'), 'g');
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

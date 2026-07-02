@@ -23,17 +23,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CHERIBSDTEST_DYNAMIC_H_
-#define _CHERIBSDTEST_DYNAMIC_H_
+#ifndef _CHERIOSTEST_DYNAMIC_H_
+#define _CHERIOSTEST_DYNAMIC_H_
 
-void cheribsdtest_dynamic_dummy_func(void);
-void (*cheribsdtest_dynamic_get_dummy_fptr(void))(void);
-ptraddr_t cheribsdtest_dynamic_get_dummy_fptr_addr(void);
+void cheriostest_dynamic_dummy_func(void);
+void (*cheriostest_dynamic_get_dummy_fptr(void))(void);
+ptraddr_t cheriostest_dynamic_get_dummy_fptr_addr(void);
 
-void * __capability cheribsdtest_dynamic_identity_cap(void * __capability cap);
+void * __capability cheriostest_dynamic_identity_cap(void * __capability cap);
 
-int cheribsdtest_dynamic_ifunc(void);
+int cheriostest_dynamic_ifunc(void);
 
-extern _Thread_local int cheribsdtest_dynamic_tls_var;
+extern _Thread_local int cheriostest_dynamic_tls_var;
 
 #endif

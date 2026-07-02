@@ -63,11 +63,11 @@ test_printf_cap_one(void * __capability p, int expected_tokens,
 	    &top, attr);
 	free(str);
 	if (tokens != expected_tokens)
-		cheribsdtest_failure_errx("Mismatched tokens for %s, "
+		cheriostest_failure_errx("Mismatched tokens for %s, "
 		    "expected %d got %d", descr, expected_tokens, tokens);
 
 	if (addr != cheri_address_get(p))
-		cheribsdtest_failure_errx("Mismatched address for %s", descr);
+		cheriostest_failure_errx("Mismatched address for %s", descr);
 
 	if (tokens == 1)
 		return;
@@ -75,32 +75,32 @@ test_printf_cap_one(void * __capability p, int expected_tokens,
 	permsp = perms;
 	if ((cheri_perms_get(p) & CHERI_PERM_LOAD) != 0) {
 		if (*permsp != 'r')
-			cheribsdtest_failure_errx("Missing 'r' permission for %s",
+			cheriostest_failure_errx("Missing 'r' permission for %s",
 			    descr);
 		permsp++;
 	}
 	if ((cheri_perms_get(p) & CHERI_PERM_STORE) != 0) {
 		if (*permsp != 'w')
-			cheribsdtest_failure_errx("Missing 'w' permission for %s",
+			cheriostest_failure_errx("Missing 'w' permission for %s",
 			    descr);
 		permsp++;
 	}
 	if ((cheri_perms_get(p) & CHERI_PERM_EXECUTE) != 0) {
 		if (*permsp != 'x')
-			cheribsdtest_failure_errx("Missing 'x' permission for %s",
+			cheriostest_failure_errx("Missing 'x' permission for %s",
 			    descr);
 		permsp++;
 	}
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
 	if ((cheri_perms_get(p) & CHERI_PERM_LOAD_CAP) != 0) {
 		if (*permsp != 'R')
-			cheribsdtest_failure_errx("Missing 'R' permission for %s",
+			cheriostest_failure_errx("Missing 'R' permission for %s",
 			    descr);
 		permsp++;
 	}
 	if ((cheri_perms_get(p) & CHERI_PERM_STORE_CAP) != 0) {
 		if (*permsp != 'W')
-			cheribsdtest_failure_errx("Missing 'W' permission for %s",
+			cheriostest_failure_errx("Missing 'W' permission for %s",
 			    descr);
 		permsp++;
 	}
@@ -108,7 +108,7 @@ test_printf_cap_one(void * __capability p, int expected_tokens,
 #ifdef HAS_CHERI_PERM_CAP
 	if ((cheri_perms_get(p) & CHERI_PERM_CAP) != 0) {
 		if (*permsp != 'C')
-			cheribsdtest_failure_errx("Missing 'C' permission for %s",
+			cheriostest_failure_errx("Missing 'C' permission for %s",
 			    descr);
 		permsp++;
 	}
@@ -116,62 +116,62 @@ test_printf_cap_one(void * __capability p, int expected_tokens,
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
 	if ((cheri_perms_get(p) & CHERI_PERM_LOAD_MUTABLE) != 0) {
 		if (*permsp != 'M')
-			cheribsdtest_failure_errx("Missing 'l' permission for %s",
+			cheriostest_failure_errx("Missing 'l' permission for %s",
 			    descr);
 		permsp++;
 	}
 #endif
 	if (*permsp != '\0')
-		cheribsdtest_failure_errx("Extra permissions '%s' for %s", permsp,
+		cheriostest_failure_errx("Extra permissions '%s' for %s", permsp,
 		    descr);
 
 	if (base != cheri_base_get(p))
-		cheribsdtest_failure_errx("Mismatched base for %s", descr);
+		cheriostest_failure_errx("Mismatched base for %s", descr);
 	if (top != cheri_base_get(p) + cheri_length_get(p))
-		cheribsdtest_failure_errx("Mismatched top for %s", descr);
+		cheriostest_failure_errx("Mismatched top for %s", descr);
 
 	if (tokens == 4)
 		return;
 
 	if (cheri_tag_get(p)) {
 		if (strstr(attr, "invalid") != NULL)
-			cheribsdtest_failure_errx("Tagged cap marked invalid "
+			cheriostest_failure_errx("Tagged cap marked invalid "
 			    "for %s", descr);
 	} else {
 		if (strstr(attr, "invalid") == NULL)
-			cheribsdtest_failure_errx("Untagged cap not marked "
+			cheriostest_failure_errx("Untagged cap not marked "
 			    "invalid for %s", descr);
 	}
 
 	switch (cheri_type_get(p)) {
 	case CHERI_OTYPE_UNSEALED:
 		if (strstr(attr, "sealed") != NULL)
-			cheribsdtest_failure_errx("Unsealed cap marked as "
+			cheriostest_failure_errx("Unsealed cap marked as "
 			    "sealed for %s", descr);
 		if (strstr(attr, "sentry") != NULL)
-			cheribsdtest_failure_errx("Unsealed cap marked as "
+			cheriostest_failure_errx("Unsealed cap marked as "
 			    "sentry for %s", descr);
 		break;
 	case CHERI_OTYPE_SENTRY:
 		if (strstr(attr, "sealed") != NULL)
-			cheribsdtest_failure_errx("Sentry cap marked as "
+			cheriostest_failure_errx("Sentry cap marked as "
 			    "sealed for %s", descr);
 		if (strstr(attr, "sentry") == NULL)
-			cheribsdtest_failure_errx("Sentry cap not marked as "
+			cheriostest_failure_errx("Sentry cap not marked as "
 			    "sentry for %s", descr);
 		break;
 	default:
 		if (strstr(attr, "sealed") == NULL)
-			cheribsdtest_failure_errx("Sealed cap not marked as "
+			cheriostest_failure_errx("Sealed cap not marked as "
 			    "sealed for %s", descr);
 		if (strstr(attr, "sentry") != NULL)
-			cheribsdtest_failure_errx("Sealed cap marked as "
+			cheriostest_failure_errx("Sealed cap marked as "
 			    "sentry for %s", descr);
 		break;
 	}
 }
 
-CHERIBSDTEST(printf_cap, "Various checks of %#p")
+CHERIOSTEST(printf_cap, "Various checks of %#p")
 {
 	char data[64];
 	void * __capability scalar = (void * __capability)(uintcap_t)4;
@@ -179,33 +179,33 @@ CHERIBSDTEST(printf_cap, "Various checks of %#p")
 
 	snprintf(data, sizeof(data), "%#lp", scalar);
 	if (strcmp(data, "0x4") != 0)
-		cheribsdtest_failure_errx("Wrong output for simple scalar");
+		cheriostest_failure_errx("Wrong output for simple scalar");
 
 	snprintf(data, sizeof(data), "%#.4lp", scalar);
 	if (strcmp(data, "0x0004") != 0)
-		cheribsdtest_failure_errx("Wrong output for simple scalar "
+		cheriostest_failure_errx("Wrong output for simple scalar "
 		    "with precision");
 
 	snprintf(data, sizeof(data), "%#8lp", scalar);
 	if (strcmp(data, "     0x4") != 0)
-		cheribsdtest_failure_errx("Wrong output for simple scalar "
+		cheriostest_failure_errx("Wrong output for simple scalar "
 		    "with padding");
 
 	snprintf(data, sizeof(data), "%#-8lp", scalar);
 	if (strcmp(data, "0x4     ") != 0)
-		cheribsdtest_failure_errx("Wrong output for simple scalar "
+		cheriostest_failure_errx("Wrong output for simple scalar "
 		    "with left adjust padding");
 
 	snprintf(data, sizeof(data), "%#8.4lp", scalar);
 	if (strcmp(data, "  0x0004") != 0)
-		cheribsdtest_failure_errx("Wrong output for simple scalar "
+		cheriostest_failure_errx("Wrong output for simple scalar "
 		    "with precision and padding");
 
 #ifndef __CHERI_PURE_CAPABILITY__
 	snprintf(data, sizeof(data) / 2, "%lp", datap);
 	snprintf(data + sizeof(data) / 2, sizeof(data) / 2, "%p", data);
 	if (strcmp(data, data + sizeof(data) / 2) != 0)
-		cheribsdtest_failure_errx("Mismatched output for %%p (%s) and "
+		cheriostest_failure_errx("Mismatched output for %%p (%s) and "
 		    "%%lp (%s)", data + sizeof(data) / 2, data);
 #endif
 
@@ -217,5 +217,5 @@ CHERIBSDTEST(printf_cap, "Various checks of %#p")
 
 	test_printf_cap_one(cheri_tag_clear(datap), 5, "untagged stack array");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }

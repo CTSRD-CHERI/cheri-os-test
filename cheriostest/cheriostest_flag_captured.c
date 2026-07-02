@@ -64,59 +64,59 @@ call_flag_captured(const char *message, uint32_t key)
 
 	if (sysctlbyname("security.flags_captured", &fc_old, &fc_size,
 	    NULL, 0) != 0)
-		cheribsdtest_failure_err("sysctl(security.flags_captured)");
+		cheriostest_failure_err("sysctl(security.flags_captured)");
 	if (sysctlbyname("security.flags_captured_key", &fck_old, &fc_size,
 	    NULL, 0) != 0)
-		cheribsdtest_failure_err("sysctl(security.flags_captured_key)");
+		cheriostest_failure_err("sysctl(security.flags_captured_key)");
 
 	error = syscall(SYS_flag_captured, message, key);
 	if (error)
-		cheribsdtest_failure_err("call failed");
+		cheriostest_failure_err("call failed");
 
 	if (sysctlbyname("security.flags_captured", &fc_new, &fc_size,
 	    NULL, 0) != 0)
-		cheribsdtest_failure_err("sysctl(security.flags_captured)");
+		cheriostest_failure_err("sysctl(security.flags_captured)");
 	if (fc_new != fc_old + 1) {
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "security.flags_captured not incremented");
 	}
 	if (sysctlbyname("security.flags_captured_key", &fck_new, &fc_size,
 	    NULL, 0) != 0)
-		cheribsdtest_failure_err("sysctl(security.flags_captured_key)");
+		cheriostest_failure_err("sysctl(security.flags_captured_key)");
 	if (key == CORRECT_KEY) {
 		if (fck_new != fck_old + 1) {
-			cheribsdtest_failure_errx("security.flags_captured_key "
+			cheriostest_failure_errx("security.flags_captured_key "
 			    "not incremented with correct key");
 		}
 	} else {
 		if (fck_new != fck_old) {
-			cheribsdtest_failure_errx("security.flags_captured_key "
+			cheriostest_failure_errx("security.flags_captured_key "
 			    "incremented with incorrect key");
 		}
 	}
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(flag_captured_message, "Call flag_captured(2) with a message")
+CHERIOSTEST(flag_captured_message, "Call flag_captured(2) with a message")
 {
 	call_flag_captured(__func__, CORRECT_KEY);
 }
 
-CHERIBSDTEST(flag_captured_incorrect_key,
+CHERIOSTEST(flag_captured_incorrect_key,
     "Call flag_captured(2) with an incorrect key")
 {
 	call_flag_captured(__func__, INCORRECT_KEY);
 }
 
-CHERIBSDTEST(flag_captured_null,
+CHERIOSTEST(flag_captured_null,
     "Call flag_captured(2) without a message")
 {
 	call_flag_captured(NULL, CORRECT_KEY);
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
-CHERIBSDTEST(flag_captured_empty,
+CHERIOSTEST(flag_captured_empty,
     "Call flag_captured(2) with a zero-length capability")
 {
 	char buf[] = "";

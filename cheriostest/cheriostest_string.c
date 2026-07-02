@@ -83,18 +83,18 @@ check(struct Test *t1, int start, int end)
 
 	for (i = start; i < 32; i++)
 		if (t1->pad0[i] != i)
-			cheribsdtest_failure_errx(
+			cheriostest_failure_errx(
 			    "(start = %d, end %d) t1->pad0[%d] != %d", start,
 			    end, i, i);
 	if (t1->y != expected_y)
-		cheribsdtest_failure_errx("(start = %d, end %d) t1->y != t1",
+		cheriostest_failure_errx("(start = %d, end %d) t1->y != t1",
 		    start, end);
 	if (!cheri_tag_get(t1->y))
-		cheribsdtest_failure_errx("(start = %d, end %d) t1->y is untagged",
+		cheriostest_failure_errx("(start = %d, end %d) t1->y is untagged",
 		     start, end);
 	for (i = 0 ; i < end ; i++)
 		if (t1->pad1[i] != i)
-			cheribsdtest_failure_errx(
+			cheriostest_failure_errx(
 			    "(start = %d, end %d) t1->pad1[%d] != %d",
 			    start, end, i, i);
 }
@@ -113,7 +113,7 @@ invalidate(struct Test *t1)
 }
 
 #if !defined(__CHERI_PURE_CAPABILITY__)
-CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
+CHERIOSTEST(string_memcpy_c, "Test explicit capability memcpy")
 {
 	int i;
 	void * __capability cpy;
@@ -130,14 +130,14 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	invalidate(&t2);
 	cpy = memcpy_c(CAP(&t2), CAP(&t1), sizeof(t1));
 	if ((__cheri_fromcap void *)cpy != &t2)
-		cheribsdtest_failure_errx("memcpy_c did not return dst (&t2)");
+		cheriostest_failure_errx("memcpy_c did not return dst (&t2)");
 	check(&t2, 0, 32);
 
 	/* Test that it still works with an unaligned start... */
 	invalidate(&t2);
 	cpy = memcpy_c(CAP(&t2.pad0[3]), CAP(&t1.pad0[3]), sizeof(t1) - 3);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memcpy_c did not return dst "
+		cheriostest_failure_errx("memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 32);
 
@@ -145,14 +145,14 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	invalidate(&t2);
 	cpy = memcpy_c(CAP(&t2), CAP(&t1), sizeof(t1) - 3);
 	if ((__cheri_fromcap void *)cpy != &t2)
-		cheribsdtest_failure_errx("memcpy_c did not return dst (&t2)");
+		cheriostest_failure_errx("memcpy_c did not return dst (&t2)");
 	check(&t2, 0, 29);
 
 	/* ...or both... */
 	invalidate(&t2);
 	cpy = memcpy_c(CAP(&t2.pad0[3]), CAP(&t1.pad0[3]), sizeof(t1) - 6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memcpy_c did not return dst "
+		cheriostest_failure_errx("memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -160,16 +160,16 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	invalidate(&t2);
 	cpy = memcpy_c(CAP(&t2), CAP(&t1.pad0[1]), sizeof(t1) - 1);
 	if ((__cheri_fromcap void*)cpy != &t2)
-		cheribsdtest_failure_errx("memcpy_c did not return dst (&t2)");
+		cheriostest_failure_errx("memcpy_c did not return dst (&t2)");
 	/* This should have invalidated the capability */
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
 	/*
@@ -184,7 +184,7 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	    __builtin_cheri_offset_increment(CAP(&t1), 3),
 	    sizeof(t1)-6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memcpy_c did not return dst "
+		cheriostest_failure_errx("memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -198,7 +198,7 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 1),
 	    sizeof(t1));
 	if ((__cheri_fromcap void*)cpy != &t2.pad0)
-		cheribsdtest_failure_errx("(void*)cpy != &t2.pad0");
+		cheriostest_failure_errx("(void*)cpy != &t2.pad0");
 	check(&t2, 0, 32);
 
 	/* Unaligned, but offset=32 */
@@ -208,14 +208,14 @@ CHERIBSDTEST(string_memcpy_c, "Test explicit capability memcpy")
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 32),
 	    sizeof(t1) - 31);
 	if ((__cheri_fromcap void*)cpy != t2.pad0+31)
-		cheribsdtest_failure_errx("(void*)cpy != t2.pad0+31");
+		cheriostest_failure_errx("(void*)cpy != t2.pad0+31");
 	check(&t2, 31, 32);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
-CHERIBSDTEST(string_memcpy, "Test implicit capability memcpy")
+CHERIOSTEST(string_memcpy, "Test implicit capability memcpy")
 {
 	int i;
 	void *copy;
@@ -232,14 +232,14 @@ CHERIBSDTEST(string_memcpy, "Test implicit capability memcpy")
 	invalidate(&t2);
 	copy = memcpy(&t2, &t1, sizeof(t1));
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	check(&t2, 0, 32);
 
 	/* Test that it still works with an unaligned start... */
 	invalidate(&t2);
 	copy = memcpy(&t2.pad0[3], &t1.pad0[3], sizeof(t1) - 3);
 	if ((void*)copy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memcpy_c did not return dst "
+		cheriostest_failure_errx("memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 32);
 
@@ -247,36 +247,36 @@ CHERIBSDTEST(string_memcpy, "Test implicit capability memcpy")
 	invalidate(&t2);
 	copy = memcpy(&t2, &t1, sizeof(t1) - 3);
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	check(&t2, 0, 29);
 
 	/* ...or both... */
 	invalidate(&t2);
 	copy = memcpy(&t2.pad0[3], &t1.pad0[3], sizeof(t1) - 6);
 	if ((void*)copy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memcpy_c did not return dst "
+		cheriostest_failure_errx("memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
 	/* ...and finally a case where the alignment is different for both */
 	copy = memcpy(&t2, &t1.pad0[1], sizeof(t1) - 1);
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #if !defined(__CHERI_PURE_CAPABILITY__)
-CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
+CHERIOSTEST(string_memmove_c, "Test explicit capability memmove")
 {
 	int i;
 	void * __capability cpy;
@@ -293,14 +293,14 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	invalidate(&t2);
 	cpy = memmove_c(CAP(&t2), CAP(&t1), sizeof(t1));
 	if ((__cheri_fromcap void *)cpy != &t2)
-		cheribsdtest_failure_errx("memmove_c did not return dst (&t2)");
+		cheriostest_failure_errx("memmove_c did not return dst (&t2)");
 	check(&t2, 0, 32);
 
 	/* Test that it still works with an unaligned start... */
 	invalidate(&t2);
 	cpy = memmove_c(CAP(&t2.pad0[3]), CAP(&t1.pad0[3]), sizeof(t1) - 3);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memmove_c did not return dst "
+		cheriostest_failure_errx("memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 32);
 
@@ -308,14 +308,14 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	invalidate(&t2);
 	cpy = memmove_c(CAP(&t2), CAP(&t1), sizeof(t1) - 3);
 	if ((__cheri_fromcap void *)cpy != &t2)
-		cheribsdtest_failure_errx("memmove_c did not return dst (&t2)");
+		cheriostest_failure_errx("memmove_c did not return dst (&t2)");
 	check(&t2, 0, 29);
 
 	/* ...or both... */
 	invalidate(&t2);
 	cpy = memmove_c(CAP(&t2.pad0[3]), CAP(&t1.pad0[3]), sizeof(t1) - 6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memmove_c did not return dst "
+		cheriostest_failure_errx("memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -323,16 +323,16 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	invalidate(&t2);
 	cpy = memmove_c(CAP(&t2), CAP(&t1.pad0[1]), sizeof(t1) - 1);
 	if ((__cheri_fromcap void*)cpy != &t2)
-		cheribsdtest_failure_errx("memmove_c did not return dst (&t2)");
+		cheriostest_failure_errx("memmove_c did not return dst (&t2)");
 	/* This should have invalidated the capability */
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
 	/*
@@ -347,7 +347,7 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	    __builtin_cheri_offset_increment(CAP(&t1), 3),
 	    sizeof(t1)-6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memmove_c did not return dst "
+		cheriostest_failure_errx("memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -358,7 +358,7 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 1),
 	    sizeof(t1));
 	if ((__cheri_fromcap void*)cpy != &t2.pad0)
-		cheribsdtest_failure_errx("(void*)cpy != &t2.pad0");
+		cheriostest_failure_errx("(void*)cpy != &t2.pad0");
 	check(&t2, 0, 32);
 
 	/* Unaligned, but offset=32 */
@@ -368,16 +368,16 @@ CHERIBSDTEST(string_memmove_c, "Test explicit capability memmove")
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 32),
 	    sizeof(t1) - 31);
 	if ((__cheri_fromcap void*)cpy != t2.pad0+31)
-		cheribsdtest_failure_errx("(void*)cpy != t2.pad0+31");
+		cheriostest_failure_errx("(void*)cpy != t2.pad0+31");
 	check(&t2, 31, 32);
 
 	/* XXX-BD: test overlapping cases */
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
-CHERIBSDTEST(string_memmove, "Test implicit capability memmove")
+CHERIOSTEST(string_memmove, "Test implicit capability memmove")
 {
 	int i;
 	void *copy;
@@ -394,14 +394,14 @@ CHERIBSDTEST(string_memmove, "Test implicit capability memmove")
 	invalidate(&t2);
 	copy = memmove(&t2, &t1, sizeof(t1));
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	check(&t2, 0, 32);
 
 	/* Test that it still works with an unaligned start... */
 	invalidate(&t2);
 	copy = memmove(&t2.pad0[3], &t1.pad0[3], sizeof(t1) - 3);
 	if ((void*)copy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memmove_c did not return dst "
+		cheriostest_failure_errx("memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 32);
 
@@ -409,42 +409,42 @@ CHERIBSDTEST(string_memmove, "Test implicit capability memmove")
 	invalidate(&t2);
 	copy = memmove(&t2, &t1, sizeof(t1) - 3);
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	check(&t2, 0, 29);
 
 	/* ...or both... */
 	invalidate(&t2);
 	copy = memmove(&t2.pad0[3], &t1.pad0[3], sizeof(t1) - 6);
 	if ((void*)copy != &t2.pad0[3])
-		cheribsdtest_failure_errx("memmove_c did not return dst "
+		cheriostest_failure_errx("memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
 	/* ...and finally a case where the alignment is different for both */
 	copy = memmove(&t2, &t1.pad0[1], sizeof(t1) - 1);
 	if (copy != &t2)
-		cheribsdtest_failure_errx("copy != &t2");
+		cheriostest_failure_errx("copy != &t2");
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
 	/* XXX-BD: test overlapping cases */
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
- * XXXAR: We use cheribsdtest_memcpy()/cheribsdtest_memmove() so that the compiler
+ * XXXAR: We use cheriostest_memcpy()/cheriostest_memmove() so that the compiler
  * can't replace it with an inline loop. We could also use -fno-builtin but that
  * could interfere with the other tests.
  */
-CHERIBSDTEST(unaligned_capability_copy_memcpy,
+CHERIOSTEST(unaligned_capability_copy_memcpy,
     "Check that a memcpy() of valid capabilities to an unaligned destination "
     "strips tags")
 {
@@ -454,31 +454,31 @@ CHERIBSDTEST(unaligned_capability_copy_memcpy,
 
 	/* Check that dest buffer is capability aligned so that dest + 1 isn't */
 	/* TODO: __builtin_is_aligned does not work on arrays (yet) */
-	CHERIBSDTEST_VERIFY(__builtin_is_aligned((void*)dest_buffer, sizeof(void* __capability)));
-	CHERIBSDTEST_VERIFY(__builtin_is_aligned((void*)src_buffer, sizeof(void * __capability)));
+	CHERIOSTEST_VERIFY(__builtin_is_aligned((void*)dest_buffer, sizeof(void* __capability)));
+	CHERIOSTEST_VERIFY(__builtin_is_aligned((void*)src_buffer, sizeof(void * __capability)));
 
 	src_buffer[0] = cheri_offset_set(NULL, 0x1234);
 	src_buffer[1] = cheri_offset_set(NULL, 0x4321);
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[1]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[1]));
 	/* This should succeed */
-	cheribsdtest_memcpy(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
+	cheriostest_memcpy(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
 	/* TODO: verify the contents of the buffer? */
 
 	/* Even if we have a valid cap and operate misaligned, we should not fault. */
 	src_buffer[1] = (__cheri_tocap void* __capability)&expected_y;
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(src_buffer[1]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
+	CHERIOSTEST_VERIFY(cheri_tag_get(src_buffer[1]));
 
-	cheribsdtest_memcpy(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[0]));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[1]));
+	cheriostest_memcpy(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[0]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[1]));
 	/* TODO: verify the contents of the buffer? */
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(unaligned_capability_copy_memmove,
+CHERIOSTEST(unaligned_capability_copy_memmove,
     "Check that a memmove() of valid capabilities to an unaligned destination "
     "strips tags")
 {
@@ -488,32 +488,32 @@ CHERIBSDTEST(unaligned_capability_copy_memmove,
 
 	/* Check that dest buffer is capability aligned so that dest + 1 isn't */
 	/* TODO: __builtin_is_aligned does not work on arrays (yet) */
-	CHERIBSDTEST_VERIFY(__builtin_is_aligned((void*)dest_buffer, sizeof(void* __capability)));
-	CHERIBSDTEST_VERIFY(__builtin_is_aligned((void*)src_buffer, sizeof(void * __capability)));
+	CHERIOSTEST_VERIFY(__builtin_is_aligned((void*)dest_buffer, sizeof(void* __capability)));
+	CHERIOSTEST_VERIFY(__builtin_is_aligned((void*)src_buffer, sizeof(void * __capability)));
 
 	src_buffer[0] = cheri_offset_set(NULL, 0x1234);
 	src_buffer[1] = cheri_offset_set(NULL, 0x4321);
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[1]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[1]));
 	/* This should succeed */
-	cheribsdtest_memmove(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
+	cheriostest_memmove(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
 	/* TODO: verify the contents of the buffer? */
 
 	/* Even if we have a valid cap and operate misaligned, we should not fault. */
 	src_buffer[1] = (__cheri_tocap void* __capability)&expected_y;
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(src_buffer[1]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(src_buffer[0]));
+	CHERIOSTEST_VERIFY(cheri_tag_get(src_buffer[1]));
 
-	cheribsdtest_memmove(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[0]));
-	CHERIBSDTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[1]));
+	cheriostest_memmove(dest_buffer + 1 /* unaligned! */, src_buffer, sizeof(src_buffer));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[0]));
+	CHERIOSTEST_VERIFY(!cheri_tag_get(((void * __capability *)dest_buffer)[1]));
 	/* TODO: verify the contents of the buffer? */
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef KERNEL_MEMCPY_TESTS
-CHERIBSDTEST(string_kern_memcpy_c,
+CHERIOSTEST(string_kern_memcpy_c,
     "Test explicit capability memcpy (kernel version)")
 {
 	int i;
@@ -537,7 +537,7 @@ CHERIBSDTEST(string_kern_memcpy_c,
 			    CAP(&t1.pad0[head]),
 			    len);
 			if ((__cheri_fromcap void*)cpy != &t2.pad0[head])
-				cheribsdtest_failure_errx(
+				cheriostest_failure_errx(
 				    "kern_memcpy_c did not return dst "
 				    "(&t2.pad0[%zu])", head);
 			check(&t2, head, tail);
@@ -548,16 +548,16 @@ CHERIBSDTEST(string_kern_memcpy_c,
 	invalidate(&t2);
 	cpy = kern_memcpy_c(CAP(&t2), CAP(&t1.pad0[1]), sizeof(t1) - 1);
 	if ((__cheri_fromcap void*)cpy != &t2)
-		cheribsdtest_failure_errx("kern_memcpy_c did not return dst (&t2)");
+		cheriostest_failure_errx("kern_memcpy_c did not return dst (&t2)");
 	/* This should have invalidated the capability */
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
 	/*
@@ -572,7 +572,7 @@ CHERIBSDTEST(string_kern_memcpy_c,
 	    __builtin_cheri_offset_increment(CAP(&t1), 3),
 	    sizeof(t1)-6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("kern_memcpy_c did not return dst "
+		cheriostest_failure_errx("kern_memcpy_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -586,7 +586,7 @@ CHERIBSDTEST(string_kern_memcpy_c,
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 1),
 	    sizeof(t1));
 	if ((__cheri_fromcap void*)cpy != &t2.pad0)
-		cheribsdtest_failure_errx("(void*)cpy != &t2.pad0");
+		cheriostest_failure_errx("(void*)cpy != &t2.pad0");
 	check(&t2, 0, 32);
 
 	/* Unaligned, but offset=32 */
@@ -596,13 +596,13 @@ CHERIBSDTEST(string_kern_memcpy_c,
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 32),
 	    sizeof(t1) - 31);
 	if ((__cheri_fromcap void*)cpy != t2.pad0+31)
-		cheribsdtest_failure_errx("(void*)cpy != t2.pad0+31");
+		cheriostest_failure_errx("(void*)cpy != t2.pad0+31");
 	check(&t2, 31, 32);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(string_kern_memmove_c,
+CHERIOSTEST(string_kern_memmove_c,
     "Test explicit capability memmove (kernel version)")
 {
 	int i;
@@ -625,7 +625,7 @@ CHERIBSDTEST(string_kern_memmove_c,
 			    CAP(&t1.pad0[head]),
 			    len);
 			if ((__cheri_fromcap void*)cpy != &t2.pad0[head])
-				cheribsdtest_failure_errx(
+				cheriostest_failure_errx(
 				    "kern_memcpy_c did not return dst "
 				    "(&t2.pad0[%zu])", head);
 			check(&t2, head, tail);
@@ -636,16 +636,16 @@ CHERIBSDTEST(string_kern_memmove_c,
 	invalidate(&t2);
 	cpy = kern_memmove_c(CAP(&t2), CAP(&t1.pad0[1]), sizeof(t1) - 1);
 	if ((__cheri_fromcap void*)cpy != &t2)
-		cheribsdtest_failure_errx("kern_memmove_c did not return dst (&t2)");
+		cheriostest_failure_errx("kern_memmove_c did not return dst (&t2)");
 	/* This should have invalidated the capability */
 	if (cheri_tag_get(t2.y) != 0)
-		cheribsdtest_failure_errx("dst has capability after unaligned "
+		cheriostest_failure_errx("dst has capability after unaligned "
 		    "write");
 	for (i = 0; i < 31; i++) {
 		if (t2.pad0[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad0[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad0[%d] != %d", i, i+1);
 		if (t2.pad1[i] != i+1)
-			cheribsdtest_failure_errx("t2.pad1[%d] != %d", i, i+1);
+			cheriostest_failure_errx("t2.pad1[%d] != %d", i, i+1);
 	}
 
 	/*
@@ -660,7 +660,7 @@ CHERIBSDTEST(string_kern_memmove_c,
 	    __builtin_cheri_offset_increment(CAP(&t1), 3),
 	    sizeof(t1)-6);
 	if ((__cheri_fromcap void*)cpy != &t2.pad0[3])
-		cheribsdtest_failure_errx("kern_memmove_c did not return dst "
+		cheriostest_failure_errx("kern_memmove_c did not return dst "
 		    "(&t2.pad0[3])");
 	check(&t2, 3, 29);
 
@@ -671,7 +671,7 @@ CHERIBSDTEST(string_kern_memmove_c,
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 1),
 	    sizeof(t1));
 	if ((__cheri_fromcap void*)cpy != &t2.pad0)
-		cheribsdtest_failure_errx("(void*)cpy != &t2.pad0");
+		cheriostest_failure_errx("(void*)cpy != &t2.pad0");
 	check(&t2, 0, 32);
 
 	/* Unaligned, but offset=32 */
@@ -681,11 +681,11 @@ CHERIBSDTEST(string_kern_memmove_c,
 	    __builtin_cheri_offset_increment(CAP(t1.pad0-1), 32),
 	    sizeof(t1) - 31);
 	if ((__cheri_fromcap void*)cpy != t2.pad0+31)
-		cheribsdtest_failure_errx("(void*)cpy != t2.pad0+31");
+		cheriostest_failure_errx("(void*)cpy != t2.pad0+31");
 	check(&t2, 31, 32);
 
 	/* XXX-BD: test overlapping cases */
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

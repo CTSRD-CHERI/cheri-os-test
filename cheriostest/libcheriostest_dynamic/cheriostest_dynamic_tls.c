@@ -29,4 +29,4 @@
 
 #include "cheriostest_dynamic.h"
 
-_Thread_local int cheribsdtest_dynamic_tls_var;
+_Thread_local int cheriostest_dynamic_tls_var;

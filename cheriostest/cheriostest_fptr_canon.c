@@ -40,69 +40,69 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(fptr_canon_cross,
+CHERIOSTEST(fptr_canon_cross,
     "Check that function pointers are canonical across objects")
 {
 	void (* volatile fptr_inside)(void);
 	void (* volatile fptr_outside)(void);
 
-	fptr_inside = cheribsdtest_dynamic_get_dummy_fptr();
-	fptr_outside = &cheribsdtest_dynamic_dummy_func;
+	fptr_inside = cheriostest_dynamic_get_dummy_fptr();
+	fptr_outside = &cheriostest_dynamic_dummy_func;
 
-	CHERIBSDTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_outside),
+	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_outside),
 	    "inside %#p differs from outside %#p", fptr_inside, fptr_outside);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(fptr_canon_dlsym,
+CHERIOSTEST(fptr_canon_dlsym,
     "Check that function pointers are canonical for dlsym")
 {
 	void (* volatile fptr_inside)(void);
 	void (* volatile fptr_dlsym)(void);
 
-	fptr_inside = cheribsdtest_dynamic_get_dummy_fptr();
+	fptr_inside = cheriostest_dynamic_get_dummy_fptr();
 	fptr_dlsym = (void (*)(void))dlsym(RTLD_DEFAULT,
-	    "cheribsdtest_dynamic_dummy_func");
+	    "cheriostest_dynamic_dummy_func");
 
-	CHERIBSDTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlsym),
+	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlsym),
 	    "inside %#p differs from dlsym %#p", fptr_inside, fptr_dlsym);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef __FreeBSD__
-CHERIBSDTEST(fptr_canon_dlfunc,
+CHERIOSTEST(fptr_canon_dlfunc,
     "Check that function pointers are canonical for dlfunc")
 {
 	void (* volatile fptr_inside)(void);
 	void (* volatile fptr_dlfunc)(void);
 
-	fptr_inside = cheribsdtest_dynamic_get_dummy_fptr();
+	fptr_inside = cheriostest_dynamic_get_dummy_fptr();
 	fptr_dlfunc = (void (*)(void))dlfunc(RTLD_DEFAULT,
-	    "cheribsdtest_dynamic_dummy_func");
+	    "cheriostest_dynamic_dummy_func");
 
-	CHERIBSDTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlfunc),
+	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlfunc),
 	    "inside %#p differs from dlfunc %#p", fptr_inside, fptr_dlfunc);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
-CHERIBSDTEST(fptr_canon_int,
+CHERIOSTEST(fptr_canon_int,
     "Check that function pointers are canonical when relocated as integer "
     "addresses")
 {
 	volatile ptraddr_t fptr_int;
 	void (* volatile fptr_dlsym)(void);
 
-	fptr_int = cheribsdtest_dynamic_get_dummy_fptr_addr();
+	fptr_int = cheriostest_dynamic_get_dummy_fptr_addr();
 	fptr_dlsym = (void (*)(void))dlsym(RTLD_DEFAULT,
-	    "cheribsdtest_dynamic_dummy_func");
+	    "cheriostest_dynamic_dummy_func");
 
-	CHERIBSDTEST_VERIFY2(fptr_int == (ptraddr_t)fptr_dlsym,
+	CHERIOSTEST_VERIFY2(fptr_int == (ptraddr_t)fptr_dlsym,
 	    "Integer address %p differs from dlsym %#p",
 	    (void *)(uintptr_t)fptr_int, fptr_dlsym);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }

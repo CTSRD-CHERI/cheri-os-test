@@ -55,7 +55,7 @@ ucontext_mmap_stack(ucontext_t *uctx)
 
 	len = SIGSTKSZ;
 	p = mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
-	CHERIBSDTEST_VERIFY2(p != MAP_FAILED, "failed to map new stack");
+	CHERIOSTEST_VERIFY2(p != MAP_FAILED, "failed to map new stack");
 	uctx->uc_stack.ss_sp = p;
 	uctx->uc_stack.ss_size = len;
 }
@@ -66,12 +66,12 @@ ucontext_mmap_stack(ucontext_t *uctx)
 static void
 setcontext_func(int arg1, int arg2)
 {
-	CHERIBSDTEST_VERIFY(arg1 == SETCONTEXT_ARG1);
-	CHERIBSDTEST_VERIFY(arg2 == SETCONTEXT_ARG2);
-	cheribsdtest_success();
+	CHERIOSTEST_VERIFY(arg1 == SETCONTEXT_ARG1);
+	CHERIOSTEST_VERIFY(arg2 == SETCONTEXT_ARG2);
+	cheriostest_success();
 }
 
-CHERIBSDTEST(setcontext_basic, "Check that setcontext works",
+CHERIOSTEST(setcontext_basic, "Check that setcontext works",
     /*
      * Currently happens to pass for c18n, possibly because makecontext and
      * setcontext calls are done in the same function?
@@ -80,13 +80,13 @@ CHERIBSDTEST(setcontext_basic, "Check that setcontext works",
 {
 	ucontext_t uc;
 
-	CHERIBSDTEST_CHECK_SYSCALL(getcontext(&uc));
+	CHERIOSTEST_CHECK_SYSCALL(getcontext(&uc));
 	ucontext_mmap_stack(&uc);
 	uc.uc_link = NULL;
 	makecontext(&uc, (void (*)(void))&setcontext_func, 2, SETCONTEXT_ARG1,
 	    SETCONTEXT_ARG2);
-	CHERIBSDTEST_CHECK_SYSCALL(setcontext(&uc));
-	cheribsdtest_failure_errx("returned from successful setcontext");
+	CHERIOSTEST_CHECK_SYSCALL(setcontext(&uc));
+	cheriostest_failure_errx("returned from successful setcontext");
 }
 
 #define	SWAPCONTEXT_ARG1	0x53574150
@@ -99,20 +99,20 @@ swapcontext_func(int arg1)
 	swapcontext_arg1 = arg1;
 }
 
-CHERIBSDTEST(swapcontext_basic, "Check that swapcontext works",
+CHERIOSTEST(swapcontext_basic, "Check that swapcontext works",
     .ct_flaky_reason = XFAIL_FLAKY_C18N_CONTEXT)
 {
 	ucontext_t uc, uc_link;
 	int ret;
 
-	CHERIBSDTEST_CHECK_SYSCALL(getcontext(&uc));
+	CHERIOSTEST_CHECK_SYSCALL(getcontext(&uc));
 	ucontext_mmap_stack(&uc);
 	uc.uc_link = &uc_link;
 	makecontext(&uc, (void (*)(void))&swapcontext_func, 1,
 	    SWAPCONTEXT_ARG1);
-	ret = CHERIBSDTEST_CHECK_SYSCALL(swapcontext(&uc_link, &uc));
-	CHERIBSDTEST_VERIFY2(ret == 0, "unknown return value from swapcontext");
-	CHERIBSDTEST_VERIFY(swapcontext_arg1 == SWAPCONTEXT_ARG1);
-	cheribsdtest_success();
+	ret = CHERIOSTEST_CHECK_SYSCALL(swapcontext(&uc_link, &uc));
+	CHERIOSTEST_VERIFY2(ret == 0, "unknown return value from swapcontext");
+	CHERIOSTEST_VERIFY(swapcontext_arg1 == SWAPCONTEXT_ARG1);
+	cheriostest_success();
 }
 #endif

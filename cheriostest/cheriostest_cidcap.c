@@ -47,7 +47,7 @@ get_cidcap_sysctl(void)
 	size_t cidcap_size;
 
 	cidcap_size = sizeof(cidcap);
-	CHERIBSDTEST_CHECK_SYSCALL(sysctlbyname("security.cheri.cidcap",
+	CHERIOSTEST_CHECK_SYSCALL(sysctlbyname("security.cheri.cidcap",
 	    &cidcap, &cidcap_size, NULL, 0));
 
 	return (cidcap);
@@ -62,46 +62,46 @@ check_cidcap(uintcap_t cidcap, size_t base, size_t length, size_t offset)
 		/* Base. */
 		v = cheri_base_get(cidcap);
 		if (v != base)
-			cheribsdtest_failure_errx("base %jx (expected %jx)", v,
+			cheriostest_failure_errx("base %jx (expected %jx)", v,
 			    (uintmax_t)base);
 	}
 
 	/* Length. */
 	v = cheri_length_get(cidcap);
 	if (v != length)
-		cheribsdtest_failure_errx("length 0x%jx (expected 0x%jx)", v,
+		cheriostest_failure_errx("length 0x%jx (expected 0x%jx)", v,
 		    (uintmax_t)length);
 
 	/* Offset. */
 	v = cheri_offset_get(cidcap);
 	if (v != offset)
-		cheribsdtest_failure_errx("offset %jx (expected %jx)", v,
+		cheriostest_failure_errx("offset %jx (expected %jx)", v,
 		    (uintmax_t)offset);
 
 	/* Type -- should have unsealed type. */
 	v = cheri_type_get(cidcap);
 	if (v != (u_register_t)CHERI_OTYPE_UNSEALED)
-		cheribsdtest_failure_errx("otype %jx (expected %jx)", v,
+		cheriostest_failure_errx("otype %jx (expected %jx)", v,
 		    (uintmax_t)CHERI_OTYPE_UNSEALED);
 
 	/* Permissions. */
 	v = cheri_perms_get(cidcap);
 	if (v != CHERI_COMPARTMENT_ID_USERSPACE_PERMS)
-		cheribsdtest_failure_errx("perms %jx (expected %jx)", v,
+		cheriostest_failure_errx("perms %jx (expected %jx)", v,
 		    (uintmax_t)CHERI_COMPARTMENT_ID_USERSPACE_PERMS);
 
 	/* Sealed bit. */
 	v = cheri_is_sealed(cidcap);
 	if (v != 0)
-		cheribsdtest_failure_errx("sealed %jx (expected 0)", v);
+		cheriostest_failure_errx("sealed %jx (expected 0)", v);
 
 	/* Tag bit. */
 	v = cheri_tag_get(cidcap);
 	if (v != 1)
-		cheribsdtest_failure_errx("tag %jx (expected 1)", v);
+		cheriostest_failure_errx("tag %jx (expected 1)", v);
 }
 
-CHERIBSDTEST(cidcap_sysctl, "Retrieve cidcap using sysctl(3)")
+CHERIOSTEST(cidcap_sysctl, "Retrieve cidcap using sysctl(3)")
 {
 	uintcap_t cidcap;
 
@@ -111,10 +111,10 @@ CHERIBSDTEST(cidcap_sysctl, "Retrieve cidcap using sysctl(3)")
 	    CHERI_COMPARTMENT_ID_USERSPACE_LENGTH,
 	    CHERI_COMPARTMENT_ID_USERSPACE_OFFSET);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
+CHERIOSTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
 {
 	uintcap_t cidcap1, cidcap2;
 
@@ -126,15 +126,15 @@ CHERIBSDTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
 	 * we'll probably want to stop validating the base and just pass
 	 * -1 for the base.
 	 */
-	CHERIBSDTEST_CHECK_SYSCALL(cheri_cidcap_alloc(&cidcap1));
+	CHERIOSTEST_CHECK_SYSCALL(cheri_cidcap_alloc(&cidcap1));
 	check_cidcap(cidcap1, 1, 1, 0);
 
-	CHERIBSDTEST_CHECK_SYSCALL(cheri_cidcap_alloc(&cidcap2));
+	CHERIOSTEST_CHECK_SYSCALL(cheri_cidcap_alloc(&cidcap2));
 	check_cidcap(cidcap2, 2, 1, 0);
 
-	CHERIBSDTEST_VERIFY(cidcap1 != cidcap2);
+	CHERIOSTEST_VERIFY(cidcap1 != cidcap2);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif /* CHERI_PERM_COMPARTMENT_ID */
 #endif /* __FreeBSD__ */

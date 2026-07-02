@@ -51,7 +51,7 @@
 #include "cheriostest.h"
 
 #ifdef __CHERI_PURE_CAPABILITY__
-CHERIBSDTEST(bounds_calloc,
+CHERIOSTEST(bounds_calloc,
     "Check bounds on variously sized heap allocations")
 {
 	size_t i;
@@ -61,13 +61,13 @@ CHERIBSDTEST(bounds_calloc,
 	for (i = 0; i < sizeof(sizes) / sizeof(*sizes); i++) {
 		calloc_allocation = calloc(1, sizes[i]);
 		if (calloc_allocation == NULL)
-			cheribsdtest_failure_err("calloc failed");
+			cheriostest_failure_err("calloc failed");
 		if (cheri_offset_get(calloc_allocation) != 0)
-			cheribsdtest_failure_errx("non-zero offset returned");
+			cheriostest_failure_errx("non-zero offset returned");
 		if (cheri_length_get(calloc_allocation) < sizes[i])
-			cheribsdtest_failure_errx("returned length too small");
+			cheriostest_failure_errx("returned length too small");
 		free((void *)calloc_allocation);
 	}
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

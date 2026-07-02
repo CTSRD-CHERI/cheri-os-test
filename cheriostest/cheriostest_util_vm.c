@@ -84,12 +84,12 @@ find_address_space_gap(size_t len, size_t align)
 	ptraddr_t addr = 0;
 
 	psp = procstat_open_sysctl();
-	CHERIBSDTEST_VERIFY(psp != NULL);
+	CHERIOSTEST_VERIFY(psp != NULL);
 	kipp = procstat_getprocs(psp, KERN_PROC_PID, getpid(), &pcnt);
-	CHERIBSDTEST_VERIFY(kipp != NULL);
-	CHERIBSDTEST_VERIFY(pcnt == 1);
+	CHERIOSTEST_VERIFY(kipp != NULL);
+	CHERIOSTEST_VERIFY(pcnt == 1);
 	kivp = procstat_getvmmap(psp, kipp, &vmcnt);
-	CHERIBSDTEST_VERIFY(kivp != NULL);
+	CHERIOSTEST_VERIFY(kivp != NULL);
 
 	if (align == 0) {
 		len = cheri_representable_length(len);
@@ -107,7 +107,7 @@ find_address_space_gap(size_t len, size_t align)
 		}
 	}
 	if (addr == 0) {
-		cheribsdtest_failure_errx("no free region of length %#jx\n",
+		cheriostest_failure_errx("no free region of length %#jx\n",
 		    len);
 	}
 
@@ -142,7 +142,7 @@ find_address_space_gap(size_t len, size_t align)
 	// Create a list of VMAs based on /proc/self/stat
 	f = fopen("/proc/self/maps", "r");
 	if (f == NULL) {
-		cheribsdtest_failure_errx("fopen: %s", strerror(errno)); // TODO: Improve this
+		cheriostest_failure_errx("fopen: %s", strerror(errno)); // TODO: Improve this
 	}
 
 	while(getline(&line, &line_len, f) != -1) {
@@ -174,7 +174,7 @@ find_address_space_gap(size_t len, size_t align)
 	}
 
 	if (addr == 0) {
-		cheribsdtest_failure_errx("no free region of length %#jx\n", len);
+		cheriostest_failure_errx("no free region of length %#jx\n", len);
 	}
 
 	return addr;

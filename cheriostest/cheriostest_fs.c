@@ -74,14 +74,14 @@ static int
 create_tempfile(void)
 {
 	char template[] = "/tmp/cheribsdtest.XXXXXXXX";
-	int fd = CHERIBSDTEST_CHECK_SYSCALL2(mkstemp(template),
+	int fd = CHERIOSTEST_CHECK_SYSCALL2(mkstemp(template),
 	    "mkstemp %s", template);
-	CHERIBSDTEST_CHECK_SYSCALL(unlink(template));
-	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
+	CHERIOSTEST_CHECK_SYSCALL(unlink(template));
+	CHERIOSTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	return (fd);
 }
 
-CHERIBSDTEST(tmpfs_rw_nocaps,
+CHERIOSTEST(tmpfs_rw_nocaps,
     "check that read(2) and write(2) of tmpfs files do not return tags",
     .ct_check_skip = skip_non_tmpfs_tmp)
 {
@@ -94,18 +94,18 @@ CHERIBSDTEST(tmpfs_rw_nocaps,
 
 	/* Just some pointer */
 	c = &fd;
-	CHERIBSDTEST_VERIFY2(cheri_tag_get(c) != 0, "tag set on source");
+	CHERIOSTEST_VERIFY2(cheri_tag_get(c) != 0, "tag set on source");
 
-	rv = CHERIBSDTEST_CHECK_SYSCALL(pwrite(fd, &c, sizeof(c), 0));
-	CHERIBSDTEST_CHECK_EQ_SIZE(rv, sizeof(c));
+	rv = CHERIOSTEST_CHECK_SYSCALL(pwrite(fd, &c, sizeof(c), 0));
+	CHERIOSTEST_CHECK_EQ_SIZE(rv, sizeof(c));
 
-	rv = CHERIBSDTEST_CHECK_SYSCALL(pread(fd, &d, sizeof(d), 0));
-	CHERIBSDTEST_CHECK_EQ_SIZE(rv, sizeof(d));
+	rv = CHERIOSTEST_CHECK_SYSCALL(pread(fd, &d, sizeof(d), 0));
+	CHERIOSTEST_CHECK_EQ_SIZE(rv, sizeof(d));
 
-	CHERIBSDTEST_VERIFY2(cheri_tag_get(d) == 0, "tag read");
-	CHERIBSDTEST_VERIFY2(cheri_is_equal_exact(cheri_tag_clear(c), d),
+	CHERIOSTEST_VERIFY2(cheri_tag_get(d) == 0, "tag read");
+	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(cheri_tag_clear(c), d),
 	    "untagged value not read");
 
-	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_SYSCALL(close(fd));
+	cheriostest_success();
 }

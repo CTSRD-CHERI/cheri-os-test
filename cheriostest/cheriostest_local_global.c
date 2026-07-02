@@ -73,7 +73,7 @@ skip_local_global_required(const struct cheri_test *test __attribute__((__unused
 
 	f = fopen("/proc/cpuinfo", "r");
 	if (f == NULL)
-		cheribsdtest_failure_errx("Couldn't open /proc/cpuinfo");
+		cheriostest_failure_errx("Couldn't open /proc/cpuinfo");
 
 	while (getline(&line, &buf_size, f) != -1) {
 		if (strstr(line, "isa") != NULL) {
@@ -90,7 +90,7 @@ skip_local_global_required(const struct cheri_test *test __attribute__((__unused
 #endif
 }
 
-CHERIBSDTEST(store_local_allowed,
+CHERIOSTEST(store_local_allowed,
     "Checks local capabilities can be stored via default capabilities",
     .ct_check_skip = skip_local_global_required,)
 {
@@ -99,9 +99,9 @@ CHERIBSDTEST(store_local_allowed,
 	char * __capability target;
 	char * __capability * __capability targetp = &target;
 
-	CHERIBSDTEST_VERIFY(strcmp(STR_VAL, str) == 0);
+	CHERIOSTEST_VERIFY(strcmp(STR_VAL, str) == 0);
 	*targetp = cap;
-	CHERIBSDTEST_VERIFY(
+	CHERIOSTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
 	/* Make cap local */
@@ -113,14 +113,14 @@ CHERIBSDTEST(store_local_allowed,
 
 	/* Store local cap through cap with store-local permission */
 	*targetp = cap;
-	CHERIBSDTEST_VERIFY(
+	CHERIOSTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifndef __riscv_zcherilevels
-CHERIBSDTEST(store_local_disallowed,
+CHERIOSTEST(store_local_disallowed,
     "Checks local capabilities can not be stored via non-store-local capabilities",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -138,7 +138,7 @@ CHERIBSDTEST(store_local_disallowed,
 #endif
 )
 #else
-CHERIBSDTEST(store_local_disallowed,
+CHERIOSTEST(store_local_disallowed,
     "Checks tag is stripped when local capabilities are stored via non-store-local capabilities")
 #endif
 {
@@ -147,9 +147,9 @@ CHERIBSDTEST(store_local_disallowed,
 	char * __capability volatile target;
 	char * __capability volatile * __capability targetp = &target;
 
-	CHERIBSDTEST_VERIFY(strcmp(STR_VAL, str) == 0);
+	CHERIOSTEST_VERIFY(strcmp(STR_VAL, str) == 0);
 	*targetp = cap;
-	CHERIBSDTEST_VERIFY(
+	CHERIOSTEST_VERIFY(
 	    strcmp(STR_VAL, (__cheri_fromcap char *)target) == 0);
 
 	/*
@@ -168,10 +168,10 @@ CHERIBSDTEST(store_local_disallowed,
 
 	/* RVY just strips tags. */
 #ifdef __riscv_zcherilevels
-	CHERIBSDTEST_VERIFY(cheri_tag_get(*targetp) == 0);
-	cheribsdtest_success();
+	CHERIOSTEST_VERIFY(cheri_tag_get(*targetp) == 0);
+	cheriostest_success();
 #else
-	cheribsdtest_failure_errx(
+	cheriostest_failure_errx(
 	    "No fault after storing local cap via non-store-local cap");
 #endif
 }

@@ -90,27 +90,27 @@ test_tls_threads_get_vars(void *arg __attribute__((__unused__)))
 
 	error = pthread_mutex_lock(&lock);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_mutex_lock");
+		cheriostest_failure_errc(error, "pthread_mutex_lock");
 	thread_done = 1;
 	error = pthread_cond_broadcast(&cond);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_cond_broadcast");
+		cheriostest_failure_errc(error, "pthread_cond_broadcast");
 
 	// We have not yet released the lock, so no need to check before
 	// waiting.
 	do {
 		error = pthread_cond_wait(&cond, &lock);
 		if (error != 0)
-			cheribsdtest_failure_errc(error, "pthread_cond_wait");
+			cheriostest_failure_errc(error, "pthread_cond_wait");
 	} while (thread_done == 1);
 	error = pthread_mutex_unlock(&lock);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_mutex_unlock");
+		cheriostest_failure_errc(error, "pthread_mutex_unlock");
 
 	return NULL;
 }
 
-CHERIBSDTEST(tls_threads, "Test TLS across threads")
+CHERIOSTEST(tls_threads, "Test TLS across threads")
 {
 	pthread_t thread;
 	int error;
@@ -127,7 +127,7 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 	error = pthread_create(&thread, NULL,
 	    test_tls_threads_get_vars, NULL);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_create");
+		cheriostest_failure_errc(error, "pthread_create");
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 	my_tls_gd = &tls_gd;
@@ -138,11 +138,11 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 
 	error = pthread_mutex_lock(&lock);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_mutex_lock");
+		cheriostest_failure_errc(error, "pthread_mutex_lock");
 	while (thread_done == 0) {
 		error = pthread_cond_wait(&cond, &lock);
 		if (error != 0)
-			cheribsdtest_failure_errc(error, "pthread_cond_wait");
+			cheriostest_failure_errc(error, "pthread_cond_wait");
 	}
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
@@ -155,38 +155,38 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 	thread_done = 2;
 	error = pthread_cond_broadcast(&cond);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_cond_broadcast");
+		cheriostest_failure_errc(error, "pthread_cond_broadcast");
 	error = pthread_mutex_unlock(&lock);
 	if (error != 0)
-		cheribsdtest_failure_errc(error, "pthread_mutex_unlock");
+		cheriostest_failure_errc(error, "pthread_mutex_unlock");
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 	if (*my_tls_gd != 1)
-		cheribsdtest_failure_errx("Bad *my_tls_gd (got: %d; expected 1)",
+		cheriostest_failure_errx("Bad *my_tls_gd (got: %d; expected 1)",
 		    *my_tls_gd);
 	if (*my_tls_ld != 2)
-		cheribsdtest_failure_errx("Bad *my_tls_ld (got: %d; expected 2)",
+		cheriostest_failure_errx("Bad *my_tls_ld (got: %d; expected 2)",
 		    *my_tls_ld);
 #endif
 	if (*my_tls_ie != 3)
-		cheribsdtest_failure_errx("Bad *my_tls_ie (got: %d; expected 3)",
+		cheriostest_failure_errx("Bad *my_tls_ie (got: %d; expected 3)",
 		    *my_tls_ie);
 	if (*my_tls_le != 4)
-		cheribsdtest_failure_errx("Bad *my_tls_le (got: %d; expected 4)",
+		cheriostest_failure_errx("Bad *my_tls_le (got: %d; expected 4)",
 		    *my_tls_le);
 #ifdef CHERIBSD_DYNAMIC_TESTS
 	if (thr_tls_gd_val != 2)
-		cheribsdtest_failure_errx("Bad *thr_tls_gd (got: %d; expected 2)",
+		cheriostest_failure_errx("Bad *thr_tls_gd (got: %d; expected 2)",
 		    thr_tls_gd_val);
 	if (thr_tls_ld_val != 3)
-		cheribsdtest_failure_errx("Bad *thr_tls_ld (got: %d; expected 3)",
+		cheriostest_failure_errx("Bad *thr_tls_ld (got: %d; expected 3)",
 		    thr_tls_ld_val);
 #endif
 	if (thr_tls_ie_val != 4)
-		cheribsdtest_failure_errx("Bad *thr_tls_ie (got: %d; expected 4)",
+		cheriostest_failure_errx("Bad *thr_tls_ie (got: %d; expected 4)",
 		    thr_tls_ie_val);
 	if (thr_tls_le_val != 5)
-		cheribsdtest_failure_errx("Bad *thr_tls_le (got: %d; expected 5)",
+		cheriostest_failure_errx("Bad *thr_tls_le (got: %d; expected 5)",
 		    thr_tls_le_val);
 
 #ifdef __CHERI_PURE_CAPABILITY__
@@ -199,7 +199,7 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 	    (thr_bottom <   my_top    &&  my_top    <= thr_top) ||	\
 	    ( my_bottom <= thr_bottom && thr_bottom <   my_top) ||	\
 	    ( my_bottom <  thr_top    && thr_top    <=  my_top))	\
-		cheribsdtest_failure_errx("Overlapping TLS "		\
+		cheriostest_failure_errx("Overlapping TLS "		\
 		    "capabilities (my "#_var": %#p ; thread's "#_var	\
 		    ": %#p)", my_##_var, thr_##_var);
 
@@ -213,10 +213,10 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 #ifdef TLS_EXACT_BOUNDS
 #define	CHECK_BOUNDS(_var)						\
 	if (__builtin_cheri_offset_get((_var)) != 0)			\
-		cheribsdtest_failure_errx("TLS variable "#_var" with "	\
+		cheriostest_failure_errx("TLS variable "#_var" with "	\
 		    "non-zero offset: %#p", (_var));			\
 	if (__builtin_cheri_length_get((_var)) != sizeof(*(_var)))	\
-		cheribsdtest_failure_errx("TLS variable "#_var" (size " \
+		cheriostest_failure_errx("TLS variable "#_var" (size " \
 		    "%zu) with bad length: %#p", sizeof(*(_var)), (_var));
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
@@ -232,5 +232,5 @@ CHERIBSDTEST(tls_threads, "Test TLS across threads")
 #endif
 #endif
 
-	cheribsdtest_success();
+	cheriostest_success();
 }

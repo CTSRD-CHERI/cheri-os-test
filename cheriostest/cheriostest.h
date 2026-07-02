@@ -35,8 +35,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CHERIBSDTEST_H_
-#define	_CHERIBSDTEST_H_
+#ifndef _CHERIOSTEST_H_
+#define	_CHERIOSTEST_H_
 
 #include <sys/types.h>
 
@@ -88,7 +88,7 @@ extern int verbose;
  * Shared memory interface between tests and the test controller process.
  */
 #define	TESTRESULT_STR_LEN	1024
-struct cheribsdtest_child_state {
+struct cheriostest_child_state {
 	/* Fields filled in by the child signal handler. */
 	int		ccs_signum;
 	int		ccs_si_code;
@@ -101,7 +101,7 @@ struct cheribsdtest_child_state {
 	void		*ccs_si_addr_expected;
 	bool		ccs_warn;
 };
-extern struct cheribsdtest_child_state *ccsp;
+extern struct cheriostest_child_state *ccsp;
 
 /*
  * If the test runs to completion, it must set ccs_testresult to SUCCESS or
@@ -130,7 +130,7 @@ extern struct cheribsdtest_child_state *ccsp;
 #define	CT_FLAG_SI_ADDR		0x00000800  /* Check signal si_addr. */
 
 /*
- * Macros defined in one or more cheribsdtest_md.h to indicate the
+ * Macros defined in one or more cheriostest_md.h to indicate the
  * reason for failure or flaky behavior.  Provide defaults here to
  * reduce the size of MD headers.
  */
@@ -206,7 +206,7 @@ struct cheri_test {
 	const char	*ct_flaky_reason;
 };
 
-#define	_CHERIBSDTEST_DECLARE(func, desc, ...)				\
+#define	_CHERIOSTEST_DECLARE(func, desc, ...)				\
 	static void func(void);						\
 	static struct cheri_test CHERITEST_CONC(__cheri_test, __LINE__) = {	\
 		.ct_name = #func,					\
@@ -216,8 +216,8 @@ struct cheri_test {
 	};								\
 	DATA_SET(cheri_tests_set, CHERITEST_CONC(__cheri_test, __LINE__))
 
-#define	CHERIBSDTEST(func, desc, ...)					\
-	_CHERIBSDTEST_DECLARE(func, (desc), __VA_ARGS__);		\
+#define	CHERIOSTEST(func, desc, ...)					\
+	_CHERIOSTEST_DECLARE(func, (desc), __VA_ARGS__);		\
 	static void func(void)
 
 /* Enum for different modes of spawning a child process */
@@ -235,51 +235,51 @@ enum spawn_child_mode {
  * success or failure with a test-defined, human-readable string describing
  * the error.
  */
-void	cheribsdtest_failure_err(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
-void	cheribsdtest_failure_errc(int code, const char *msg, ...) __attribute__((__noreturn__))
+void	cheriostest_failure_err(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
+void	cheriostest_failure_errc(int code, const char *msg, ...) __attribute__((__noreturn__))
     __printflike(2, 3);
-void	cheribsdtest_failure_errx(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
-void	cheribsdtest_success(void) __attribute__((__noreturn__));
-void	cheribsdtest_success_with_warn(const char *msg) __attribute__((__noreturn__));
+void	cheriostest_failure_errx(const char *msg, ...) __attribute__((__noreturn__))  __printflike(1, 2);
+void	cheriostest_success(void) __attribute__((__noreturn__));
+void	cheriostest_success_with_warn(const char *msg) __attribute__((__noreturn__));
 void	signal_handler_clear(int sig);
-void	cheribsdtest_set_expected_si_addr(void *addr);
+void	cheriostest_set_expected_si_addr(void *addr);
 
 /**
- * Like CHERIBSDTEST_VERIFY but instead of printing condition details prints
+ * Like CHERIOSTEST_VERIFY but instead of printing condition details prints
  * the provided printf-like message @p fmtargs
  */
-#define CHERIBSDTEST_VERIFY2(cond, fmtargs...)		\
+#define CHERIOSTEST_VERIFY2(cond, fmtargs...)		\
 	do { if (!(cond)) { 				\
-		cheribsdtest_failure_errx(fmtargs);	\
+		cheriostest_failure_errx(fmtargs);	\
 	} } while(0)
 
 /** If @p cond is false fail the test and print the failed condition */
-#define CHERIBSDTEST_VERIFY(cond) \
-	CHERIBSDTEST_VERIFY2(cond, "%s", "\'" #cond "\' is FALSE!")
+#define CHERIOSTEST_VERIFY(cond) \
+	CHERIOSTEST_VERIFY2(cond, "%s", "\'" #cond "\' is FALSE!")
 
-#define CHERIBSDTEST_CHECK_EQ(type, fmt, a, b, a_str, b_str)	do {	\
+#define CHERIOSTEST_CHECK_EQ(type, fmt, a, b, a_str, b_str)	do {	\
 		type __a = (a);						\
 		type __b = (b);						\
-		CHERIBSDTEST_VERIFY2(__a == __b, "%s (" fmt ") == %s ("	\
+		CHERIOSTEST_VERIFY2(__a == __b, "%s (" fmt ") == %s ("	\
 		    fmt ") failed!", a_str, __a, b_str, __b);		\
 	} while (0)
 
-#define CHERIBSDTEST_CHECK_EQ_BOOL(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(_Bool, "%d", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
-#define CHERIBSDTEST_CHECK_EQ_INT(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(int, "0x%x", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
-#define CHERIBSDTEST_CHECK_EQ_LONG(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(long, "0x%lx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
-#define CHERIBSDTEST_CHECK_EQ_SIZE(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(size_t, "0x%zx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
+#define CHERIOSTEST_CHECK_EQ_BOOL(a, b)	\
+	CHERIOSTEST_CHECK_EQ(_Bool, "%d", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
+#define CHERIOSTEST_CHECK_EQ_INT(a, b)	\
+	CHERIOSTEST_CHECK_EQ(int, "0x%x", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
+#define CHERIOSTEST_CHECK_EQ_LONG(a, b)	\
+	CHERIOSTEST_CHECK_EQ(long, "0x%lx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
+#define CHERIOSTEST_CHECK_EQ_SIZE(a, b)	\
+	CHERIOSTEST_CHECK_EQ(size_t, "0x%zx", a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 
 static inline void
-_cheribsdtest_check_cap_eq(void *__capability a, void *__capability b,
+_cheriostest_check_cap_eq(void *__capability a, void *__capability b,
     const char *a_str, const char *b_str)
 {
 	/* TODO: This should use CExEq instead once RISC-V has it */
 #define CHECK_CAP_ATTR(accessor, fmt)						\
-	CHERIBSDTEST_VERIFY2(accessor(a) == accessor(b),			\
+	CHERIOSTEST_VERIFY2(accessor(a) == accessor(b),			\
 	    CHERITEST_STR(accessor) "(%s) (" fmt ") == " CHERITEST_STR(accessor)	\
 	    "(%s) (" fmt ") failed!", a_str, accessor(a), b_str, accessor(b))
 	CHECK_CAP_ATTR(cheri_address_get, "0x%lx");
@@ -291,19 +291,19 @@ _cheribsdtest_check_cap_eq(void *__capability a, void *__capability b,
 	CHECK_CAP_ATTR(cheri_flags_get, "0x%lx");
 #undef CHECK_CAP_ATTR
 }
-#define CHERIBSDTEST_CHECK_EQ_CAP(a, b)	\
-	_cheribsdtest_check_cap_eq(a, b, CHERITEST_STR(a), CHERITEST_STR(b))
+#define CHERIOSTEST_CHECK_EQ_CAP(a, b)	\
+	_cheriostest_check_cap_eq(a, b, CHERITEST_STR(a), CHERITEST_STR(b))
 
 #ifdef __CHERI_PURE_CAPABILITY__
-#define	CHERIBSDTEST_CHECK_EQ_PTR(a, b)	\
-	CHERIBSDTEST_CHECK_EQ_CAP(a, b)
+#define	CHERIOSTEST_CHECK_EQ_PTR(a, b)	\
+	CHERIOSTEST_CHECK_EQ_CAP(a, b)
 #else
-#define	CHERIBSDTEST_CHECK_EQ_PTR(a, b)	\
-	CHERIBSDTEST_CHECK_EQ(void *, "%p", a, b, __STRING(a), __STRING(b))
+#define	CHERIOSTEST_CHECK_EQ_PTR(a, b)	\
+	CHERIOSTEST_CHECK_EQ(void *, "%p", a, b, __STRING(a), __STRING(b))
 #endif
 
 static inline void
-_cheribsdtest_check_cap_bounds_precise(void *__capability c,
+_cheriostest_check_cap_bounds_precise(void *__capability c,
     size_t expected_len)
 {
 	size_t len, offset;
@@ -312,24 +312,24 @@ _cheribsdtest_check_cap_bounds_precise(void *__capability c,
 	len = cheri_length_get(c);
 
 	/* Confirm precise lower bound: offset of zero. */
-	CHERIBSDTEST_VERIFY2(offset == 0,
+	CHERIOSTEST_VERIFY2(offset == 0,
 	    "offset (%jd) not zero: %#lp", offset, c);
 
 	/* Confirm precise upper bound: length of expected size for type. */
-	CHERIBSDTEST_VERIFY2(len == expected_len,
+	CHERIOSTEST_VERIFY2(len == expected_len,
 	    "length (%jd) not expected %jd: %#lp", len, expected_len, c);
 }
-#define	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(c, expected_len) \
-	_cheribsdtest_check_cap_bounds_precise((c), (expected_len))
+#define	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(c, expected_len) \
+	_cheriostest_check_cap_bounds_precise((c), (expected_len))
 
 /**
- * Like CHERIBSDTEST_CHECK_SYSCALL but instead of printing call details prints
+ * Like CHERIOSTEST_CHECK_SYSCALL but instead of printing call details prints
  * the provided printf-like message @p fmtargs
  */
-#define CHERIBSDTEST_CHECK_SYSCALL2(call, fmtargs...) __extension__({	\
+#define CHERIOSTEST_CHECK_SYSCALL2(call, fmtargs...) __extension__({	\
 		__typeof(call) __result = call;				\
 		if (__result == ((__typeof(__result))-1)) {		\
-			cheribsdtest_failure_err(fmtargs);		\
+			cheriostest_failure_err(fmtargs);		\
 		}							\
 		__result;						\
 	})
@@ -337,11 +337,11 @@ _cheribsdtest_check_cap_bounds_precise(void *__capability c,
  * If result of @p call is equal to -1 fail the test and print the failed call
  * followed by the string representation of @c errno
  */
-#define CHERIBSDTEST_CHECK_SYSCALL(call) \
-	CHERIBSDTEST_CHECK_SYSCALL2(call, "Call \'" #call "\' failed")
+#define CHERIOSTEST_CHECK_SYSCALL(call) \
+	CHERIOSTEST_CHECK_SYSCALL2(call, "Call \'" #call "\' failed")
 
 static inline void
-_cheribsdtest_check_errno(const char *context, int actual, int expected)
+_cheriostest_check_errno(const char *context, int actual, int expected)
 {
 	char actual_str[256];
 	char expected_str[256];
@@ -349,31 +349,31 @@ _cheribsdtest_check_errno(const char *context, int actual, int expected)
 	if (expected == actual)
 		return;
 	if (strerror_r(actual, actual_str, sizeof(actual_str)) != 0)
-		cheribsdtest_failure_err("sterror_r(%d)", actual);
+		cheriostest_failure_err("sterror_r(%d)", actual);
 	if (strerror_r(expected, expected_str, sizeof(expected_str)) != 0)
-		cheribsdtest_failure_err("sterror_r(%d)", expected);
-	cheribsdtest_failure_errx("%s errno %d (%s) != expected errno %d (%s)",
+		cheriostest_failure_err("sterror_r(%d)", expected);
+	cheriostest_failure_errx("%s errno %d (%s) != expected errno %d (%s)",
 	    context, actual, actual_str, expected, expected_str);
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
-#define	__CHERIBSDTEST_PTR_FMT	"%#p"
+#define	__CHERIOSTEST_PTR_FMT	"%#p"
 #else
-#define	__CHERIBSDTEST_PTR_FMT	"%p"
+#define	__CHERIOSTEST_PTR_FMT	"%p"
 #endif
 
 /** Check that @p call fails and errno is set to @p expected_errno */
-#define CHERIBSDTEST_CHECK_CALL_ERROR(call, expected_errno)		\
+#define CHERIOSTEST_CHECK_CALL_ERROR(call, expected_errno)		\
 	do {								\
 		errno = 0;						\
 		__typeof(call) __ret = call;				\
 		int call_errno = errno;					\
-		CHERIBSDTEST_VERIFY2(__ret == (__typeof(__ret))-1,	\
+		CHERIOSTEST_VERIFY2(__ret == (__typeof(__ret))-1,	\
 		    _Generic((__ret),					\
-			void *: #call " unexpectedly returned " __CHERIBSDTEST_PTR_FMT, \
+			void *: #call " unexpectedly returned " __CHERIOSTEST_PTR_FMT, \
 			default: #call " unexpectedly returned %d"),	\
 		    __ret);						\
-		_cheribsdtest_check_errno(#call, call_errno,		\
+		_cheriostest_check_errno(#call, call_errno,		\
 		    expected_errno);					\
 	} while (0)
 
@@ -402,8 +402,8 @@ cheri_ptr_equal_exact(void *x, void *y)
 
 
 /* For libc_memcpy and libc_memset tests and the unaligned copy tests: */
-extern void *cheribsdtest_memcpy(void *dst, const void *src, size_t n);
-extern void *cheribsdtest_memmove(void *dst, const void *src, size_t n);
+extern void *cheriostest_memcpy(void *dst, const void *src, size_t n);
+extern void *cheriostest_memmove(void *dst, const void *src, size_t n);
 
 extern ptraddr_t find_address_space_gap(size_t len, size_t align);
 
@@ -411,12 +411,12 @@ extern ptraddr_t find_address_space_gap(size_t len, size_t align);
  * Spawn a new copy of cheribsdtest and run the test's associated child
  * function.
  */
-extern pid_t cheribsdtest_spawn_child(enum spawn_child_mode mode);
+extern pid_t cheriostest_spawn_child(enum spawn_child_mode mode);
 
 const char *skip_need_cheri_revoke(const struct cheri_test *ctp);
 const char *skip_need_default_cheri_revoke(const struct cheri_test *ctp);
 
-const char *cheribsdtest_get_helper_path(void);
-const char *cheribsdtest_skip_no_helper(const struct cheri_test *ctp);
+const char *cheriostest_get_helper_path(void);
+const char *cheriostest_skip_no_helper(const struct cheri_test *ctp);
 
-#endif /* !_CHERIBSDTEST_H_ */
+#endif /* !_CHERIOSTEST_H_ */

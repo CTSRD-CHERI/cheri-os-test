@@ -28,13 +28,13 @@ static void
 assert_disjoint_bounds(void *one, void *two, const char *label_one,
     const char *label_two)
 {
-	CHERIBSDTEST_VERIFY2(
+	CHERIOSTEST_VERIFY2(
 	    !cheri_is_address_inbounds(one, cheri_base_get(two)) &&
 	    !cheri_is_address_inbounds(two, cheri_base_get(one)),
 	    "%#p (%s) and %#p (%s) overlap", one, label_one, two, label_two);
 }
 
-CHERIBSDTEST(compartment_pcc_bounds,
+CHERIOSTEST(compartment_pcc_bounds,
     "Check that PCC bounds of sub-object compartments are disjoint")
 {
 	assert_disjoint_bounds(&compartment_one_foo, &compartment_two_foo,
@@ -43,5 +43,5 @@ CHERIBSDTEST(compartment_pcc_bounds,
 	    "compartment_one_foo", "compartment_pcc_bounds");
 	assert_disjoint_bounds(&compartment_two_foo, &compartment_pcc_bounds,
 	    "compartment_two_foo", "compartment_pcc_bounds");
-	cheribsdtest_success();
+	cheriostest_success();
 }

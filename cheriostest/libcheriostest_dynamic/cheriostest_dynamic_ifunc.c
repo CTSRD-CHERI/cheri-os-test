@@ -39,26 +39,26 @@
 #include "cheriostest_dynamic.h"
 
 static int
-cheribsdtest_dynamic_ifunc_impl(void)
+cheriostest_dynamic_ifunc_impl(void)
 {
 	return (42);
 }
 
 #ifdef __FreeBSD__
-DEFINE_UIFUNC(, int, cheribsdtest_dynamic_ifunc, (void))
+DEFINE_UIFUNC(, int, cheriostest_dynamic_ifunc, (void))
 {
-	return (cheribsdtest_dynamic_ifunc_impl);
+	return (cheriostest_dynamic_ifunc_impl);
 }
 #elif defined(__linux__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
 static int
-(*resolve_cheribsdtest_dynamic_ifunc(void))(void)
+(*resolve_cheriostest_dynamic_ifunc(void))(void)
 {
-	return (cheribsdtest_dynamic_ifunc_impl);
+	return (cheriostest_dynamic_ifunc_impl);
 }
 #pragma clang diagnostic pop
 
 int
-cheribsdtest_dynamic_ifunc(void) __attribute__((ifunc("resolve_cheribsdtest_dynamic_ifunc")));
+cheriostest_dynamic_ifunc(void) __attribute__((ifunc("resolve_cheriostest_dynamic_ifunc")));
 #endif

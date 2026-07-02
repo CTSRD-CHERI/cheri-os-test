@@ -104,7 +104,7 @@
 static char array[ARRAY_LEN];
 static char sink;
 
-CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
+CHERIOSTEST(fault_bounds, "Exercise capability bounds check failure",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
@@ -118,7 +118,7 @@ CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
 )
 {
 #ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
 #endif
 	char * __capability arrayp = cheritest_cheri_ptr(array, sizeof(array));
 	int i;
@@ -127,10 +127,10 @@ CHERIBSDTEST(fault_bounds, "Exercise capability bounds check failure",
 		arrayp[i] = 0;
 	arrayp[i] = 0;
 
-	cheribsdtest_failure_errx("out of bounds access did not fault");
+	cheriostest_failure_errx("out of bounds access did not fault");
 }
 
-CHERIBSDTEST(fault_perm_load,
+CHERIOSTEST(fault_perm_load,
     "Exercise capability load permission failure",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -145,16 +145,16 @@ CHERIBSDTEST(fault_perm_load,
 )
 {
 #ifdef SEGV_CAPPERMERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPPERMERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPPERMERR is not defined");
 #endif
 	char * __capability arrayp = cheritest_cheri_ptrperm(array, sizeof(array), 0);
 
 	sink = arrayp[0];
 
-	cheribsdtest_failure_errx("access without required permissions did not fault");
+	cheriostest_failure_errx("access without required permissions did not fault");
 }
 
-CHERIBSDTEST(nofault_perm_load,
+CHERIOSTEST(nofault_perm_load,
     "Exercise capability load permission success")
 {
 	char * __capability arrayp = cheritest_cheri_ptrperm(array, sizeof(array),
@@ -165,11 +165,11 @@ CHERIBSDTEST(nofault_perm_load,
 #endif
 
 	sink = arrayp[0];
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef HAS_CHERI_PERM_SEAL
-CHERIBSDTEST(illegal_perm_seal,
+CHERIOSTEST(illegal_perm_seal,
     "Exercise capability seal permission failure",
     CT_SEAL_VIOLATION_EXCEPTION)
 {
@@ -183,12 +183,12 @@ CHERIBSDTEST(illegal_perm_seal,
 	sealcap_size = sizeof(sealcap);
 	if (sysctlbyname("security.cheri.sealcap", &sealcap, &sealcap_size,
 	    NULL, 0) < 0)
-		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+		cheriostest_failure_err("sysctlbyname(security.cheri.sealcap)");
 #elif defined(__linux__)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	sealcap = (void *) (((char *) sealcap) + 1);
 	if (!cheri_tag_get(sealcap) || !(cheri_perms_get(sealcap) & CHERI_PERM_SEAL))
-		cheribsdtest_failure_err("getauxptr failed");
+		cheriostest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"
 #endif
@@ -206,15 +206,15 @@ CHERIBSDTEST(illegal_perm_seal,
 		if (csr_read(uccsr) & SCCSR_TAG_CLEARING)
 			raise(SIGPROT);
 #endif
-		cheribsdtest_success();
+		cheriostest_success();
 	}
-	cheribsdtest_failure_errx("cheri_seal() performed successfully "
+	cheriostest_failure_errx("cheri_seal() performed successfully "
 	    "%#lp with bad sealcap %#lp", sealed, sealcap);
 }
 #endif
 
 #ifdef HAS_CHERI_PERM_SEAL
-CHERIBSDTEST(illegal_perm_unseal,
+CHERIOSTEST(illegal_perm_unseal,
     "Exercise capability unseal permission failure",
     CT_SEAL_VIOLATION_EXCEPTION)
 {
@@ -229,17 +229,17 @@ CHERIBSDTEST(illegal_perm_unseal,
 	sealcap_size = sizeof(sealcap);
 	if (sysctlbyname("security.cheri.sealcap", &sealcap, &sealcap_size,
 	    NULL, 0) < 0)
-		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+		cheriostest_failure_err("sysctlbyname(security.cheri.sealcap)");
 #elif defined(__linux__)
 	sealcap = getauxptr(AT_CHERI_SEAL_CAP);
 	sealcap = (void *) (((char *) sealcap) + 1);
 	if (!cheri_tag_get(sealcap))
-		cheribsdtest_failure_err("getauxptr failed");
+		cheriostest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"
 #endif
 	if ((cheri_perms_get(sealcap) & CHERI_PERM_SEAL) == 0)
-		cheribsdtest_failure_errx("unexpected !seal perm on sealcap");
+		cheriostest_failure_errx("unexpected !seal perm on sealcap");
 	sealed = cheri_seal(ip, sealcap);
 	sealcap = cheri_perms_and(sealcap, ~CHERI_PERM_UNSEAL);
 	unsealed = cheri_unseal(sealed, sealcap);
@@ -254,14 +254,14 @@ CHERIBSDTEST(illegal_perm_unseal,
 		if (csr_read(uccsr) & SCCSR_TAG_CLEARING)
 			raise(SIGPROT);
 #endif
-		cheribsdtest_success();
+		cheriostest_success();
 	}
-	cheribsdtest_failure_errx("cheri_unseal() performed successfully "
+	cheriostest_failure_errx("cheri_unseal() performed successfully "
 	    "%#lp with bad unsealcap %#lp", unsealed, sealcap);
 }
 #endif // HAS_CHERI_PERM_SEAL
 
-CHERIBSDTEST(fault_perm_store,
+CHERIOSTEST(fault_perm_store,
     "Exercise capability store permission failure",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -276,14 +276,14 @@ CHERIBSDTEST(fault_perm_store,
 )
 {
 #ifdef SEGV_CAPPERMERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPPERMERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPPERMERR is not defined");
 #endif
 	char * __capability arrayp = cheritest_cheri_ptrperm(array, sizeof(array), 0);
 
 	arrayp[0] = sink;
 }
 
-CHERIBSDTEST(nofault_perm_store,
+CHERIOSTEST(nofault_perm_store,
     "Exercise capability store permission success")
 {
 	char * __capability arrayp = cheritest_cheri_ptrperm(array, sizeof(array),
@@ -294,10 +294,10 @@ CHERIBSDTEST(nofault_perm_store,
 #endif
 
 	arrayp[0] = sink;
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(fault_tag, "Store via untagged capability",
+CHERIOSTEST(fault_tag, "Store via untagged capability",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
     .ct_signum = SIGPROT,
@@ -311,7 +311,7 @@ CHERIBSDTEST(fault_tag, "Store via untagged capability",
 )
 {
 #ifdef SEGV_CAPTAGERR_DEF_MISSING
-	cheribsdtest_failure_errx("Signal code SEGV_CAPTAGERR missing");
+	cheriostest_failure_errx("Signal code SEGV_CAPTAGERR missing");
 #endif
 	char ch;
 	char * __capability chp = cheritest_cheri_ptr(&ch, sizeof(ch));
@@ -320,7 +320,7 @@ CHERIBSDTEST(fault_tag, "Store via untagged capability",
 	*chp = '\0';
 }
 
-CHERIBSDTEST(nofault_cfromptr, "Exercise CFromPtr success")
+CHERIOSTEST(nofault_cfromptr, "Exercise CFromPtr success")
 {
 	char buf[256];
 	void * __capability cb; /* derived from here */
@@ -329,5 +329,5 @@ CHERIBSDTEST(nofault_cfromptr, "Exercise CFromPtr success")
 	cb = cheritest_cheri_ptr(buf, 256);
 	cd = __builtin_cheri_cap_from_pointer(cb, (ptraddr_t)buf + 10);
 	*cd = '\0';
-	cheribsdtest_success();
+	cheriostest_success();
 }

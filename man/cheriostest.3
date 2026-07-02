@@ -37,31 +37,31 @@
 .\"
 
 .Dd June 2026
-.Dt CHERIBSDTEST 3
+.Dt CHERIOSTEST 3
 .Os
 
 .Sh NAME
-.Nm CHERIBSDTEST
+.Nm CHERIOSTEST
 
 .Sh SYNOPSIS
-.In cheribsdtest.h
+.In cheriostest.h
 .Bd -literal
-CHERIBSDTEST(func, desc, ...) {...}
+CHERIOSTEST(func, desc, ...) {...}
 .Ed
 .Ft void
-.Fn cheribsdtest_failure_err "const char *msg"  "..."
+.Fn cheriostest_failure_err "const char *msg"  "..."
 .Ft void
-.Fn cheribsdtest_failure_errc "int code" "const char *msg"  "..."
+.Fn cheriostest_failure_errc "int code" "const char *msg"  "..."
 .Ft void
-.Fn cheribsdtest_failure_errx "const char *msg"  "..."
+.Fn cheriostest_failure_errx "const char *msg"  "..."
 .Ft void
-.Fn cheribsdtest_success
+.Fn cheriostest_success
 .Ft void
-.Fn cheribsdtest_success_with_warn "const char *msg"
+.Fn cheriostest_success_with_warn "const char *msg"
 
 .Sh DESCRIPTION
 The
-.Fn CHERIBSDTEST
+.Fn CHERIOSTEST
 macro declares a test, the body of which is implemented in a code block
 following the macro invocation.
 The
@@ -115,17 +115,17 @@ The fields are:
 The name of the test, specified by the
 .Ar func
 parameter to
-.Fn CHERIBSDTEST .
+.Fn CHERIOSTEST .
 .It Va ct_desc
 A description of the test.
 .It Va ct_func
 The test implemention, provided by the code block
 enclosed in braces following the
-.Fn CHERIBSDTEST
+.Fn CHERIOSTEST
 invocation. This must not be set explicitly by passing
 .Li .ct_func = func
 to
-.Fn CHERIBSDTEST .
+.Fn CHERIOSTEST .
 .It Va ct_child_func
 For tests that spawn a child process, this field specifies the function
 executed by the child.
@@ -178,7 +178,7 @@ is set, the test framework expects standard output to be empty and reports
 the test as failed otherwise.
 .It Dv CT_FLAG_SLOW
 Tests with this flag are not executed if the user wants to execute only fast
-tests (refer to cheribsdtest(1)).
+tests (refer to cheriostest(1)).
 .It Dv CT_FLAG_SI_CODE
 The test is expected to trigger a signal. Check if the delivered signal matches
 the signal code specified by
@@ -192,31 +192,31 @@ for which the test framework installs its own signal handlers.
 The test is expected to trigger a signal whose
 .Fa si_addr
 matches the address set by
-.Fa cheribsdtest_set_expected_si_addr()
+.Fa cheriostest_set_expected_si_addr()
 in the test's implementation.
 .El
 .El
 
 The
-.Fn cheribsdtest_failure_err
+.Fn cheriostest_failure_err
 group of functions stops a test and reports it as failed. An explanatory
 message must be provided in the printf-style format string specified in
 .Fa msg
 followed by format string arguments.
-.Fn cheribsdtest_failure_err
+.Fn cheriostest_failure_err
 also reports the error message matching
 the current errno value.
-.Fn cheribsdtest_failure_errx
+.Fn cheriostest_failure_errx
 does not report on the errno value.
-.Fn cheribsdtest_failure_errc
+.Fn cheriostest_failure_errc
 reports the error message matching the
 error number specified in
 .Fa code .
 
 The
-.Fn cheribsdtest_success
+.Fn cheriostest_success
 group of functions end a test and report it as passed.
-.Fn cheribsdtest_success_with_warn
+.Fn cheriostest_success_with_warn
 additionally emits the warning specified in
 .Fa msg .
 
@@ -231,7 +231,7 @@ arguments configure the test framework to expect a signal.
 The test fails if the expected signal is not raised.
 .Bd -literal
 
-CHERIBSDTEST(buffer_overflow,
+CHERIOSTEST(buffer_overflow,
 	"Test if a simple buffer overflow is mitigated by CHERI as expected",
 	.ct_flags = CT_FLAG_SIGNAL,
 #if defined(__linux__)
@@ -249,7 +249,7 @@ CHERIBSDTEST(buffer_overflow,
 	{
 		buf[i] = 'a';
 	}
-	cheribsdtest_failure_err("Buffer overflow was not mitigated");
+	cheriostest_failure_err("Buffer overflow was not mitigated");
 }
 .Ed
 .Sh AUTHOR

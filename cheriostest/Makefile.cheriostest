@@ -39,7 +39,7 @@ SRCS+=	cheriostest_bounds_subobject.c			\
 #.if ${MK_COMPARTMENT_POLICY} != "no"
 #SRCS+=	cheriostest_compartments.c
 #CFLAGS.cheriostest_compartments.c+=-ffunction-sections
-#COMPARTMENT_POLICY=	${CHERIBSDTEST_DIR}/compartments.json
+#COMPARTMENT_POLICY=	${CHERIOSTEST_DIR}/compartments.json
 #.endif
 .endif
 
@@ -48,9 +48,9 @@ SRCS+=	cheriostest_bounds_subobject.c			\
 SRCS+=	cheriostest_zlib.c
 .endif
 
-CHERIBSDTEST_DIR:=	${.PARSEDIR}
-.PATH: ${CHERIBSDTEST_DIR}
-CFLAGS+=	-I${CHERIBSDTEST_DIR}/${MACHINE}
+CHERIOSTEST_DIR:=	${.PARSEDIR}
+.PATH: ${CHERIOSTEST_DIR}
+CFLAGS+=	-I${CHERIOSTEST_DIR}/${MACHINE}
 
 CFLAGS+=	'-DPROG="${PROG}"' '-DPROG_SUFFIX="${PROG:S/^cheriostests//}"'
 
@@ -62,14 +62,14 @@ SRCS+=	cheriostest_cheriabi_open.c
 
 #.if ${MACHINE_ABI:Mpurecap} && ${MK_CHERI_CAPREVOKE} == "yes"
 #LIBADD+=	cheri_caprevoke
-#CFLAGS+=	-DCHERIBSDTEST_CHERI_REVOKE_TESTS
+#CFLAGS+=	-DCHERIOSTEST_CHERI_REVOKE_TESTS
 #.endif
 
 # This test is broken as written
 #SRCS+=	cheriostest_vm_swap.c
 #CFLAGS.cheriostest_vm_swap.c+=-Wno-cheri-capability-misuse
 
-.sinclude "${CHERIBSDTEST_DIR}/${MACHINE}/Makefile.cheriostest"
+.sinclude "${CHERIOSTEST_DIR}/${MACHINE}/Makefile.cheriostest"
 
 # Enable sub-object bounds only in tests specifically designed for them.
 CFLAGS.cheriostest_bounds_subobject.c+=-cheri-bounds=subobject-safe

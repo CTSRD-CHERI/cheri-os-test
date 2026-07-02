@@ -80,13 +80,13 @@ static void		 mix_patterns(void);
 static uint64_t		 quickhash(uint64_t v);
 static const char	*skip_swap_required(const char *name __unused)
 
-CHERIBSDTEST(vm_swap,
+CHERIOSTEST(vm_swap,
     "check tags are swapped out by swap pager",
     .ct_check_skip = skip_swap_required})
 {
 
 	if (cheri_ddc_get() == NULL)
-		cheribsdtest_failure_errx("test depends on non-NULL DDC");
+		cheriostest_failure_errx("test depends on non-NULL DDC");
 
 	(void)dotest(1);
 }
@@ -296,14 +296,14 @@ dotest(int force_pageout)
 		PRINTF("Paging out...\n");
 		rc = msync(p, sz, MS_PAGEOUT);
 		if (rc == -1)
-			cheribsdtest_failure_errx("msync(MS_PAGEOUT) failed");
+			cheriostest_failure_errx("msync(MS_PAGEOUT) failed");
 		rc = mincore(p, sz, mincore_values);
 		if (rc < 0)
-			cheribsdtest_failure_errx("mincore() failed");
+			cheriostest_failure_errx("mincore() failed");
 		else {
 			for (i = 0; i < NPAGES; i++) {
 				if (mincore_values[i] & MINCORE_INCORE) {
-					cheribsdtest_failure_errx(
+					cheriostest_failure_errx(
 					    "mincore() reports page %u is "
 					    "in core",
 					    (unsigned int)i);
@@ -348,9 +348,9 @@ dotest(int force_pageout)
 	}
 
 	if (mismatches == 0)
-		cheribsdtest_success();
+		cheriostest_success();
 	else
-		cheribsdtest_failure_errx("%d mismatches", mismatches);
+		cheriostest_failure_errx("%d mismatches", mismatches);
 
 	return (0);
 }

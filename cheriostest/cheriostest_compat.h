@@ -33,8 +33,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#ifndef _CHERIBSDTEST_COMPAT_H_
-#define _CHERIBSDTEST_COMPAT_H_
+#ifndef _CHERIOSTEST_COMPAT_H_
+#define _CHERIOSTEST_COMPAT_H_
 
 #define	LIBBSD_NETBSD_VIS	1
 #define	cheritest_nitems(x)	(sizeof((x)) / sizeof((x)[0]))

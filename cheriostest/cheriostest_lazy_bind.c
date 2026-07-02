@@ -38,14 +38,14 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(lazy_bind_args,
+CHERIOSTEST(lazy_bind_args,
     "Check that lazy binding preserves capability argument metadata")
 {
 	void * __capability cap, * __capability cap2;
 
 	cap = (__cheri_tocap void * __capability)&cap;
-	cap2 = cheribsdtest_dynamic_identity_cap(cap);
-	CHERIBSDTEST_CHECK_EQ_CAP(cap, cap2);
+	cap2 = cheriostest_dynamic_identity_cap(cap);
+	CHERIOSTEST_CHECK_EQ_CAP(cap, cap2);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }

@@ -42,18 +42,18 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(libc_setjmp, "Exercise setjmp without longjmp")
+CHERIOSTEST(libc_setjmp, "Exercise setjmp without longjmp")
 {
 	jmp_buf jumpbuf;
 	int ret;
 
 	ret = setjmp(jumpbuf);
 	if (ret != 0)
-		cheribsdtest_failure_errx("setjmp returned non-zero value");
-	cheribsdtest_success();
+		cheriostest_failure_errx("setjmp returned non-zero value");
+	cheriostest_success();
 }
 
-CHERIBSDTEST(libc_setjmp_longjmp, "Exercise setjmp with longjmp")
+CHERIOSTEST(libc_setjmp_longjmp, "Exercise setjmp with longjmp")
 {
 	jmp_buf jumpbuf;
 	int ret;
@@ -61,10 +61,10 @@ CHERIBSDTEST(libc_setjmp_longjmp, "Exercise setjmp with longjmp")
 	ret = setjmp(jumpbuf);
 	if (ret == 0) {
 		longjmp(jumpbuf, 123);
-		cheribsdtest_failure_errx("longjmp returned");
+		cheriostest_failure_errx("longjmp returned");
 	}
 	if (ret != 123)
-		cheribsdtest_failure_errx(
+		cheriostest_failure_errx(
 		    "setjmp returned unexpected non-zero value");
-	cheribsdtest_success();
+	cheriostest_success();
 }

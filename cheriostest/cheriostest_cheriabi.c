@@ -75,7 +75,7 @@
 
 #define	MINCORE_PAGES	3
 
-CHERIBSDTEST(cheriabi_mincore,
+CHERIOSTEST(cheriabi_mincore,
     "Test CheriABI mincore() with various permissions and bounds")
 {
 	char *pages, *cap;
@@ -83,12 +83,12 @@ CHERIBSDTEST(cheriabi_mincore,
 	size_t pages_len = page_sz * MINCORE_PAGES;
 	char vec[MINCORE_PAGES];
 
-	pages = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, pages_len,
+	pages = CHERIOSTEST_CHECK_SYSCALL(mmap(NULL, pages_len,
 	    PROT_MAX(PROT_READ | PROT_WRITE | PROT_EXEC) | PROT_NONE,
 	    MAP_ANON | MAP_PRIVATE, -1, 0));
 
 	cap = pages;
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap");
 
 	/*
@@ -97,11 +97,11 @@ CHERIBSDTEST(cheriabi_mincore,
 	 */
 
 #if !defined(CHERI_PERM_SW_VMEM)
-	cheribsdtest_failure_errx("CHERI_PERM_SW_VMEM is not defined");
+	cheriostest_failure_errx("CHERI_PERM_SW_VMEM is not defined");
 #else
 	/* No VMEM */
 	cap = cheri_perms_and(pages, ~CHERI_PERM_SW_VMEM);
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap without VMEM perm");
 #endif
 
@@ -131,17 +131,17 @@ CHERIBSDTEST(cheriabi_mincore,
 #endif
 	/* Execute-only */
 	cap = cheri_perms_and(pages, EXEC_ONLY);
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_EXECUTE");
 
 	/* Read-only */
 	cap = cheri_perms_and(pages, READ_ONLY);
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_LOAD");
 
 	/* Write-only */
 	cap = cheri_perms_and(pages, WRITE_ONLY);
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation from mmap with only CHERI_PERM_STORE");
 	/*
 	 * mincore(2) needs to work even if the page isn't fully covered.
@@ -152,31 +152,31 @@ CHERIBSDTEST(cheriabi_mincore,
 	    pages_len - 2 * (CHERITEST_PAGE_SIZE - 1)));
 
 	/* The whole thing */
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, pages_len, vec),
 	    "whole allocation with reduced bounds");
 
 	/* 1st page */
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap, page_sz, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap, page_sz, vec),
 	    "first page (last byte inbounds)");
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap + page_sz, page_sz, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap + page_sz, page_sz, vec),
 	    "second page (all in bounds)");
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cap + pages_len - page_sz,
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cap + pages_len - page_sz,
 	    page_sz, vec), "last page (first byte in bounds)");
 
 #ifdef __FreeBSD__
 	/*
 	 * FreeBSD (nonportably) allows under-aligned address and length.
 	 */
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cheri_offset_set(cap, 0), 1, vec),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cheri_offset_set(cap, 0), 1, vec),
 	    "last byte of first page");
-	CHERIBSDTEST_CHECK_SYSCALL2(mincore(cheri_offset_set(cap, 0),
+	CHERIOSTEST_CHECK_SYSCALL2(mincore(cheri_offset_set(cap, 0),
 	    cheri_length_get(cap), vec), "whole in-bounds region");
 #endif
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_mmap_unrepresentable,
+CHERIOSTEST(cheriabi_mmap_unrepresentable,
     "Test CheriABI mmap() with unrepresentable lengths")
 {
 	int shift = 0;
@@ -206,18 +206,18 @@ CHERIBSDTEST(cheriabi_mmap_unrepresentable,
 #endif
 	if ((cap = mmap(0, len, prot, flags, -1, 0)) == MAP_FAILED)
 
-		cheribsdtest_failure_errx("mmap() failed to return a pointer "
+		cheriostest_failure_errx("mmap() failed to return a pointer "
 		    "when given an unrepresentable length (%zu)", len);
 	if (cheri_length_get(cap) != expected_len)
-		cheribsdtest_failure_errx("mmap() returned a pointer with "
+		cheriostest_failure_errx("mmap() returned a pointer with "
 		    "an unexpected length (%zu vs %zu) when given an "
 		    "unrepresentable length (%zu): %#p", cheri_length_get(cap),
 		    expected_len, len, cap);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_mmap_fixed,
+CHERIOSTEST(cheriabi_mmap_fixed,
     "Verify that we can MAP_FIXED over multiple vm map entries")
 {
 	void *p1, *p2;
@@ -232,7 +232,7 @@ CHERIBSDTEST(cheriabi_mmap_fixed,
 #else
 #error "Unsupported OS"
 #endif
-	CHERIBSDTEST_VERIFY(p1 != MAP_FAILED);
+	CHERIOSTEST_VERIFY(p1 != MAP_FAILED);
 
 	/*
 	 * Map over part of the mapping.  This (currently) results
@@ -241,7 +241,7 @@ CHERIBSDTEST(cheriabi_mmap_fixed,
 	 */
 	p2 = mmap(p1, 0x20000, PROT_READ | PROT_WRITE,
 	    MAP_PRIVATE | MAP_FIXED | MAP_ANON, -1, 0);
-	CHERIBSDTEST_VERIFY(p1 == p2);
+	CHERIOSTEST_VERIFY(p1 == p2);
 
 	/*
 	 * Map over a larger part of the origional mapping spanning
@@ -249,9 +249,9 @@ CHERIBSDTEST(cheriabi_mmap_fixed,
 	 */
 	p2 = mmap(p1, 0x40000, PROT_READ | PROT_WRITE,
 	    MAP_PRIVATE | MAP_FIXED | MAP_ANON, -1, 0);
-	CHERIBSDTEST_VERIFY(p1 == p2);
+	CHERIOSTEST_VERIFY(p1 == p2);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 static int
@@ -260,81 +260,81 @@ mmap_and_get_perms(int prot)
 	void *cap;
 	int perms;
 
-	cap = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE, prot,
+	cap = CHERIOSTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE, prot,
 		MAP_ANON | MAP_PRIVATE, -1, 0));
 	perms = cheri_perms_get(cap);
-	CHERIBSDTEST_CHECK_SYSCALL(munmap(cap, CHERITEST_PAGE_SIZE));
+	CHERIOSTEST_CHECK_SYSCALL(munmap(cap, CHERITEST_PAGE_SIZE));
 
 	return (perms);
 }
 
-CHERIBSDTEST(cheriabi_mmap_perms,
+CHERIOSTEST(cheriabi_mmap_perms,
     "Verify that mmap returns the correct permissions on capabilities")
 {
 	int perms;
 
 	/* RO and RW with implied cap perms */
 	perms = mmap_and_get_perms(PROT_READ);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_READ mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_READ mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
 	    "Found PERM_STORE on PROT_READ mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_READ mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_READ mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_READ mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_READ mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RW mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_RW mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RW mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_RW mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_RW mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_RW mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_RW mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE | PROT_EXEC);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RWX mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_RWX mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RWX mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_RWX mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_RWX mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_RWX mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_RWX mapping");
 
 /*
@@ -343,221 +343,221 @@ CHERIBSDTEST(cheriabi_mmap_perms,
 #ifdef PROT_CAP
 	/* RO and RW with explicit cap perms */
 	perms = mmap_and_get_perms(PROT_READ | PROT_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_READ | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_READ | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
 	    "Found PERM_STORE on PROT_READ | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_READ | PROT_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_READ | PROT_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_READ | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_READ | PROT_CAP mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE | PROT_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RW | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_RW | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RW | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_RW | PROT_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_RW | PROT_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_RW | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_RW | PROT_CAP mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE | PROT_EXEC |
 	    PROT_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RWX | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_RWX | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RWX | PROT_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_RWX | PROT_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_RWX | PROT_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_RWX | PROT_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_RWX | PROT_CAP mapping");
 #endif
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
  * CHERI Linux does not define PROT_CAP and PROT_NO_CAP currently.
  */
 #ifdef PROT_CAP
-CHERIBSDTEST(cheriabi_mmap_no_cap_perms,
+CHERIOSTEST(cheriabi_mmap_no_cap_perms,
     "Verify that mmap PROT_NO_CAP does not return capability permissions")
 {
 	int perms;
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_READ | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
 	    "Found PERM_STORE on PROT_READ | PROT_NO_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
 	    "Found PERM_LOAD_MUTABLE on PROT_READ | PROT_NO_CAP mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
 	    "Found PERM_LOAD_CAP on PROT_READ | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_READ | PROT_NO_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
 	    "Found PERM_CAP on PROT_READ | PROT_NO_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_READ | PROT_NO_CAP mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE | PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RW | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RW | PROT_NO_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
 	    "Found PERM_LOAD_MUTABLE on PROT_RW | PROT_NO_CAP mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
 	    "Found PERM_LOAD_CAP on PROT_RW | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_RW | PROT_NO_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
 	    "Found PERM_CAP on PROT_RW | PROT_NO_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_RW | PROT_NO_CAP mapping");
 
 	perms = mmap_and_get_perms(PROT_READ | PROT_WRITE | PROT_EXEC |
 	    PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_RWX | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_RWX | PROT_NO_CAP mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) == 0,
 	    "Found PERM_LOAD_MUTABLE on PROT_RWX | PROT_NO_CAP mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) == 0,
 	    "Found PERM_LOAD_CAP on PROT_RWX | PROT_NO_CAP mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_RWX | PROT_NO_CAP mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) == 0,
 	    "Found PERM_CAP on PROT_RWX | PROT_NO_CAP mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_RWX | PROT_NO_CAP mapping");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_mmap_maxprot_perms,
+CHERIOSTEST(cheriabi_mmap_maxprot_perms,
     "Verify that mmap PROT_MAX are honored for capability permissions")
 {
 	int perms;
 
 	perms = mmap_and_get_perms(PROT_MAX(PROT_READ | PROT_CAP) |
 	    PROT_READ | PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_MAX(PROT_READ | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) == 0,
 	    "Found PERM_STORE on PROT_MAX(PROT_READ | PROT_CAP) mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_MAX(PROT_READ | PROT_CAP) mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_MAX(PROT_READ | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) == 0,
 	    "Found PERM_STORE_CAP on PROT_MAX(PROT_READ | PROT_CAP) mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_MAX(PROT_READ | PROT_CAP) mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_MAX(PROT_READ | PROT_CAP) mapping");
 
 	perms = mmap_and_get_perms(PROT_MAX(PROT_READ | PROT_WRITE | PROT_CAP) |
 	    PROT_READ | PROT_WRITE | PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_MAX(PROT_RW | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_MAX(PROT_RW | PROT_CAP) mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_MAX(PROT_RW | PROT_CAP) mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_MAX(PROT_RW | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_MAX(PROT_RW | PROT_CAP) mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_MAX(PROT_RW | PROT_CAP) mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) == 0,
 	    "Found PERM_EXEC on PROT_MAX(PROT_RW | PROT_CAP) mapping");
 
 	perms = mmap_and_get_perms(PROT_MAX(PROT_READ | PROT_WRITE | PROT_EXEC |
 	    PROT_CAP) | PROT_READ | PROT_WRITE | PROT_EXEC | PROT_NO_CAP);
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD) != 0,
 	    "Missing PERM_LOAD on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE) != 0,
 	    "Missing PERM_STORE on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
 #ifdef HAS_CHERI_PERM_LOAD_MUTABLE
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_MUTABLE) != 0,
 	    "Missing PERM_LOAD_MUTABLE on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
 #endif
 #ifdef HAS_CHERI_PERM_LOAD_STORE_CAP
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_LOAD_CAP) != 0,
 	    "Missing PERM_LOAD_CAP on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_STORE_CAP) != 0,
 	    "Missing PERM_STORE_CAP on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
 #elif defined(HAS_CHERI_PERM_CAP)
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_CAP) != 0,
 	    "Missing PERM_CAP on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
 #endif
-	CHERIBSDTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
+	CHERIOSTEST_VERIFY2((perms & CHERI_PERM_EXECUTE) != 0,
 	    "Missing PERM_EXEC on PROT_MAX(PROT_RWX | PROT_CAP) mapping");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
@@ -582,38 +582,38 @@ create_adjacent_mappings(struct adjacent_mappings *mappings)
 	len = getpagesize() * 2;
 	memset(mappings, 0, sizeof(*mappings));
 	requested_addr = (void *)(uintcap_t)find_address_space_gap(len * 3, 0);
-	mappings->first = CHERIBSDTEST_CHECK_SYSCALL(mmap(requested_addr, len,
+	mappings->first = CHERIOSTEST_CHECK_SYSCALL(mmap(requested_addr, len,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->first));
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->first));
 	/* Try to create a mapping immediately following the latest one. */
 	requested_addr =
 	    (void *)(uintcap_t)(cheri_address_get(mappings->first) + len);
-	mappings->middle = CHERIBSDTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
+	mappings->middle = CHERIOSTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0),
 	    "Failed to create mapping at address %p", requested_addr);
-	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->middle,
+	CHERIOSTEST_CHECK_EQ_LONG((ptraddr_t)mappings->middle,
 	    (ptraddr_t)mappings->first + len);
 	requested_addr =
 	    (void *)(uintcap_t)(cheri_address_get(mappings->middle) + len);
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->middle));
-	mappings->last = CHERIBSDTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->middle));
+	mappings->last = CHERIOSTEST_CHECK_SYSCALL2(mmap(requested_addr, len,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_FIXED | MAP_PRIVATE, -1, 0),
 	    "Failed to create mapping at address %p", requested_addr);
-	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->last,
+	CHERIOSTEST_CHECK_EQ_LONG((ptraddr_t)mappings->last,
 	    (ptraddr_t)mappings->middle + len);
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->last));
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->last));
 	mappings->maplen = len;
 }
 
 static void
 free_adjacent_mappings(struct adjacent_mappings *mappings)
 {
-	CHERIBSDTEST_CHECK_SYSCALL(munmap(mappings->first, mappings->maplen));
-	CHERIBSDTEST_CHECK_SYSCALL(munmap(mappings->middle, mappings->maplen));
-	CHERIBSDTEST_CHECK_SYSCALL(munmap(mappings->last, mappings->maplen));
+	CHERIOSTEST_CHECK_SYSCALL(munmap(mappings->first, mappings->maplen));
+	CHERIOSTEST_CHECK_SYSCALL(munmap(mappings->middle, mappings->maplen));
+	CHERIOSTEST_CHECK_SYSCALL(munmap(mappings->last, mappings->maplen));
 }
 
-CHERIBSDTEST(cheriabi_munmap_invalid_ptr,
+CHERIOSTEST(cheriabi_munmap_invalid_ptr,
     "Check that munmap() rejects invalid pointer arguments")
 {
 	struct adjacent_mappings mappings;
@@ -629,70 +629,70 @@ CHERIBSDTEST(cheriabi_munmap_invalid_ptr,
 #endif
 
 	/* munmap() with an out-of-bounds length should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    munmap(mappings.middle, mappings.maplen * 2), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    munmap(mappings.middle, mappings.maplen + 1), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* munmap() with an in-bounds but untagged capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    munmap(cheri_tag_clear(mappings.middle), mappings.maplen), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* munmap() with an out-of-bounds capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    munmap(mappings.middle - mappings.maplen, mappings.maplen), expected_errno);
 	mappings.first[0] = 'a'; /* Check that the mapping is still valid */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    munmap(mappings.middle + mappings.maplen, mappings.maplen), expected_errno);
 	mappings.last[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* Unmapping the original capabilities should succeed. */
 	free_adjacent_mappings(&mappings);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_mprotect_upgrade_prot_cap,
+CHERIOSTEST(cheriabi_mprotect_upgrade_prot_cap,
     "Check that upgrading from PROT_NONE includes capability permissions")
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
+	p = CHERIOSTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_NONE | PROT_MAX(PROT_READ | PROT_WRITE),
 	    MAP_ANON | MAP_PRIVATE, -1, 0));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE));
 
 	/* Attempt to store a capability */
 	*p = __DEVOLATILE(void *, p);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_mprotect_restore_prot_cap,
+CHERIOSTEST(cheriabi_mprotect_restore_prot_cap,
     "Check that downgrading and then upgrading restores capability permissions")
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
+	p = CHERIOSTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
 	    CHERITEST_PAGE_SIZE, PROT_NONE));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p),
 	    CHERITEST_PAGE_SIZE, PROT_READ | PROT_WRITE));
 
 	/* Attempt to store a capability */
 	*p = __DEVOLATILE(void *, p);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef __FreeBSD__
 // This tests the behaviour of mmap with non-POSIX and FreeBSD-specific
 // flag PROT_MAX().
-CHERIBSDTEST(cheriabi_mprotect_downgrade_prot_cap,
+CHERIOSTEST(cheriabi_mprotect_downgrade_prot_cap,
     "Check that downgrading to PROT_MAX(PROT_READ) includes capability read",
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO | CT_FLAG_SI_ADDR,
     .ct_signum = SIGSEGV,
@@ -701,25 +701,25 @@ CHERIBSDTEST(cheriabi_mprotect_downgrade_prot_cap,
 {
 	void * volatile *p;
 
-	p = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
+	p = CHERIOSTEST_CHECK_SYSCALL(mmap(NULL, CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
 	*p = __DEVOLATILE(void *, p);
 
 	/* Downgrade and attempt to load a capability */
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(__DEVOLATILE(void *, p), CHERITEST_PAGE_SIZE,
 	    PROT_READ | PROT_MAX(PROT_READ)));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(*p));
+	CHERIOSTEST_VERIFY(cheri_tag_get(*p));
 
 	/* Try a store.  This should fault. */
-	cheribsdtest_set_expected_si_addr(
+	cheriostest_set_expected_si_addr(
 	    NULL_DERIVED_VOIDP(__DEVOLATILE(void *, p)));
 	*p = __DEVOLATILE(void *, p);
 
-	cheribsdtest_failure_errx("tagged store succeeded after downgrade");
+	cheriostest_failure_errx("tagged store succeeded after downgrade");
 }
 #endif
 
-CHERIBSDTEST(cheriabi_mprotect_invalid_ptr,
+CHERIOSTEST(cheriabi_mprotect_invalid_ptr,
     "Check that mprotect() rejects invalid pointer arguments")
 {
 	struct adjacent_mappings mappings;
@@ -735,40 +735,40 @@ CHERIBSDTEST(cheriabi_mprotect_invalid_ptr,
 	create_adjacent_mappings(&mappings);
 
 	/* mprotect() with an out-of-bounds length should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    mprotect(mappings.middle, mappings.maplen * 2, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    mprotect(mappings.middle, mappings.maplen + 1, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* mprotect() with an in-bounds but untagged capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(cheri_tag_clear(mappings.middle),
+	CHERIOSTEST_CHECK_CALL_ERROR(mprotect(cheri_tag_clear(mappings.middle),
 	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* mprotect() with an out-of-bounds capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(mappings.middle - mappings.maplen,
+	CHERIOSTEST_CHECK_CALL_ERROR(mprotect(mappings.middle - mappings.maplen,
 	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.first[0] = 'a'; /* Check that it still has PROT_WRITE */
-	CHERIBSDTEST_CHECK_CALL_ERROR(mprotect(mappings.middle + mappings.maplen,
+	CHERIOSTEST_CHECK_CALL_ERROR(mprotect(mappings.middle + mappings.maplen,
 	    mappings.maplen, PROT_NONE), expected_errno);
 	mappings.last[0] = 'a'; /* Check that it still has PROT_WRITE */
 
 	/* Sanity check: mprotect() on a valid capability should succeed. */
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(mappings.middle, mappings.maplen,
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(mappings.middle, mappings.maplen,
 	    PROT_NONE));
-	CHERIBSDTEST_CHECK_SYSCALL(mprotect(mappings.middle, mappings.maplen,
+	CHERIOSTEST_CHECK_SYSCALL(mprotect(mappings.middle, mappings.maplen,
 	    PROT_READ));
 
 	/* Unmapping the original capabilities should succeed. */
 	free_adjacent_mappings(&mappings);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #if __FreeBSD__
 // Linux does not have a minherit system call
-CHERIBSDTEST(cheriabi_minherit_invalid_ptr,
+CHERIOSTEST(cheriabi_minherit_invalid_ptr,
     "Check that minherit() rejects invalid pointer arguments")
 {
 	struct adjacent_mappings mappings;
@@ -776,30 +776,30 @@ CHERIBSDTEST(cheriabi_minherit_invalid_ptr,
 	create_adjacent_mappings(&mappings);
 
 	/* minherit() with an out-of-bounds length should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(minherit(mappings.middle,
+	CHERIOSTEST_CHECK_CALL_ERROR(minherit(mappings.middle,
 	    mappings.maplen * 2, INHERIT_NONE), EPROT);
-	CHERIBSDTEST_CHECK_CALL_ERROR(minherit(mappings.middle,
+	CHERIOSTEST_CHECK_CALL_ERROR(minherit(mappings.middle,
 	    mappings.maplen + 1, INHERIT_NONE), EPROT);
 
 	/* minherit() with an in-bounds but untagged capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(minherit(cheri_tag_clear(mappings.middle),
+	CHERIOSTEST_CHECK_CALL_ERROR(minherit(cheri_tag_clear(mappings.middle),
 	    mappings.maplen, INHERIT_NONE), EPROT);
 
 	/* minherit() with an out-of-bounds capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(minherit(mappings.middle - mappings.maplen,
+	CHERIOSTEST_CHECK_CALL_ERROR(minherit(mappings.middle - mappings.maplen,
 	    mappings.maplen, INHERIT_NONE), EPROT);
-	CHERIBSDTEST_CHECK_CALL_ERROR(minherit(mappings.middle + mappings.maplen,
+	CHERIOSTEST_CHECK_CALL_ERROR(minherit(mappings.middle + mappings.maplen,
 	    mappings.maplen, INHERIT_NONE), EPROT);
 
 	/* Sanity check: minherit() on a valid capability should succeed. */
-	CHERIBSDTEST_CHECK_SYSCALL(minherit(mappings.middle, mappings.maplen,
+	CHERIOSTEST_CHECK_SYSCALL(minherit(mappings.middle, mappings.maplen,
 	    INHERIT_NONE));
-	CHERIBSDTEST_CHECK_SYSCALL(minherit(mappings.middle, mappings.maplen,
+	CHERIOSTEST_CHECK_SYSCALL(minherit(mappings.middle, mappings.maplen,
 	    INHERIT_SHARE));
 
 	/* Unmapping the original capabilities should succeed. */
 	free_adjacent_mappings(&mappings);
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif
 
@@ -817,40 +817,40 @@ create_adjacent_mappings_shm(struct adjacent_mappings *mappings)
 
 	len = getpagesize() * 2;
 	memset(mappings, 0, sizeof(*mappings));
-	shmid = CHERIBSDTEST_CHECK_SYSCALL(shmget(IPC_PRIVATE, len, 0600));
+	shmid = CHERIOSTEST_CHECK_SYSCALL(shmget(IPC_PRIVATE, len, 0600));
 	requested_addr = (void *)(uintcap_t)find_address_space_gap(len * 3, 0);
-	mappings->first = CHERIBSDTEST_CHECK_SYSCALL(shmat(shmid,
+	mappings->first = CHERIOSTEST_CHECK_SYSCALL(shmat(shmid,
 	    requested_addr, 0));
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->first));
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->first));
 	/* Try to create a mapping immediately following the latest one. */
 	requested_addr =
 	    (void *)(uintcap_t)(cheri_address_get(mappings->first) + len);
-	mappings->middle = CHERIBSDTEST_CHECK_SYSCALL2(
+	mappings->middle = CHERIOSTEST_CHECK_SYSCALL2(
 	    shmat(shmid, requested_addr, 0),
 	    "Failed to create mapping at address %p", requested_addr);
-	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->middle,
+	CHERIOSTEST_CHECK_EQ_LONG((ptraddr_t)mappings->middle,
 	    (ptraddr_t)requested_addr);
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->middle));
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->middle));
 	requested_addr =
 	    (void *)(uintcap_t)(cheri_address_get(mappings->middle) + len);
-	mappings->last = CHERIBSDTEST_CHECK_SYSCALL2(
+	mappings->last = CHERIOSTEST_CHECK_SYSCALL2(
 	    shmat(shmid, requested_addr, 0),
 	    "Failed to create mapping at address %p", requested_addr);
-	CHERIBSDTEST_CHECK_EQ_LONG((ptraddr_t)mappings->last,
+	CHERIOSTEST_CHECK_EQ_LONG((ptraddr_t)mappings->last,
 	    (ptraddr_t)requested_addr);
-	CHERIBSDTEST_VERIFY(cheri_tag_get(mappings->last));
+	CHERIOSTEST_VERIFY(cheri_tag_get(mappings->last));
 	mappings->maplen = len;
 }
 
 static void
 free_adjacent_mappings_shm(struct adjacent_mappings *mappings)
 {
-	CHERIBSDTEST_CHECK_SYSCALL(shmdt(mappings->first));
-	CHERIBSDTEST_CHECK_SYSCALL(shmdt(mappings->middle));
-	CHERIBSDTEST_CHECK_SYSCALL(shmdt(mappings->last));
+	CHERIOSTEST_CHECK_SYSCALL(shmdt(mappings->first));
+	CHERIOSTEST_CHECK_SYSCALL(shmdt(mappings->middle));
+	CHERIOSTEST_CHECK_SYSCALL(shmdt(mappings->last));
 }
 
-CHERIBSDTEST(cheriabi_shmdt_invalid_ptr,
+CHERIOSTEST(cheriabi_shmdt_invalid_ptr,
     "Check that shmdt() rejects invalid pointer arguments")
 {
 	struct adjacent_mappings mappings;
@@ -866,19 +866,19 @@ CHERIBSDTEST(cheriabi_shmdt_invalid_ptr,
 	create_adjacent_mappings_shm(&mappings);
 
 	/* shmdt() with an in-bounds but untagged capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    shmdt(cheri_tag_clear(mappings.middle)), expected_errno);
 	mappings.middle[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* shmdt() with an out-of-bounds capability should fail. */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    shmdt(mappings.middle - mappings.maplen), expected_errno);
 	mappings.first[0] = 'a'; /* Check that the mapping is still valid */
-	CHERIBSDTEST_CHECK_CALL_ERROR(
+	CHERIOSTEST_CHECK_CALL_ERROR(
 	    shmdt(mappings.middle + mappings.maplen), expected_errno);
 	mappings.last[0] = 'a'; /* Check that the mapping is still valid */
 
 	/* Unmapping the original capabilities should succeed. */
 	free_adjacent_mappings_shm(&mappings);
-	cheribsdtest_success();
+	cheriostest_success();
 }

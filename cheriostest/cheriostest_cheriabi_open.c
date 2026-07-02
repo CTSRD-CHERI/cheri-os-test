@@ -57,23 +57,23 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(cheriabi_open_ordinary, "Smoke test for open(2)")
+CHERIOSTEST(cheriabi_open_ordinary, "Smoke test for open(2)")
 {
 	char path[] = "/dev/null";
 	int error, fd;
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
-		cheribsdtest_failure_err("open");
+		cheriostest_failure_err("open");
 
 	error = close(fd);
 	if (error != 0)
-		cheribsdtest_failure_err("close");
+		cheriostest_failure_err("close");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_offset, "Path with non-zero offset")
+CHERIOSTEST(cheriabi_open_offset, "Path with non-zero offset")
 {
 	char pathbuf[] = "xxxx/dev/null";;
 	char *path;
@@ -84,16 +84,16 @@ CHERIBSDTEST(cheriabi_open_offset, "Path with non-zero offset")
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
-		cheribsdtest_failure_err("open");
+		cheriostest_failure_err("open");
 
 	error = close(fd);
 	if (error != 0)
-		cheribsdtest_failure_err("close");
+		cheriostest_failure_err("close");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_shortened,
+CHERIOSTEST(cheriabi_open_shortened,
     "Path shorter than its capability bounds")
 {
 	char path[] = "/dev/null/xxxx";
@@ -103,16 +103,16 @@ CHERIBSDTEST(cheriabi_open_shortened,
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
-		cheribsdtest_failure_err("open");
+		cheriostest_failure_err("open");
 
 	error = close(fd);
 	if (error != 0)
-		cheribsdtest_failure_err("close");
+		cheriostest_failure_err("close");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_addr, "Path with nonsensical address")
+CHERIOSTEST(cheriabi_open_bad_addr, "Path with nonsensical address")
 {
 	char *path;
 	int fd;
@@ -121,15 +121,15 @@ CHERIBSDTEST(cheriabi_open_bad_addr, "Path with nonsensical address")
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_addr_2,
+CHERIOSTEST(cheriabi_open_bad_addr_2,
     "Path with nonsensical address in kernel range")
 {
 	char *path;
@@ -139,15 +139,15 @@ CHERIBSDTEST(cheriabi_open_bad_addr_2,
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_len,
+CHERIOSTEST(cheriabi_open_bad_len,
     "Path too long for the capability bounds")
 {
 	char pathbuf[] = "/dev/null";
@@ -158,15 +158,15 @@ CHERIBSDTEST(cheriabi_open_bad_len,
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_len_2, "Path with offset past its bounds")
+CHERIOSTEST(cheriabi_open_bad_len_2, "Path with offset past its bounds")
 {
 	char pathbuf[] = "xxxx/dev/null";;
 	char *path;
@@ -177,15 +177,15 @@ CHERIBSDTEST(cheriabi_open_bad_len_2, "Path with offset past its bounds")
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_tag, "Path with tag bit missing")
+CHERIOSTEST(cheriabi_open_bad_tag, "Path with tag bit missing")
 {
 	char pathbuf[] = "/dev/null";
 	char *path;
@@ -195,15 +195,15 @@ CHERIBSDTEST(cheriabi_open_bad_tag, "Path with tag bit missing")
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_bad_perm,
+CHERIOSTEST(cheriabi_open_bad_perm,
     "Path with CHERI_PERM_LOAD permission missing")
 {
 	char pathbuf[] = "/dev/null";
@@ -214,15 +214,15 @@ CHERIBSDTEST(cheriabi_open_bad_perm,
 
 	fd = open(path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(cheriabi_open_sentry, "Sealed path")
+CHERIOSTEST(cheriabi_open_sentry, "Sealed path")
 {
 	const char *sealed_path;
 	int fd;
@@ -230,16 +230,16 @@ CHERIBSDTEST(cheriabi_open_sentry, "Sealed path")
 	sealed_path = cheri_sentry_create("/dev/null");
 	fd = open(sealed_path, O_RDONLY);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef HAS_CHERI_PERM_SEAL
-CHERIBSDTEST(cheriabi_open_sealed, "Sealed path")
+CHERIOSTEST(cheriabi_open_sealed, "Sealed path")
 {
 	char *path, *sealed_path;
 	void *sealer;
@@ -250,14 +250,14 @@ CHERIBSDTEST(cheriabi_open_sealed, "Sealed path")
 	sealer_size = sizeof(sealer);
 	if (sysctlbyname("security.cheri.sealcap", &sealer, &sealer_size,
 	    NULL, 0) < 0)
-		cheribsdtest_failure_err("sysctlbyname(security.cheri.sealcap)");
+		cheriostest_failure_err("sysctlbyname(security.cheri.sealcap)");
 #elif defined(__linux__)
 	sealer = getauxptr(AT_CHERI_SEAL_CAP);
 	//XXX: cheri_seal() does not work if the address of the sealer is 0x0?
 	//     Is this intended?
 	sealer = (void *) (((char *) sealer) + 1);
 	if (!cheri_tag_get(sealer) || !(cheri_perms_get(sealer) & CHERI_PERM_SEAL))
-		cheribsdtest_failure_err("getauxptr failed");
+		cheriostest_failure_err("getauxptr failed");
 #else
 #error "Unsupported OS"
 #endif
@@ -265,18 +265,18 @@ CHERIBSDTEST(cheriabi_open_sealed, "Sealed path")
 	/* Allocate enough space that it's sealable for 128-bit */
 	path = calloc(1, 1<<12);
 	if (path == NULL)
-		cheribsdtest_failure_err("calloc");
+		cheriostest_failure_err("calloc");
 	strcpy(path, "/dev/null");
 	sealed_path = cheri_seal(path, sealer);
 
 	fd = open(sealed_path, O_RDONLY);
 	free(path);
 	if (fd > 0)
-		cheribsdtest_failure_errx("open succeeded");
+		cheriostest_failure_errx("open succeeded");
 
 	if (errno != EFAULT)
-		cheribsdtest_failure_err("EFAULT expected");
+		cheriostest_failure_err("EFAULT expected");
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

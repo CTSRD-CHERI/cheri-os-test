@@ -67,7 +67,7 @@ skip_malloc_revocation_disabled(const struct cheri_test *ctp __attribute__((__un
 #endif
 }
 
-CHERIBSDTEST(malloc_double_free, "malloc aborts on double free",
+CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
     .ct_flags = CT_FLAG_SIGEXIT,
     .ct_signum = SIGABRT,
     .ct_check_skip = skip_malloc_revocation_disabled)
@@ -80,11 +80,11 @@ CHERIBSDTEST(malloc_double_free, "malloc aborts on double free",
 	free(__DEVOLATILE(void *, ptr));
 	free(__DEVOLATILE(void *, ptr));
 
-	cheribsdtest_failure_errx("malloc() did not abort");
+	cheriostest_failure_errx("malloc() did not abort");
 }
 
 
-CHERIBSDTEST(malloc_revoke_basic,
+CHERIOSTEST(malloc_revoke_basic,
     "verify that a free'd pointer is revoked by malloc_revoke",
     .ct_check_skip = skip_malloc_revocation_disabled)
 {
@@ -105,16 +105,16 @@ CHERIBSDTEST(malloc_revoke_basic,
 #elif defined(__linux__)
 #pragma message "Morello Linux and CHERI Linux don't support revocation"
 #endif
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(ptr),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(ptr),
 	    "revoked ptr not revoked %#lp", ptr);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(eptr),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(eptr),
 	    "revoked eptr not revoked %#lp", eptr);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef __FreeBSD__
-CHERIBSDTEST(malloc_revoke_quarantine_force_flush_basic,
+CHERIOSTEST(malloc_revoke_quarantine_force_flush_basic,
     "verify that a free'd pointer is revoked by malloc_revoke_quarantine_force_flush",
     .ct_check_skip = skip_malloc_revocation_disabled)
 {
@@ -128,20 +128,20 @@ CHERIBSDTEST(malloc_revoke_quarantine_force_flush_basic,
 
 	free(__DEVOLATILE(void *, ptr));
 
-	CHERIBSDTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
+	CHERIOSTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
 	    "malloc_revoke_quarantine_force_flush returned %d", ret);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(ptr),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(ptr),
 	    "revoked ptr not revoked %#lp", ptr);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(eptr),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(eptr),
 	    "revoked eptr not revoked %#lp", eptr);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 extern volatile void *eptr1, *eptr2;
 volatile void *eptr1, *eptr2;
 
-CHERIBSDTEST(malloc_revoke_quarantine_force_flush_twice,
+CHERIOSTEST(malloc_revoke_quarantine_force_flush_twice,
     "flush the quarantine twice back to back",
     .ct_check_skip = skip_malloc_revocation_disabled)
 {
@@ -156,45 +156,45 @@ CHERIBSDTEST(malloc_revoke_quarantine_force_flush_twice,
 
 	free(__DEVOLATILE(void *, ptr1));
 
-	CHERIBSDTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
+	CHERIOSTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
 	    "malloc_revoke_quarantine_force_flush returned %d", ret);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(ptr1),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(ptr1),
 	    "revoked ptr1 not revoked %#lp", ptr1);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(eptr1),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(eptr1),
 	    "revoked eptr1 not revoked %#lp", eptr1);
 
 	free(__DEVOLATILE(void *, ptr2));
 
-	CHERIBSDTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
+	CHERIOSTEST_VERIFY2((ret = malloc_revoke_quarantine_force_flush()) == 0,
 	    "malloc_revoke_quarantine_force_flush returned %d", ret);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(ptr2),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(ptr2),
 	    "revoked ptr2 not revoked %#lp", ptr2);
-	CHERIBSDTEST_VERIFY2(!cheri_tag_get(eptr2),
+	CHERIOSTEST_VERIFY2(!cheri_tag_get(eptr2),
 	    "revoked eptr2 not revoked %#lp", eptr2);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #elif defined(__linux__)
 #pragma message "Morello Linux and CHERI Linux don't support revocation"
 #endif
 
-CHERIBSDTEST(malloc_zero_size,
+CHERIOSTEST(malloc_zero_size,
     "Check that allocators return non-NULL for size=0")
 {
 	void *ptr, *ptr2;
 
-	CHERIBSDTEST_VERIFY((ptr = malloc(0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = malloc(0)) != NULL);
 	free(ptr);
 
-	CHERIBSDTEST_VERIFY((ptr = calloc(0, 1)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = calloc(0, 1)) != NULL);
 	free(ptr);
-	CHERIBSDTEST_VERIFY((ptr = calloc(1, 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = calloc(1, 0)) != NULL);
 	free(ptr);
-	CHERIBSDTEST_VERIFY((ptr = calloc(0, 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = calloc(0, 0)) != NULL);
 	free(ptr);
 
-	CHERIBSDTEST_VERIFY((ptr = realloc(NULL, 0)) != NULL);
-	CHERIBSDTEST_VERIFY((ptr2 = realloc(ptr, 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = realloc(NULL, 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr2 = realloc(ptr, 0)) != NULL);
 	/*
 	 * XXX: POSIX requires that: "A pointer to the allocated space
 	 * shall be returned, and the memory object pointed to by ptr
@@ -208,18 +208,18 @@ CHERIBSDTEST(malloc_zero_size,
 	 * C/POSIX require that aligned_alloc/posix_memalign take
 	 * alignements that are a power-of-2 multiple of sizeof(void *).
 	 */
-	CHERIBSDTEST_VERIFY((ptr = aligned_alloc(sizeof(void *), 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = aligned_alloc(sizeof(void *), 0)) != NULL);
 	free(ptr);
 
-	CHERIBSDTEST_VERIFY2(posix_memalign(&ptr, sizeof(void *), 0) == 0,
+	CHERIOSTEST_VERIFY2(posix_memalign(&ptr, sizeof(void *), 0) == 0,
 	    "posix_memalign failed, errno %d", errno);
-	CHERIBSDTEST_VERIFY2(ptr != NULL, "posix_memalign returned NULL");
+	CHERIOSTEST_VERIFY2(ptr != NULL, "posix_memalign returned NULL");
 	free(ptr);
 
-	CHERIBSDTEST_VERIFY((ptr = memalign(sizeof(void *), 0)) != NULL);
+	CHERIOSTEST_VERIFY((ptr = memalign(sizeof(void *), 0)) != NULL);
 	free(ptr);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -239,7 +239,7 @@ child_is_revoking(int pid)
 		else
 			return (false);
 	} else
-		cheribsdtest_failure_errx("child exec failed");
+		cheriostest_failure_errx("child exec failed");
 }
 
 static void
@@ -249,13 +249,13 @@ malloc_revocation_ctl_common_procctl(const char *progname,
 	int pid;
 
 	pid = fork();
-	CHERIBSDTEST_VERIFY(pid >= 0);
+	CHERIOSTEST_VERIFY(pid >= 0);
 	if (pid == 0) {
 		char *progpath;
 		char *argv[2];
 
 		if (procctl_arg != NULL)
-			CHERIBSDTEST_CHECK_SYSCALL(procctl(P_PID, getpid(),
+			CHERIOSTEST_CHECK_SYSCALL(procctl(P_PID, getpid(),
 			    PROC_CHERI_REVOKE_CTL, procctl_arg));
 
 		asprintf(&progpath, "/usr/libexec/%s", progname);
@@ -265,13 +265,13 @@ malloc_revocation_ctl_common_procctl(const char *progname,
 		abort();
 	} else {
 		if (child_is_revoking(pid) == should_be_revoking)
-			cheribsdtest_success();
+			cheriostest_success();
 		else {
 			if (should_be_revoking)
-				cheribsdtest_failure_errx(
+				cheriostest_failure_errx(
 				    "child is not revoking and should be");
 			else
-				cheribsdtest_failure_errx(
+				cheriostest_failure_errx(
 				    "child is revoking and should not be");
 		}
 	}
@@ -284,14 +284,14 @@ malloc_revocation_ctl_common(const char *progname, bool should_be_revoking)
 	    NULL);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_baseline,
+CHERIOSTEST(malloc_revocation_ctl_baseline,
     "A base binary reports revocation is enabled",
     .ct_check_skip = skip_need_default_cheri_revoke)
 {
 	malloc_revocation_ctl_common("malloc_revoke_enabled", true);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_elfnote_disable,
+CHERIOSTEST(malloc_revocation_ctl_elfnote_disable,
     "A binary with elfnote disabling reports revocation is disable",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -299,7 +299,7 @@ CHERIBSDTEST(malloc_revocation_ctl_elfnote_disable,
 	    false);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_elfnote_enable,
+CHERIOSTEST(malloc_revocation_ctl_elfnote_enable,
     "A binary with elfnote enabling reports revocation is enabled",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -307,7 +307,7 @@ CHERIBSDTEST(malloc_revocation_ctl_elfnote_enable,
 	    true);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_elfnote_disable_protctl_enable,
+CHERIOSTEST(malloc_revocation_ctl_elfnote_disable_protctl_enable,
     "A binary with elfnote disabling reports revocation is disable",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -317,7 +317,7 @@ CHERIBSDTEST(malloc_revocation_ctl_elfnote_disable_protctl_enable,
 	    "malloc_revoke_enabled_elfnote_disable", true, &arg);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_elfnote_enable_protctl_disable,
+CHERIOSTEST(malloc_revocation_ctl_elfnote_enable_protctl_disable,
     "A binary with elfnote enabling reports revocation is enabled",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -327,14 +327,14 @@ CHERIBSDTEST(malloc_revocation_ctl_elfnote_enable_protctl_disable,
 	    "malloc_revoke_enabled_elfnote_enable", false, &arg);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_suid_baseline,
+CHERIOSTEST(malloc_revocation_ctl_suid_baseline,
     "A suid binary reports revocation is enabled",
     .ct_check_skip = skip_need_default_cheri_revoke)
 {
 	malloc_revocation_ctl_common("malloc_revoke_enabled_suid", true);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_disable,
+CHERIOSTEST(malloc_revocation_ctl_suid_elfnote_disable,
     "A suid binary with elfnote disabling reports revocation is disable",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -342,7 +342,7 @@ CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_disable,
 	    false);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_enable,
+CHERIOSTEST(malloc_revocation_ctl_suid_elfnote_enable,
     "A suid binary with elfnote enabling reports revocation is enabled",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -350,7 +350,7 @@ CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_enable,
 	    true);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_disable_protctl_enable,
+CHERIOSTEST(malloc_revocation_ctl_suid_elfnote_disable_protctl_enable,
     "A binary with elfnote disabling reports revocation is disable",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -360,7 +360,7 @@ CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_disable_protctl_enable,
 	    "malloc_revoke_enabled_suid_elfnote_disable", false, &arg);
 }
 
-CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_enable_protctl_disable,
+CHERIOSTEST(malloc_revocation_ctl_suid_elfnote_enable_protctl_disable,
     "A binary with elfnote enabling reports revocation is enabled",
     .ct_check_skip = skip_need_cheri_revoke)
 {
@@ -371,16 +371,16 @@ CHERIBSDTEST(malloc_revocation_ctl_suid_elfnote_enable_protctl_disable,
 }
 #endif
 
-CHERIBSDTEST(malloc_early_constructor,
+CHERIOSTEST(malloc_early_constructor,
     "invoke malloc in an early constructor",
-    .ct_check_skip = cheribsdtest_skip_no_helper)
+    .ct_check_skip = cheriostest_skip_no_helper)
 {
 	pid_t pid;
 	int res;
-	char *helper_path = strdup(cheribsdtest_get_helper_path());
+	char *helper_path = strdup(cheriostest_get_helper_path());
 
 	pid = fork();
-	CHERIBSDTEST_VERIFY(pid >= 0);
+	CHERIOSTEST_VERIFY(pid >= 0);
 	if (pid == 0) {
 		char *argv[2];
 
@@ -391,9 +391,9 @@ CHERIBSDTEST(malloc_early_constructor,
 	} else {
 		waitpid(pid, &res, 0);
 		if (WIFEXITED(res) && WEXITSTATUS(res) == 0)
-			cheribsdtest_success();
+			cheriostest_success();
 		else
-			cheribsdtest_failure_errx("child %s exited improperly",
+			cheriostest_failure_errx("child %s exited improperly",
 			    helper_path);
 	}
 }
@@ -405,7 +405,7 @@ check_mallocx(size_t size)
 	void *data;
 
 	data = mallocx(size, MALLOCX_ALIGN(size));
-	CHERIBSDTEST_VERIFY2(__builtin_is_aligned(data, size),
+	CHERIOSTEST_VERIFY2(__builtin_is_aligned(data, size),
 	    "mallocx(%#zx, MALLOCX_ALIGN(%#zx (%#x))) -> %#lp: "
 	    "Not correctly aligned! offset: %#zx\n",
 	    size, size, MALLOCX_ALIGN(size), data, (ptraddr_t)data -
@@ -413,7 +413,7 @@ check_mallocx(size_t size)
 	free(data);
 }
 
-CHERIBSDTEST(mallocx_alignment, "Check that mallocx aligns allocations")
+CHERIOSTEST(mallocx_alignment, "Check that mallocx aligns allocations")
 {
 	size_t sizes[] = {0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000,
 	    0x10000};
@@ -421,7 +421,7 @@ CHERIBSDTEST(mallocx_alignment, "Check that mallocx aligns allocations")
 	for (size_t i = 0; i < cheritest_nitems(sizes); i++)
 		check_mallocx(sizes[i]);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 static void
@@ -430,14 +430,14 @@ check_rallocx(size_t size)
 	void *data = malloc(1);
 
 	data = rallocx(data, size, MALLOCX_ALIGN(size));
-	CHERIBSDTEST_VERIFY2(__builtin_is_aligned(data, size),
+	CHERIOSTEST_VERIFY2(__builtin_is_aligned(data, size),
 	    "rallocx(%#zx, MALLOCX_ALIGN(%#zx (%#x))) -> %#lp: "
 	    "Not correctly aligned! offset: %#zx\n",
 	    size, size, MALLOCX_ALIGN(size), data, (ptraddr_t)data -
 	    (ptraddr_t)__builtin_align_down(data, size));
 }
 
-CHERIBSDTEST(rallocx_alignment, "Check that rallocx aligns allocations")
+CHERIOSTEST(rallocx_alignment, "Check that rallocx aligns allocations")
 {
 	size_t sizes[] = {0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000,
 	    0x10000};
@@ -445,6 +445,6 @@ CHERIBSDTEST(rallocx_alignment, "Check that rallocx aligns allocations")
 	for (size_t i = 0; i < cheritest_nitems(sizes); i++)
 		check_rallocx(sizes[i]);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

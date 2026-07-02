@@ -85,15 +85,15 @@ struct struct_char {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_char,
+CHERIOSTEST(bounds_subobject_struct_char,
     "Check subobject bounds on a 1-character field in a structure")
 {
 	struct struct_char sc;
 	void * __capability cp;
 
 	cp = &sc.c;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc.c));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc.c));
+	cheriostest_success();
 }
 
 struct struct_int {
@@ -102,15 +102,15 @@ struct struct_int {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_int,
+CHERIOSTEST(bounds_subobject_struct_int,
     "Check subobject bounds on an integer field in a structure")
 {
 	struct struct_int si;
 	void * __capability cp;
 
 	cp = &si.i;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(si.i));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(si.i));
+	cheriostest_success();
 }
 
 struct struct_chararray1 {
@@ -119,15 +119,15 @@ struct struct_chararray1 {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_chararray1,
+CHERIOSTEST(bounds_subobject_struct_chararray1,
     "Check subobject bounds on a char array of size 1 within a struct")
 {
 	struct struct_chararray1 sc1;
 	void * __capability cp;
 
 	cp = &sc1.chararray1;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc1.chararray1));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc1.chararray1));
+	cheriostest_success();
 }
 
 struct struct_chararray2 {
@@ -136,15 +136,15 @@ struct struct_chararray2 {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_chararray2,
+CHERIOSTEST(bounds_subobject_struct_chararray2,
     "Check subobject bounds on a char array of size 2 within a struct")
 {
 	struct struct_chararray2 sc2;
 	void * __capability cp;
 
 	cp = (void * __capability)&sc2.chararray2;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc2.chararray2));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc2.chararray2));
+	cheriostest_success();
 }
 
 struct struct_chararray128 {
@@ -153,15 +153,15 @@ struct struct_chararray128 {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_chararray128,
+CHERIOSTEST(bounds_subobject_struct_chararray128,
     "Check subobject bounds on a char array of size 128 within a struct")
 {
 	struct struct_chararray128 sc128;
 	void * __capability cp;
 
 	cp = &sc128.chararray128;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc128.chararray128));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc128.chararray128));
+	cheriostest_success();
 }
 
 struct struct_chararray129 {
@@ -170,15 +170,15 @@ struct struct_chararray129 {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_chararray129,
+CHERIOSTEST(bounds_subobject_struct_chararray129,
     "Check subobject bounds on a char array of size 129 within a struct")
 {
 	struct struct_chararray129 sc129;
 	void * __capability cp;
 
 	cp = &sc129.chararray129;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc129.chararray129));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc129.chararray129));
+	cheriostest_success();
 }
 
 struct struct_chararray2048 {
@@ -187,15 +187,15 @@ struct struct_chararray2048 {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_chararray2048,
+CHERIOSTEST(bounds_subobject_struct_chararray2048,
     "Check subobject bounds on a char array of size 2048 within a struct")
 {
 	struct struct_chararray2048 sc2048;
 	void * __capability cp;
 
 	cp = &sc2048.chararray2048;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc2048.chararray2048));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(sc2048.chararray2048));
+	cheriostest_success();
 }
 
 /*
@@ -211,12 +211,12 @@ CHERIBSDTEST(bounds_subobject_struct_chararray2048,
 extern volatile struct struct_chararray2048 sc2048_sideeffect;
 volatile struct struct_chararray2048 sc2048_sideeffect;
 
-CHERIBSDTEST(bounds_subjobject_struct_chararray2048_inbounds,
+CHERIOSTEST(bounds_subjobject_struct_chararray2048_inbounds,
     "Check in-bounds store in subjobject character array of size 2048")
 {
 
 	sc2048_sideeffect.chararray2048[2047] = 1;
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -226,7 +226,7 @@ CHERIBSDTEST(bounds_subjobject_struct_chararray2048_inbounds,
 extern volatile char * __capability subobject_ptr_outofbounds;
 volatile char * __capability subobject_ptr_outofbounds;
 
-CHERIBSDTEST(bounds_subobject_struct_chararray2048_overflow,
+CHERIOSTEST(bounds_subobject_struct_chararray2048_overflow,
     "Check that an overflow of a 2048-byte subobject array faults",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -244,7 +244,7 @@ CHERIBSDTEST(bounds_subobject_struct_chararray2048_overflow,
 	subobject_ptr_outofbounds = &sc2048_sideeffect.chararray2048[2047];
 	subobject_ptr_outofbounds++;
 	*subobject_ptr_outofbounds = 1;
-	cheribsdtest_failure_errx(
+	cheriostest_failure_errx(
 	    "Unexpected store success out-of-bounds on subobject array");
 }
 
@@ -257,15 +257,15 @@ struct struct_trailing_chararray1 {
 	char chararray1[1];
 };
 
-CHERIBSDTEST(bounds_subobject_struct_trailing_chararray1,
+CHERIOSTEST(bounds_subobject_struct_trailing_chararray1,
     "Check subobject bounds on a trailing non-exempt 1-byte character array")
 {
 	struct struct_trailing_chararray1 stc1;
 	void * __capability cp;
 
 	cp = &stc1.chararray1;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(stc1.chararray1));
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, sizeof(stc1.chararray1));
+	cheriostest_success();
 }
 
 /*
@@ -278,7 +278,7 @@ union union_two_chararrays {
 	char chararray32[32];
 };
 
-CHERIBSDTEST(bounds_subobject_union_two_chararrays,
+CHERIOSTEST(bounds_subobject_union_two_chararrays,
     "Check that unions do enforce subobject bounds on individual structures")
 {
 	union union_two_chararrays twoarrays;
@@ -286,9 +286,9 @@ CHERIBSDTEST(bounds_subobject_union_two_chararrays,
 
 	chararray16p = &twoarrays.chararray16;
 	chararray32p = &twoarrays.chararray32;
-	CHERIBSDTEST_VERIFY(cheri_length_get(chararray16p) == sizeof(twoarrays));
-	CHERIBSDTEST_VERIFY(cheri_length_get(chararray32p) == sizeof(twoarrays));
-	cheribsdtest_success();
+	CHERIOSTEST_VERIFY(cheri_length_get(chararray16p) == sizeof(twoarrays));
+	CHERIOSTEST_VERIFY(cheri_length_get(chararray32p) == sizeof(twoarrays));
+	cheriostest_success();
 }
 
 /*
@@ -300,16 +300,16 @@ struct struct_trailing_chararray_fla {
 };
 #define	FLA_LENGTH	16
 
-CHERIBSDTEST(bounds_subobject_struct_trailing_chararray_fla,
+CHERIOSTEST(bounds_subobject_struct_trailing_chararray_fla,
     "Check subobject bounds on a flexible array member")
 {
 	struct struct_trailing_chararray_fla *stcf = alloca(FLA_LENGTH);
 	void * __capability cp;
 
 	cp = &stcf->chararray;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, FLA_LENGTH -
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, FLA_LENGTH -
 	    offsetof(struct struct_trailing_chararray_fla, chararray));
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -321,16 +321,16 @@ struct struct_trailing_chararray_zla {
 };
 #define	ZLA_LENGTH	16
 
-CHERIBSDTEST(bounds_subobject_struct_trailing_chararray_zla,
+CHERIOSTEST(bounds_subobject_struct_trailing_chararray_zla,
     "Check subobject bounds on a zero length array")
 {
 	struct struct_trailing_chararray_zla *stca = alloca(ZLA_LENGTH);
 	void * __capability cp;
 
 	cp = &stca->chararray;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, ZLA_LENGTH -
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, ZLA_LENGTH -
 	    offsetof(struct struct_trailing_chararray_zla, chararray));
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -342,7 +342,7 @@ struct struct_exempt_char {
 	char overflow;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_exempt_char,
+CHERIOSTEST(bounds_subobject_struct_exempt_char,
     "Check that a char within a struct can be exempted from subobject bounds")
 {
 	struct struct_exempt_char sec;
@@ -355,11 +355,11 @@ CHERIBSDTEST(bounds_subobject_struct_exempt_char,
 	 */
 	cp = &sec.c;
 	refcp = &sec;
-	CHERIBSDTEST_VERIFY(cheri_offset_get(cp) ==
+	CHERIOSTEST_VERIFY(cheri_offset_get(cp) ==
 	    offsetof(struct struct_exempt_char, c));
 	cp = (void *)((intptr_t)cp - offsetof(struct struct_exempt_char, c));
-	CHERIBSDTEST_CHECK_EQ_CAP(cp, refcp);
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_EQ_CAP(cp, refcp);
+	cheriostest_success();
 }
 
 /*
@@ -373,16 +373,16 @@ struct struct_remaininglength_chararray16 {
 };
 #define	RLA_LENGTH	64
 
-CHERIBSDTEST(bounds_subobject_chararray_remaininglength,
+CHERIOSTEST(bounds_subobject_chararray_remaininglength,
     "Check the remaining length struct annotation")
 {
 	struct struct_trailing_chararray_fla *stcf = alloca(RLA_LENGTH);
 	void * __capability cp;
 
 	cp = &stcf->chararray;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, RLA_LENGTH -
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, RLA_LENGTH -
 	    offsetof(struct struct_remaininglength_chararray16, chararray16));
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 /*
@@ -399,7 +399,7 @@ struct struct_remaininglength_size_chararray {
 	    ((cheri_subobject_bounds_use_remaining_size(RLAS_STATIC_BOUND)));
 };
 
-CHERIBSDTEST(bounds_subobject_chararray_remaininglength_size,
+CHERIOSTEST(bounds_subobject_chararray_remaininglength_size,
     "Check the remaining length structure annotation with a fixed size")
 {
 	struct struct_remaininglength_size_chararray *srsc =
@@ -407,8 +407,8 @@ CHERIBSDTEST(bounds_subobject_chararray_remaininglength_size,
 	void * __capability cp;
 
 	cp = &srsc->chararray;
-	CHERIBSDTEST_CHECK_CAP_BOUNDS_PRECISE(cp, RLAS_STATIC_BOUND);
-	cheribsdtest_success();
+	CHERIOSTEST_CHECK_CAP_BOUNDS_PRECISE(cp, RLAS_STATIC_BOUND);
+	cheriostest_success();
 }
 
 /*
@@ -427,7 +427,7 @@ struct struct_queue_slist_entry {
 	int i;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_exempt_queue_slist,
+CHERIOSTEST(bounds_subobject_struct_exempt_queue_slist,
     "Check queue(3) SLIST macros subobject bounds exemptions")
 {
 	SLIST_HEAD(, struct_queue_slist_entry) slist;
@@ -443,7 +443,7 @@ CHERIBSDTEST(bounds_subobject_struct_exempt_queue_slist,
 	SLIST_FOREACH(entryp, &slist, entry) {
 		side_effect += entryp->i;
 	}
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 struct struct_queue_stailq_entry {
@@ -452,7 +452,7 @@ struct struct_queue_stailq_entry {
 	int i;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_exempt_queue_stailq,
+CHERIOSTEST(bounds_subobject_struct_exempt_queue_stailq,
     "Check queue(3) STAILQ macros subobject bounds exemptions")
 {
 	STAILQ_HEAD(, struct_queue_stailq_entry) stailq;
@@ -468,7 +468,7 @@ CHERIBSDTEST(bounds_subobject_struct_exempt_queue_stailq,
 	STAILQ_FOREACH(entryp, &stailq, entry) {
 		side_effect += entryp->i;
 	}
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 struct struct_queue_list_entry {
@@ -477,7 +477,7 @@ struct struct_queue_list_entry {
 	int i;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_exempt_queue_list,
+CHERIOSTEST(bounds_subobject_struct_exempt_queue_list,
     "Check queue(3) LIST macros subobject bounds exemptions")
 {
 	LIST_HEAD(, struct_queue_list_entry) list;
@@ -493,7 +493,7 @@ CHERIBSDTEST(bounds_subobject_struct_exempt_queue_list,
 	LIST_FOREACH(entryp, &list, entry) {
 		side_effect += entryp->i;
 	}
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 struct struct_queue_tailq_entry {
@@ -502,7 +502,7 @@ struct struct_queue_tailq_entry {
 	int i;
 };
 
-CHERIBSDTEST(bounds_subobject_struct_exempt_queue_tailq,
+CHERIOSTEST(bounds_subobject_struct_exempt_queue_tailq,
     "Check queue(3) TAILQ macros subobject bounds exemptions")
 {
 	TAILQ_HEAD(, struct_queue_tailq_entry) tailq;
@@ -518,5 +518,5 @@ CHERIBSDTEST(bounds_subobject_struct_exempt_queue_tailq,
 	TAILQ_FOREACH(entryp, &tailq, entry) {
 		side_effect += entryp->i;
 	}
-	cheribsdtest_success();
+	cheriostest_success();
 }

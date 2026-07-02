@@ -102,10 +102,10 @@ varargs_test_onearg(const char *fmt, ...)
 	/* Improperly access invalid second argument. */
 	i = va_arg(ap, int);
 
-	cheribsdtest_failure_errx("va_arg() overran bounds without fault");
+	cheriostest_failure_errx("va_arg() overran bounds without fault");
 }
 
-CHERIBSDTEST(bounds_varargs_vaarg_overflow,
+CHERIOSTEST(bounds_varargs_vaarg_overflow,
     "check that va_arg() triggers a fault on overrun",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -122,7 +122,7 @@ CHERIBSDTEST(bounds_varargs_vaarg_overflow,
 )
 {
 #ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
 #endif
 	varargs_test_onearg("%p", NULL);
 }
@@ -138,7 +138,7 @@ CHERIBSDTEST(bounds_varargs_vaarg_overflow,
  * zero-length pointer would also be fine -- if one arises in one of our ABIs,
  * the acceptable conditions may need to be updated.
  */
-CHERIBSDTEST(bounds_varargs_empty_pointer_null,
+CHERIOSTEST(bounds_varargs_empty_pointer_null,
     "check that empty varargs gives a tag violation on load",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -154,21 +154,21 @@ CHERIBSDTEST(bounds_varargs_empty_pointer_null,
 )
 {
 #ifdef SEGV_CAPTAGERR_DEF_MISSING
-	cheribsdtest_failure_errx("Signal code SEGV_CAPTAGERR missing");
+	cheriostest_failure_errx("Signal code SEGV_CAPTAGERR missing");
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%p");
 #pragma clang diagnostic pop
 
-	cheribsdtest_failure_errx("printf(\"%%p\") did not fault");
+	cheriostest_failure_errx("printf(\"%%p\") did not fault");
 }
 
 /*
  * Check that if we overflow the varargs array with a load, we get a bounds
  * violation.
  */
-CHERIBSDTEST(bounds_varargs_printf_load,
+CHERIOSTEST(bounds_varargs_printf_load,
     "check that load via printf varargs overflow faults",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -184,14 +184,14 @@ CHERIBSDTEST(bounds_varargs_printf_load,
 )
 {
 #ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%c%p", 1);
 #pragma clang diagnostic pop
 
-	cheribsdtest_failure_errx("printf(\"%%c%%p\", 1) did not fault");
+	cheriostest_failure_errx("printf(\"%%c%%p\", 1) did not fault");
 }
 
 /*
@@ -199,7 +199,7 @@ CHERIBSDTEST(bounds_varargs_printf_load,
  * store via (%n), we get a bounds violation -- rather than, say, a tag
  * violation as a result of dereferencing that pointer.
  */
-CHERIBSDTEST(bounds_varargs_printf_store,
+CHERIOSTEST(bounds_varargs_printf_store,
     "check that store via printf varargs overflow faults",
 #ifdef __FreeBSD__
     .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
@@ -215,12 +215,12 @@ CHERIBSDTEST(bounds_varargs_printf_store,
 )
 {
 #ifdef SEGV_CAPBOUNDSERR_DEF_MISSING
-	cheribsdtest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
+	cheriostest_failure_errx("SEGV_CAPBOUNDSERR is not defined");
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat"
 	printf("%c%n", 0);
 #pragma clang diagnostic pop
 
-	cheribsdtest_failure_errx("printf(\"%%c%%n\", 0) did not fault");
+	cheriostest_failure_errx("printf(\"%%c%%n\", 0) did not fault");
 }

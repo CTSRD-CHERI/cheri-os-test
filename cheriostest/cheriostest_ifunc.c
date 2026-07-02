@@ -44,15 +44,15 @@ DEFINE_UIFUNC(static, int, simple_ifunc, (void))
 	return (simple_ifunc_impl);
 }
 
-CHERIBSDTEST(call_ifunc, "Check IFUNCs can be called")
+CHERIOSTEST(call_ifunc, "Check IFUNCs can be called")
 {
 	int ret;
 
 	ret = simple_ifunc();
 	if (ret != 42)
-		cheribsdtest_failure_errx("Returned %d, expected 42", ret);
+		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 DEFINE_UIFUNC(static, int, canon_plt_ifunc, (void))
@@ -60,7 +60,7 @@ DEFINE_UIFUNC(static, int, canon_plt_ifunc, (void))
 	return (simple_ifunc_impl);
 }
 
-CHERIBSDTEST(global_data_ifunc_fptr,
+CHERIOSTEST(global_data_ifunc_fptr,
     "Check global function pointers can be initialised to an IFUNC")
 {
 	static int (* volatile fptr)(void) = &canon_plt_ifunc;
@@ -68,34 +68,34 @@ CHERIBSDTEST(global_data_ifunc_fptr,
 
 	ret = (*fptr)();
 	if (ret != 42)
-		cheribsdtest_failure_errx("Returned %d, expected 42", ret);
+		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
-CHERIBSDTEST(dynamic_ifunc,
+CHERIOSTEST(dynamic_ifunc,
     "Check IFUNCs can be called from another object")
 {
 	int ret;
 
-	ret = cheribsdtest_dynamic_ifunc();
+	ret = cheriostest_dynamic_ifunc();
 	if (ret != 42)
-		cheribsdtest_failure_errx("Returned %d, expected 42", ret);
+		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(global_data_dynamic_ifunc_fptr,
+CHERIOSTEST(global_data_dynamic_ifunc_fptr,
     "Check global function pointers can be initialised to an IFUNC from another object")
 {
-	static int (* volatile fptr)(void) = &cheribsdtest_dynamic_ifunc;
+	static int (* volatile fptr)(void) = &cheriostest_dynamic_ifunc;
 	int ret;
 
 	ret = (*fptr)();
 	if (ret != 42)
-		cheribsdtest_failure_errx("Returned %d, expected 42", ret);
+		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 #endif

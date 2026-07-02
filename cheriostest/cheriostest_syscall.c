@@ -67,12 +67,12 @@
 
 #include "cheriostest.h"
 
-CHERIBSDTEST(sig_dfl_neq_ign, "Test SIG_DFL != SIG_IGN")
+CHERIOSTEST(sig_dfl_neq_ign, "Test SIG_DFL != SIG_IGN")
 {
 	if (SIG_IGN == SIG_DFL)
-		cheribsdtest_failure_errx("SIG_{IGN,DFL} conflated");
+		cheriostest_failure_errx("SIG_{IGN,DFL} conflated");
 	else
-		cheribsdtest_success();
+		cheriostest_success();
 }
 
 static void
@@ -81,7 +81,7 @@ test_sig_dfl_ign_handler(int x)
 	(void)x;
 }
 
-CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
+CHERIOSTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 {
 	int cpid;
 	int res;
@@ -142,10 +142,10 @@ CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
 		exit(42);
 	}
 
-	cheribsdtest_success();
+	cheriostest_success();
 }
 
-CHERIBSDTEST(ptrace_basic,
+CHERIOSTEST(ptrace_basic,
     "Test basic handling of ptrace functionality",
 #if defined(__FreeBSD__)
     /* Tracked as https://github.com/CTSRD-CHERI/cheribsd/issues/2621 */
@@ -157,7 +157,7 @@ CHERIBSDTEST(ptrace_basic,
 	int pfd[2];
 	char c;
 
-	CHERIBSDTEST_CHECK_SYSCALL(pipe(pfd));
+	CHERIOSTEST_CHECK_SYSCALL(pipe(pfd));
 
 	cpid = fork();
 	if (cpid != 0) {
@@ -165,42 +165,42 @@ CHERIBSDTEST(ptrace_basic,
 
 		/* Wait for child to start. */
 		close(pfd[1]);
-		CHERIBSDTEST_CHECK_EQ_SIZE(read(pfd[0], &c, 1), 1);
-		CHERIBSDTEST_VERIFY(c == 'c');
+		CHERIOSTEST_CHECK_EQ_SIZE(read(pfd[0], &c, 1), 1);
+		CHERIOSTEST_VERIFY(c == 'c');
 		status = 0;
 		res = waitpid(cpid, &status, WNOHANG | WNOWAIT);
-		CHERIBSDTEST_CHECK_EQ_INT(status, 0);
+		CHERIOSTEST_CHECK_EQ_INT(status, 0);
 
 		/* Attach to process */
-		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_ATTACH, cpid, NULL, 0));
+		CHERIOSTEST_CHECK_SYSCALL(ptrace(PT_ATTACH, cpid, NULL, 0));
 #if defined(__FreeBSD__)
 		res = waitpid(cpid, &status, WTRAPPED);
 		stopsig = WIFSTOPPED(status) ? WSTOPSIG(status) : -1;
-		CHERIBSDTEST_CHECK_EQ_INT(res, cpid);
-		CHERIBSDTEST_CHECK_EQ_INT(stopsig, SIGSTOP);
+		CHERIOSTEST_CHECK_EQ_INT(res, cpid);
+		CHERIOSTEST_CHECK_EQ_INT(stopsig, SIGSTOP);
 #elif defined(__linux__)
 		res = waitpid(cpid, &status, WSTOPPED);
-		CHERIBSDTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0");
-		CHERIBSDTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGURG");
+		CHERIOSTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0");
+		CHERIOSTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGURG");
 #endif
 
 		/* Kill it */
-		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_KILL, cpid, NULL, 0));
+		CHERIOSTEST_CHECK_SYSCALL(ptrace(PT_KILL, cpid, NULL, 0));
 		/* In case PT_KILL fails, notify child to exit */
 		res = write(pfd[0], "x", 1);
 		close(pfd[0]);
 
 		/* Reap it */
 		res = waitpid(cpid, &status, 0);
-		CHERIBSDTEST_CHECK_EQ_INT(res, cpid);
+		CHERIOSTEST_CHECK_EQ_INT(res, cpid);
 		exitcode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 		termsig = WIFSIGNALED(status) ? WTERMSIG(status) : -1;
 		stopsig = WIFSTOPPED(status) ? WSTOPSIG(status) : -1;
 		/* Should exit with SIGKILL signal code */
 		if (termsig == SIGKILL)
-			cheribsdtest_success();
+			cheriostest_success();
 		else
-			cheribsdtest_failure_errx("Unexpected child exit: "
+			cheriostest_failure_errx("Unexpected child exit: "
 			    "status=%#x code=%d termsig=%d stopsig=%d\n",
 			    status, exitcode, termsig, stopsig);
 	} else {
@@ -229,7 +229,7 @@ test_aio_sival_handler(int sig, siginfo_t *si, void *uc __attribute__((__unused_
 	test_aio_sival_info = *si;
 }
 
-CHERIBSDTEST(aio_sival, "Test pointer passing through AIO signals")
+CHERIOSTEST(aio_sival, "Test pointer passing through AIO signals")
 {
 	char buf[128];
 	int pfd[2];
@@ -241,13 +241,13 @@ CHERIBSDTEST(aio_sival, "Test pointer passing through AIO signals")
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = &test_aio_sival_handler;
 	res = sigaction(SIGUSR1, &sa, NULL);
-	CHERIBSDTEST_VERIFY2(res == 0, "Could not install AIO handler; errno=%d", errno);
+	CHERIOSTEST_VERIFY2(res == 0, "Could not install AIO handler; errno=%d", errno);
 
 	res = sigaction(SIGALRM, &sa, NULL);
-	CHERIBSDTEST_VERIFY2(res == 0, "Could not install ALRM handler; errno=%d", errno);
+	CHERIOSTEST_VERIFY2(res == 0, "Could not install ALRM handler; errno=%d", errno);
 
 	res = socketpair(AF_UNIX, SOCK_STREAM, 0, pfd);
-	CHERIBSDTEST_VERIFY2(res == 0, "Could not create socketpair; errno=%d", errno);
+	CHERIOSTEST_VERIFY2(res == 0, "Could not create socketpair; errno=%d", errno);
 
 	bzero(&aiocb, sizeof(aiocb));
 	aiocb.aio_fildes = pfd[0];
@@ -260,37 +260,37 @@ CHERIBSDTEST(aio_sival, "Test pointer passing through AIO signals")
 	aiocb.aio_sigevent.sigev_value.sival_ptr = test_aio_sival_handler;
 
 	res = aio_read(&aiocb);
-	CHERIBSDTEST_VERIFY2(res == 0, "Could not register aio; errno=%d", errno);
+	CHERIOSTEST_VERIFY2(res == 0, "Could not register aio; errno=%d", errno);
 
-	CHERIBSDTEST_VERIFY(sigemptyset(&sigset) == 0);
-	CHERIBSDTEST_VERIFY(sigaddset(&sigset, SIGUSR1) == 0);
-	CHERIBSDTEST_VERIFY(sigaddset(&sigset, SIGALRM) == 0);
-	CHERIBSDTEST_VERIFY(sigprocmask(SIG_BLOCK, &sigset, &osigset) == 0);
+	CHERIOSTEST_VERIFY(sigemptyset(&sigset) == 0);
+	CHERIOSTEST_VERIFY(sigaddset(&sigset, SIGUSR1) == 0);
+	CHERIOSTEST_VERIFY(sigaddset(&sigset, SIGALRM) == 0);
+	CHERIOSTEST_VERIFY(sigprocmask(SIG_BLOCK, &sigset, &osigset) == 0);
 	close(pfd[1]);
 	alarm(2);
-	CHERIBSDTEST_VERIFY(sigsuspend(&osigset) == -1 && errno == EINTR);
+	CHERIOSTEST_VERIFY(sigsuspend(&osigset) == -1 && errno == EINTR);
 	close(pfd[0]);
 
 	switch (test_aio_sival_signal) {
 	case SIGALRM:
-		cheribsdtest_failure_errx("Test timeout!");
+		cheriostest_failure_errx("Test timeout!");
 		break;
 	case 0:
-		cheribsdtest_failure_errx("No signal received?");
+		cheriostest_failure_errx("No signal received?");
 		break;
 	default:
-		cheribsdtest_failure_errx("Bad signal %d",
+		cheriostest_failure_errx("Bad signal %d",
 					test_aio_sival_signal);
 		break;
 	case SIGUSR1:
-		CHERIBSDTEST_VERIFY2(test_aio_sival_info.si_code == SI_ASYNCIO,
+		CHERIOSTEST_VERIFY2(test_aio_sival_info.si_code == SI_ASYNCIO,
 			"Signal not asyncio?  code=%d",
 			test_aio_sival_info.si_code);
-		CHERIBSDTEST_VERIFY2(test_aio_sival_info.si_value.sival_ptr ==
+		CHERIOSTEST_VERIFY2(test_aio_sival_info.si_value.sival_ptr ==
 				  test_aio_sival_handler,
 			"Bad si_value; expected=%#p got=%#p",
 			test_aio_sival_handler,
 			test_aio_sival_info.si_value.sival_ptr);
-		cheribsdtest_success();
+		cheriostest_success();
 	}
 }
