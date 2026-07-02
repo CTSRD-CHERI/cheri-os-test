@@ -30,6 +30,8 @@
  * SUCH DAMAGE.
  */
 
+#include <stdint.h>
+
 #include <sys/types.h>
 
 #include <dlfcn.h>
