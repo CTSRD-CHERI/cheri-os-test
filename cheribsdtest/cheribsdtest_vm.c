@@ -97,9 +97,6 @@
 
 #include "cheribsdtest.h"
 
-#define SHARED_MAPPING_WARN "Shared mappings won't support capabilties " \
-	    "by default in the future."
-
 static void
 gen_shm_obj_name(char *shm_obj_name, size_t len)
 {
@@ -156,8 +153,7 @@ skip_need_writable_tmp(const struct cheri_test *ctp __attribute__((__unused__)))
 
 /*
  * Tests to check that tags are ... or aren't ... preserved for various page
- * types.  'Anonymous' pages provided by the VM subsystem should always
- * preserve tags.  Pages from the filesystem should not -- unless they are
+ * types.  Pages from the filesystem should not preserve tags -- unless they are
  * mapped MAP_PRIVATE, in which case they should, since they are effectively
  * anonymous pages.  Or so I claim.
  *
@@ -171,8 +167,8 @@ mmap_and_check_tag_stored(int fd, int protflags, int mapflags)
 	void * __capability cp_value;
 	int v;
 
-	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(), protflags,
-	     mapflags, fd, 0));
+	cp = CHERIBSDTEST_CHECK_SYSCALL(mmap(fd == -1 ? NULL : fd,
+		getpagesize(), protflags, mapflags, fd, 0));
 	cp_value = cheritest_cheri_ptr(&v, sizeof(v));
 	*cp = cp_value;
 	cp_value = *cp;
@@ -320,65 +316,87 @@ CHERIBSDTEST(vm_mmap_disallowed_prot,
 #ifdef __FreeBSD__
 /* Linux doesn't have SHM_ANON */
 CHERIBSDTEST(vm_tag_shm_open_anon_shared,
-    "check tags are stored for SHM_ANON MAP_SHARED pages")
+    "check tags are stored for SHM_ANON MAP_SHARED pages when requested")
 {
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
-	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE | PROT_CAP,
+		MAP_SHARED);
+	cheribsdtest_success();
 }
 #endif
 
-CHERIBSDTEST(vm_tag_shm_open_named_shared,
+CHERIBSDTEST(vm_tag_shm_open_named_shared_no_implied_cap,
     "check tags are stored for named MAP_SHARED pages",
-#ifdef __linux__
     /*
      * We expect SIGSEGV only on Linux because CheriBSD currently
      * supports capabilities in shared mappings by default, but this
      * will change in the future.
      */
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+    .ct_flags = CT_FLAG_SIGNAL,
     .ct_signum = SIGSEGV,
 #ifdef __FreeBSD__
     /*
      * Linux is missing this SIGSEGV signal code.
      */
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_si_code = SEGV_STORETAG,
-#endif
 #endif
 )
 {
 	char shm_name[32];
 
-#if !defined(SEGV_STORETAG)
-	cheribsdtest_failure_errx("The signal code SEGV_STORETAG is not defined");
-#endif
-
 	int fd = create_named_shm_obj(shm_name, sizeof(shm_name));
 	CHERIBSDTEST_CHECK_SYSCALL(shm_unlink(shm_name));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
-#ifdef __FreeBSD__
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
-#elif defined(__linux__)
 	cheribsdtest_failure_errx("tagged store succeeded");
+}
+
+#ifdef __FreeBSD__
+CHERIBSDTEST(vm_tag_shm_open_anon_shared_no_implied_cap,
+    "check tags are not stored for SHM_ANON MAP_SHARED pages by default",
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
+    .ct_signum = SIGSEGV,
+    .ct_si_code = SEGV_STORETAG,
+    .ct_si_trapno = TRAPNO_STORE_CAP_PF,
+    .ct_check_skip = skip_need_writable_tmp)
+{
+	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
+	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
+
+	cheribsdtest_failure_errx("store succeeded");
+}
 #endif
+
+CHERIBSDTEST(vm_tag_anon_shared_no_implied_cap,
+	"check tags are not stored for anonymous MAP_SHARED pages by default",
+	.ct_flags = CT_FLAG_SIGNAL,
+	.ct_signum = SIGSEGV,
+#ifdef __FreeBSD__
+	.ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE | CT_FLAG_SI_TRAPNO,
+	.ct_si_code = SEGV_STORETAG,
+	.ct_si_trapno = TRAPNO_STORE_CAP_PF,
+#endif
+	.ct_check_skip = skip_need_writable_tmp)
+{
+	mmap_and_check_tag_stored(-1, PROT_READ | PROT_WRITE,
+		MAP_SHARED | MAP_ANON);
+
+	cheribsdtest_failure_errx("store succeeded");
 }
 
 CHERIBSDTEST(vm_tag_memfd_create_shared,
     "check tags are stored for SHM_ANON MAP_SHARED pages",
-#ifdef __linux__
-    /*
-     * We expect SIGSEGV only on Linux because CheriBSD currently
-     * supports capabilities in shared mappings by default, but this
-     * will change in the future.
-     */
-    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
+#if !defined(__riscv_zcheripurecap)
+    .ct_flags = CT_FLAG_SIGNAL,
     .ct_signum = SIGSEGV,
 #ifdef __FreeBSD__
     /*
      * Linux is missing this SIGSEGV signal code.
      */
+    .ct_flags = CT_FLAG_SIGNAL | CT_FLAG_SI_CODE,
     .ct_si_code = SEGV_STORETAG,
 #endif
 #endif
@@ -386,10 +404,11 @@ CHERIBSDTEST(vm_tag_memfd_create_shared,
 {
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(memfd_create(__func__, 0));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
-	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
-#ifdef __FreeBSD__
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
-#elif defined(__linux__)
+#if defined (__riscv_zcheripurecap)
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED, true);
+	cheribsdtest_success();
+#else
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED, false);
 	cheribsdtest_failure_errx("tagged store succeeded");
 #endif
 }
@@ -423,15 +442,20 @@ vm_tag_shm_open_shared2x(int fd)
 	void * __capability volatile * map2;
 	void * __capability c2;
 
+#ifdef PROT_CAP
 	map2 = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-		PROT_READ, MAP_SHARED, fd, 0));
+		PROT_READ | PROT_CAP, MAP_SHARED, fd, 0));
 
 	/* Verify that no capability present */
 	c2 = *map2;
 	CHERIBSDTEST_VERIFY2(cheri_tag_get(c2) == 0, "tag exists on first read");
 	CHERIBSDTEST_VERIFY2(c2 == NULL, "Initial read NULL");
 
-	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE | PROT_CAP,
+		MAP_SHARED);
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 	/* And now verify that it is, thanks to the aliased maps */
 	c2 = *map2;
@@ -449,7 +473,7 @@ CHERIBSDTEST(vm_tag_shm_open_anon_shared2x,
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	vm_tag_shm_open_shared2x(fd);
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 #endif
 
@@ -461,7 +485,7 @@ CHERIBSDTEST(vm_tag_shm_open_named_shared2x,
 	CHERIBSDTEST_CHECK_SYSCALL(shm_unlink(shm_name));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	vm_tag_shm_open_shared2x(fd);
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 
 static void
@@ -504,8 +528,12 @@ vm_shm_open_unix_surprise(const char *shm_obj_name)
 
 		CHERIBSDTEST_VERIFY2(fd >= 0, "fd read OK");
 
+#ifdef PROT_CAP
 		map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-		    PROT_READ, MAP_SHARED, fd, 0));
+		    PROT_READ | PROT_CAP, MAP_SHARED, fd, 0));
+#else
+		cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 		c = *map;
 
 		if (verbose)
@@ -551,14 +579,18 @@ vm_shm_open_unix_surprise(const char *shm_obj_name)
 #endif
 		CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 
+#ifdef PROT_CAP
 		map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-						PROT_READ | PROT_WRITE,
+						PROT_READ | PROT_WRITE | PROT_CAP,
 						MAP_SHARED, fd, 0));
+#else
+		cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 		/* Just some pointer */
 		*map = &fd;
 		c = *map;
-		CHERIBSDTEST_VERIFY2(cheri_tag_get(c) != 0, "tag written");
+		CHERIBSDTEST_VERIFY2(cheri_tag_get(c) != 0, "tag not written");
 
 		if (verbose)
 			fprintf(stderr, "tx cap: %#lp\n", c);
@@ -585,9 +617,9 @@ vm_shm_open_unix_surprise(const char *shm_obj_name)
 
 		waitpid(pid, &res, 0);
 		if (res == 0) {
-			cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+			cheribsdtest_failure_errx("tags failed to transfer");
 		} else {
-			cheribsdtest_failure_errx("tag transfer succeeded");
+			cheribsdtest_success();
 		}
 	}
 }
@@ -604,12 +636,16 @@ CHERIBSDTEST(vm_shm_open_anon_unix_surprise,
 
 CHERIBSDTEST(vm_shm_open_named_unix_surprise,
     "test SHM_ANON vs SCM_RIGHTS",
+/*
+ * XXXPM: The intended behaviour needs to be discussed on the
+ *        OS portability mailing list.
+ */
 #if defined(__FreeBSD__)
     .ct_xfail_reason = "Tags currently survive cross-AS "
 					   "aliasing of SHM_ANON objects")
 #elif defined(__linux__)
-	.ct_flags = CT_FLAG_SIGNAL,
-	.ct_signum = SIGSEGV)
+    .ct_flags = CT_FLAG_SIGNAL,
+    .ct_signum = SIGSEGV)
 #endif
 {
 	char shm_name[32];
@@ -626,8 +662,12 @@ shm_open_read_nocaps(int shm_fd)
 
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(shm_fd, getpagesize()));
 
+#if PROT_CAP
 	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0));
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, shm_fd, 0));
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 	/* Just some pointer */
 	*map = &shm_fd;
@@ -642,7 +682,7 @@ shm_open_read_nocaps(int shm_fd)
 	    "untagged value not read");
 
 	CHERIBSDTEST_CHECK_SYSCALL(close(shm_fd));
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 
 #ifdef __FreeBSD__
@@ -657,10 +697,14 @@ CHERIBSDTEST(shm_open_anon_read_nocaps,
 CHERIBSDTEST(shm_open_named_read_nocaps,
     "check that read(2) of a shm_open fd does not return tags")
 {
+#ifdef PROT_CAP
 	char shm_name[32];
 	int fd = create_named_shm_obj(shm_name, sizeof(shm_name));
 	CHERIBSDTEST_CHECK_SYSCALL(shm_unlink(shm_name));
 	shm_open_read_nocaps(fd);
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 }
 
 static void
@@ -672,8 +716,12 @@ shm_open_write_nocaps(int shm_fd)
 
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(shm_fd, getpagesize()));
 
+#ifdef PROT_CAP
 	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0));
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, shm_fd, 0));
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 	/* Just some pointer */
 	c = &shm_fd;
@@ -700,7 +748,7 @@ CHERIBSDTEST(shm_open_anon_write_nocaps,
 #endif
 
 CHERIBSDTEST(shm_open_anon_shm,
-    "check that write(2) of a shm_open fd does not set tags")
+    "check that write(2) of a named shm_open fd does not set tags")
 {
 	char shm_name[32];
 	int fd = create_named_shm_obj(shm_name, sizeof(shm_name));
@@ -847,9 +895,13 @@ CHERIBSDTEST(vm_cap_share_sigaction,
 CHERIBSDTEST(vm_tag_dev_zero_shared,
     "check tags are stored for /dev/zero MAP_SHARED pages")
 {
+#ifdef PROT_CAP
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(open("/dev/zero", O_RDWR));
-	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE, MAP_SHARED);
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	mmap_and_check_tag_stored(fd, PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED);
+	cheribsdtest_success();
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 }
 
 CHERIBSDTEST(vm_tag_dev_zero_private,
@@ -951,10 +1003,14 @@ vm_cow_read(int fd)
 	/*
 	 * Create 'real' and copy-on-write mappings.
 	 */
+#ifdef PROT_CAP
 	cp_real = CHERIBSDTEST_CHECK_SYSCALL2(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0), "mmap cp_real");
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0), "mmap cp_real");
 	cp_copy = CHERIBSDTEST_CHECK_SYSCALL2(mmap(NULL, getpagesize(),
 	    PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0), "mmap cp_copy");
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 	/*
 	 * Write out a tagged capability to 'real' mapping -- doesn't really
@@ -992,7 +1048,7 @@ CHERIBSDTEST(vm_cow_anon_read,
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	vm_cow_read(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 #endif
 
@@ -1012,7 +1068,7 @@ CHERIBSDTEST(vm_cow_named_read,
 	cheribsdtest_failure_errx("Linux does not define the signal code " \
 	    "SEGV_LOADTAG");
 #endif
-
+#ifdef PROT_CAP
 	/*
 	 * Create anonymous shared memory object.
 	 */
@@ -1022,9 +1078,12 @@ CHERIBSDTEST(vm_cow_named_read,
 	vm_cow_read(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
 #ifdef __FreeBSD__
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 #elif defined(__linux__)
 	cheribsdtest_failure_errx("tagged store succeeded");
+#endif
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
 #endif
 }
 
@@ -1040,10 +1099,14 @@ vm_cow_write(int fd)
 	/*
 	 * Create 'real' and copy-on-write mappings.
 	 */
+#ifdef PROT_CAP
 	cp_real = CHERIBSDTEST_CHECK_SYSCALL2(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0), "mmap cp_real");
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0), "mmap cp_real");
 	cp_copy = CHERIBSDTEST_CHECK_SYSCALL2(mmap(NULL, getpagesize(),
 	    PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0), "mmap cp_copy");
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 
 	/*
 	 * Write out a tagged capability to 'real' mapping -- doesn't really
@@ -1096,7 +1159,7 @@ CHERIBSDTEST(vm_cow_anon_write,
 	int fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	vm_cow_write(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 #endif
 
@@ -1121,7 +1184,7 @@ CHERIBSDTEST(vm_cow_named_write,
 	cheribsdtest_failure_errx("Linux does not define the signal code " \
 	    "SEGV_STORETAG");
 #endif
-
+#ifdef PROT_CAP
 	/*
 	 * Create anonymous shared memory object.
 	 */
@@ -1131,9 +1194,12 @@ CHERIBSDTEST(vm_cow_named_write,
 	vm_cow_write(fd);
 	CHERIBSDTEST_CHECK_SYSCALL(close(fd));
 #ifdef __FreeBSD__
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 #elif defined(__linux__)
 	cheribsdtest_failure_errx("tagged store succeeded");
+#endif
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined");
 #endif
 }
 
@@ -1758,11 +1824,16 @@ CHERIBSDTEST(vm_large_pages_basic,
 		    "psind=%d errno=%d", psind, errno);
 		CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, ps[psind]));
 		addr = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, ps[psind],
-		    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+		    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0));
 #elif defined(__linux__)
+#if PROT_CAP
 		addr = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, ps[psind],
-		    PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE | MAP_HUGETLB |
+		    PROT_READ | PROT_WRITE | PROT_CAP,
+		    MAP_ANON | MAP_SHARED | MAP_HUGETLB |
 		    (__builtin_ctzll(ps[psind]) << MAP_HUGE_SHIFT), -1, 0));
+#else
+		cheribsdtest_failure_errx("PROT_CAP is not defined");
+#endif
 #endif
 
 		/* Verify mmap output */
@@ -3220,7 +3291,7 @@ CHERIBSDTEST(cheri_revoke_shm_anon_hoard_unmapped,
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 
 	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0));
 
 	to_revoke = malloc(1);
 	*map = to_revoke;
@@ -3239,7 +3310,7 @@ CHERIBSDTEST(cheri_revoke_shm_anon_hoard_unmapped,
 	CHERIBSDTEST_VERIFY(to_revoke == *map);
 	CHERIBSDTEST_VERIFY(check_revoked(*map));
 
-	cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+	cheribsdtest_success();
 }
 
 CHERIBSDTEST(cheri_revoke_shm_anon_hoard_closed,
@@ -3307,7 +3378,7 @@ CHERIBSDTEST(cheri_revoke_shm_anon_hoard_closed,
 		CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 
 		map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-		    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+		    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0));
 
 		to_revoke = malloc(1);
 		*map = to_revoke;
@@ -3360,7 +3431,7 @@ CHERIBSDTEST(cheri_revoke_shm_anon_hoard_closed,
 
 		waitpid(pid, &res, 0);
 		if (res == 0) {
-			cheribsdtest_success_with_warn(SHARED_MAPPING_WARN);
+			cheribsdtest_success();
 		} else {
 			cheribsdtest_failure_errx("child failed");
 		}

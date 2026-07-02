@@ -233,8 +233,12 @@ CHERIBSDTEST(ptrace_writecap, "Basic tests of PIOD_WRITE_CHERI_CAP")
 	fd = CHERIBSDTEST_CHECK_SYSCALL(shm_open(SHM_ANON, O_RDWR, 0600));
 	CHERIBSDTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 
+#ifdef PROT_CAP
 	map = CHERIBSDTEST_CHECK_SYSCALL(mmap(NULL, getpagesize(),
-	    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+	    PROT_READ | PROT_WRITE | PROT_CAP, MAP_SHARED, fd, 0));
+#else
+	cheribsdtest_failure_errx("PROT_CAP is not defined")
+#endif
 
 	pid = fork_child();
 
