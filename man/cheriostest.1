@@ -1,0 +1,104 @@
+.\"-
+.\" Copyright (c) 2026 Paul Metzger
+.\" All rights reserved.
+.\"
+.\" This software was developed by the CHERI Research Centre (CRC) in the
+.\" Department of Computer Science and Technology at the University of
+.\" Cambridge under the EPSRC grant "UKRI3001: CHERI Research Centre".
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd July 9, 2026
+.Dt CHERIOSTESTS 1
+.Os
+.Sh NAME
+.Nm cheriostests
+.Nd low-level CHERI test suite
+.Sh SYNOPSIS
+.Nm cheriostests-purecap
+.Op Fl fcdsqQvx 
+.Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
+.Pp
+.Nm cheriostests-purecap-dynamic
+.Op Fl fcdsqQvx 
+.Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
+.Pp
+.Nm cheriostests-purecap-mt
+.Op Fl fcdsqQvx 
+.Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
+.Pp
+.Nm cheriostests-purecap-dynamic-mt
+.Op Fl fcdsqQvx 
+.Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
+.Sh DESCRIPTION 
+.Nm
+is a low-level test suite for CHERI-enabled POSIX-based systems. The suite primarily tests operating system (OS) interfaces that were adapted for CHERI. It also includes tests of C compiler behaviour, some of which interacts with the operating system.
+.Pp
+.Nm cheriostests-purecap-mt
+includes multithreaded test cases.
+.Nm cheriostests-purecap-dynamic
+and
+.Nm cheriostests-purecap-dynamic-mt
+additionally perform tests that require a dynamically linked test suite binary.
+.Sh OPTIONS
+A subset of tests can be selected by passing test case names as
+.Ar TEST
+arguments. Only one of
+.Fl l ,
+.Fl a ,
+.Fl g
+and
+.Ar TEST
+may be specified.
+.Bl -tag -width indent
+.It Fl l
+List all tests.
+.It Fl a
+Run all tests.
+.It Fl g Ar GLOB
+Run matching tests.
+.It Fl f
+Only include fast tests.
+.It Fl c
+Enable core dumps.
+.It Fl d
+Attach a debugger before running tests.
+.It Fl s
+Sleep for one second after each test.
+.It Fl q
+Enable QEMU tracing in the test process.
+.It Fl Q
+Enable QEMU tracing in the test process (user-mode only).
+.It Fl v
+Verbose output
+.It Fl x
+Output results in JUnit XML format.
+.El
+.Sh AUTHORS
+This manual page was written by Paul Metzger (paul.metzger@cl.cam.ac.uk). Portions were taken from the test suite's help output and were originally authored by Robert Watson.
+.Sh SEE ALSO
+The
+.Nm
+test suite was derived from CheriBSD's
+.Sy cheribsdtest
+test suite:
+.Lk https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest
