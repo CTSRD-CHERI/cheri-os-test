@@ -1,5 +1,5 @@
 .include <src.opts.mk>
 
-PROG=	cheribsdtest-purecap-benchmark
+PROG=	cheriostest-purecap-benchmark
 
 .include "../Makefile.purecap-benchmark"

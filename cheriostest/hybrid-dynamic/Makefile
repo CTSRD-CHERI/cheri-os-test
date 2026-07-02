@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-PROG=	cheribsdtest-hybrid-dynamic
+PROG=	cheriostest-hybrid-dynamic
 
 CHERIBSD_DYNAMIC_TESTS=	yes
 

@@ -139,7 +139,7 @@ skip_need_writable_tmp(const struct cheri_test *ctp __attribute__((__unused__)))
 {
 	static const char *reason = NULL;
 	static int checked = 0;
-	char template[] = "/tmp/cheribsdtest.XXXXXXXX";
+	char template[] = "/tmp/cheriostest.XXXXXXXX";
 	int fd;
 
 	if (checked)
@@ -951,7 +951,7 @@ CHERIOSTEST(vm_tag_dev_zero_private,
 static int
 create_tempfile(void)
 {
-	char template[] = "/tmp/cheribsdtest.XXXXXXXX";
+	char template[] = "/tmp/cheriostest.XXXXXXXX";
 	int fd = CHERIOSTEST_CHECK_SYSCALL2(mkstemp(template),
 	    "mkstemp %s", template);
 	CHERIOSTEST_CHECK_SYSCALL(unlink(template));

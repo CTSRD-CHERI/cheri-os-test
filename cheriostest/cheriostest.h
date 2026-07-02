@@ -408,7 +408,7 @@ extern void *cheriostest_memmove(void *dst, const void *src, size_t n);
 extern ptraddr_t find_address_space_gap(size_t len, size_t align);
 
 /*
- * Spawn a new copy of cheribsdtest and run the test's associated child
+ * Spawn a new copy of cheriostest and run the test's associated child
  * function.
  */
 extern pid_t cheriostest_spawn_child(enum spawn_child_mode mode);

@@ -1,5 +1,5 @@
 .include <src.opts.mk>
 
-PROG=	cheribsdtest-hybrid
+PROG=	cheriostest-hybrid
 
 .include "../Makefile.hybrid"

@@ -730,7 +730,7 @@ mk_exec_args(const struct cheri_test *ctp)
 #elif defined(__FreeBSD__)
 	/*
 	 * XXX: This won't work for direct exec as an rtld argument.
-	 * (e.g., /libexec/ld-elf.so.1 /bin/cheribsdtest-purecap-dynamic)
+	 * (e.g., /libexec/ld-elf.so.1 /bin/cheriostest-purecap-dynamic)
 	 * If this becomes an issue we could alter rtld to update
 	 * AT_EXECPATH or add some sort of execve_self(3) implemented
 	 * by rtld for dynamic binaries and libc for static.

@@ -73,7 +73,7 @@ skip_non_tmpfs_tmp(const struct cheri_test *ctp __attribute__((__unused__)))
 static int
 create_tempfile(void)
 {
-	char template[] = "/tmp/cheribsdtest.XXXXXXXX";
+	char template[] = "/tmp/cheriostest.XXXXXXXX";
 	int fd = CHERIOSTEST_CHECK_SYSCALL2(mkstemp(template),
 	    "mkstemp %s", template);
 	CHERIOSTEST_CHECK_SYSCALL(unlink(template));

@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-PROG=	cheribsdtest-hybrid-mt
+PROG=	cheriostest-hybrid-mt
 
 CHERIBSD_THREAD_TESTS=	yes
 

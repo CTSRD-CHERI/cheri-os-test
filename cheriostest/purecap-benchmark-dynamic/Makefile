@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-PROG=	cheribsdtest-purecap-benchmark-dynamic
+PROG=	cheriostest-purecap-benchmark-dynamic
 
 CHERIBSD_DYNAMIC_TESTS=	yes
 
