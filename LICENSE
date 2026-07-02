@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2012-2018, 2020-2021 Robert N. M. Watson
- * Copyright (c) 2014-2016, 2018, 2020-2023 SRI International
+ * Copyright (c) 2014-2016, 2018, 2020-2025 SRI International
  * Copyright (c) 2017-2019, 2021, 2023-2024 Jessica Clarke
  * Copyright (c) 2017 Edward Tomasz Napierala
  * Copyright (c) 2012-2014 David T. Chisnall
@@ -12,8 +12,23 @@
  * All rights reserved.
  *
  * This software was developed by SRI International and the University of
- * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
- * ("CTSRD"), as part of the DARPA CRASH research programme.
+ * Cambridge Computer Laboratory (Department of Computer Science and
+ * Technology) under DARPA contract HR0011-18-C-0016 ("ECATS"), as part of the
+ * DARPA SSITH research programme and under DARPA/AFRL contract
+ * (FA8750-10-C-0237) ("CTSRD"), as part of the DARPA CRASH research programme.
+ *
+ * This software was developed by SRI International, the University of
+ * Cambridge Computer Laboratory (Department of Computer Science and
+ * Technology), and Capabilities Limited under Defense Advanced Research
+ * Projects Agency (DARPA) Contract No. HR001123C0031 ("MTSS"),
+ * Contract No. HR001122C0110 ("ETC") and under Defense Advanced Research
+ * Projects Agency / Air Force Research Laboratory (DARPA/AFRL) Contract
+ * No. FA8750-24-C-B047 ("DEC").
+ *
+ * This software was developed by the University of Cambridge Computer
+ * Laboratory (Department of Computer Science and Technology) under Innovate
+ * UK project 105694, "Digital Security by Design (DSbD) Technology Platform
+ * Prototype".
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

@@ -1,23 +1,23 @@
 # Contributors
-This test suite is heavily based on the CheriBSD test suite [`cheribsdtest`](https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest). This list acknowledges all contributors to the original test suite and this portable variant of it.
-Alexander Richardson        <Alexander.Richardson@cl.cam.ac.uk>
-Alfredo Mazzinghi           <am2419@cl.cam.ac.uk>
-Brett Gutstein              <brett.gutstein@cst.cam.ac.uk>
-Brian Li                    <brianli@sri.com>
-Brooks Davis                <brooks@one-eyed-alien.net>
-Dapeng Gao                  <dapeng.gao@cl.cam.ac.uk>,<dapeng@dpgao.cn>
-David Chisnall              <theraven@FreeBSD.org>
-Edward Tomasz Napierala     <trasz@FreeBSD.org>
-Ed Maste                    <emaste@FreeBSD.org>
-George V. Neville-Neil      <gnn@freebsd.org>
-Jessica Clarke              <jrtc27@jrtc27.com>
-John Baldwin                <jhb@FreeBSD.org>
-Khilan Gudka                <Khilan.Gudka@cl.cam.ac.uk>
-Mark Johnston               <markj@FreeBSD.org>,<markjdb@gmail.com>
-Mike Roe                    <mr101@vica.cl.cam.ac.uk>
-Munraj Vadera               <mbv21@cam.ac.uk> <munraj.vadera@cl.cam.ac.uk>
-Nathaniel Filardo           <nwf20@cl.cam.ac.uk>
-Nathaniel Wesley Filardo    <nfilardo@microsoft.com>,<nwf20@cl.cam.ac.uk>
-Paul Metzger                <paul.metzger@cl.cam.ac.uk>,<pffm2@cl.cam.ac.uk>,<pffm2@cam.ac.uk>
-Robert N. M. Watson         <robert.watson@cl.cam.ac.uk>, <rwatson@FreeBSD.org>
-Robert Norton               <robert.norton@microsoft.com>
+This test suite is derived from CheriBSD's [`cheribsdtest`](https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest). This list acknowledges all contributors to the original test suite and this portable variant of it.
+- Alexander Richardson      (Alexander.Richardson@cl.cam.ac.uk)
+- Alfredo Mazzinghi         (am2419@cl.cam.ac.uk)
+- Brett Gutstein            (brett.gutstein@cst.cam.ac.uk)
+- Brian Li                  (brianli@sri.com)
+- Brooks Davis              (brooks@one-eyed-alien.net)
+- Dapeng Gao                (dapeng.gao@cl.cam.ac.uk, dapeng@dpgao.cn)
+- David Chisnall            (theraven@FreeBSD.org)
+- Edward Tomasz Napierala   (trasz@FreeBSD.org)
+- Ed Maste                  (emaste@FreeBSD.org)
+- George V. Neville-Neil    (gnn@freebsd.org)
+- Jessica Clarke            (jrtc27@jrtc27.com)
+- John Baldwin              (jhb@FreeBSD.org)
+- Khilan Gudka              (Khilan.Gudka@cl.cam.ac.uk)
+- Mark Johnston             (markj@FreeBSD.org, markjdb@gmail.com)
+- Mike Roe                  (mr101@vica.cl.cam.ac.uk)
+- Munraj Vadera             (mbv21@cam.ac.uk, munraj.vadera@cl.cam.ac.uk)
+- Nathaniel Filardo         (nwf20@cl.cam.ac.uk)
+- Nathaniel Wesley Filardo  (nfilardo@microsoft.com, nwf20@cl.cam.ac.uk)
+- Paul Metzger              (paul.metzger@cl.cam.ac.uk)
+- Robert N. M. Watson       (robert.watson@cl.cam.ac.uk, rwatson@FreeBSD.org)
+- Robert Norton             (robert.norton@microsoft.com)
