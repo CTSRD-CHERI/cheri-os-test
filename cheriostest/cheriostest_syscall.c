@@ -1,0 +1,296 @@
+/*-
+ * Copyright (c) 2013-2016 Robert N. M. Watson
+ * Copyright (c) 2026 Paul Metzger
+ * All rights reserved.
+ *
+ * This software was developed by the CHERI Research Centre (CRC) in the
+ * Department of Computer Science and Technology at the University of
+ * Cambridge under the EPSRC grant "UKRI3001: CHERI Research Centre".
+ *
+ * This software was developed by SRI International and the University of
+ * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
+ * ("CTSRD"), as part of the DARPA CRASH research programme.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#if !__has_feature(capabilities)
+#error "This code requires a CHERI-aware compiler"
+#endif
+
+#if defined(__FreeBSD__)
+#include <sys/aio.h>
+#include <sys/sysctl.h>
+#include <sys/signal.h>
+
+#include <cheri/cheri.h>
+#elif defined(__linux__)
+#include <aio.h>
+#include <signal.h>
+#endif
+
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/ptrace.h>
+
+#include <assert.h>
+#include <err.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sysexits.h>
+#include <unistd.h>
+
+#include "cheriostest.h"
+
+CHERIBSDTEST(sig_dfl_neq_ign, "Test SIG_DFL != SIG_IGN")
+{
+	if (SIG_IGN == SIG_DFL)
+		cheribsdtest_failure_errx("SIG_{IGN,DFL} conflated");
+	else
+		cheribsdtest_success();
+}
+
+static void
+test_sig_dfl_ign_handler(int x)
+{
+	(void)x;
+}
+
+CHERIBSDTEST(sig_dfl_ign, "Test proper handling of SIG_DFL and SIG_IGN")
+{
+	int cpid;
+	int res;
+	struct sigaction sa;
+	sigset_t ss, oss;
+
+	bzero(&sa, sizeof sa);
+
+	/* Block SIGUSR1 and SIGURG */
+	res = sigprocmask(0, NULL, &ss);
+	assert(res == 0);
+	res = sigaddset(&ss, SIGUSR1);
+	assert(res == 0);
+	res = sigaddset(&ss, SIGURG);
+	assert(res == 0);
+	res = sigprocmask(SIG_BLOCK, &ss, &oss);
+	assert(res == 0);
+
+	/* Install IGN as behavior for SIGUSR1 */
+	sa.sa_handler = SIG_IGN;
+	res = sigaction(SIGUSR1, &sa, NULL);
+	assert(res == 0);
+
+	/* Make SIGURG a no-op */
+	sa.sa_handler = test_sig_dfl_ign_handler;
+	res = sigaction(SIGURG, &sa, NULL);
+	assert(res == 0);
+
+	cpid = fork();
+	if (cpid != 0) {
+		int status;
+		kill(cpid, SIGUSR1); /* Ignored */
+		kill(cpid, SIGURG); /* wake from suspend */
+		res = waitpid(cpid, &status, 0);
+		assert(res == cpid);
+		assert(WIFEXITED(status) == 1);
+		assert(WEXITSTATUS(status) == 42);
+	} else {
+		sigsuspend(&oss);
+		exit(42);
+	}
+
+	/* Use SIG_DFL for SIGUSR1 */
+	sa.sa_handler = SIG_DFL;
+	res = sigaction(SIGUSR1, &sa, NULL);
+	assert(res == 0);
+
+	cpid = fork();
+	if (cpid != 0) {
+		int status;
+		kill(cpid, SIGUSR1); /* Fatal */
+		res = waitpid(cpid, &status, 0);
+		assert(res == cpid);
+		assert(WIFSIGNALED(status) == 1);
+		assert(WTERMSIG(status) == SIGUSR1);
+	} else {
+		sigsuspend(&oss);
+		exit(42);
+	}
+
+	cheribsdtest_success();
+}
+
+CHERIBSDTEST(ptrace_basic,
+    "Test basic handling of ptrace functionality",
+#if defined(__FreeBSD__)
+    /* Tracked as https://github.com/CTSRD-CHERI/cheribsd/issues/2621 */
+    .ct_xfail_reason = "ptrace(PT_KILL) does not appear to deliver signal"
+#endif
+    )
+{
+	int cpid, res;
+	int pfd[2];
+	char c;
+
+	CHERIBSDTEST_CHECK_SYSCALL(pipe(pfd));
+
+	cpid = fork();
+	if (cpid != 0) {
+		int status, stopsig, termsig, exitcode;
+
+		/* Wait for child to start. */
+		close(pfd[1]);
+		CHERIBSDTEST_CHECK_EQ_SIZE(read(pfd[0], &c, 1), 1);
+		CHERIBSDTEST_VERIFY(c == 'c');
+		status = 0;
+		res = waitpid(cpid, &status, WNOHANG | WNOWAIT);
+		CHERIBSDTEST_CHECK_EQ_INT(status, 0);
+
+		/* Attach to process */
+		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_ATTACH, cpid, NULL, 0));
+#if defined(__FreeBSD__)
+		res = waitpid(cpid, &status, WTRAPPED);
+		stopsig = WIFSTOPPED(status) ? WSTOPSIG(status) : -1;
+		CHERIBSDTEST_CHECK_EQ_INT(res, cpid);
+		CHERIBSDTEST_CHECK_EQ_INT(stopsig, SIGSTOP);
+#elif defined(__linux__)
+		res = waitpid(cpid, &status, WSTOPPED);
+		CHERIBSDTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0");
+		CHERIBSDTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGURG");
+#endif
+
+		/* Kill it */
+		CHERIBSDTEST_CHECK_SYSCALL(ptrace(PT_KILL, cpid, NULL, 0));
+		/* In case PT_KILL fails, notify child to exit */
+		res = write(pfd[0], "x", 1);
+		close(pfd[0]);
+
+		/* Reap it */
+		res = waitpid(cpid, &status, 0);
+		CHERIBSDTEST_CHECK_EQ_INT(res, cpid);
+		exitcode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+		termsig = WIFSIGNALED(status) ? WTERMSIG(status) : -1;
+		stopsig = WIFSTOPPED(status) ? WSTOPSIG(status) : -1;
+		/* Should exit with SIGKILL signal code */
+		if (termsig == SIGKILL)
+			cheribsdtest_success();
+		else
+			cheribsdtest_failure_errx("Unexpected child exit: "
+			    "status=%#x code=%d termsig=%d stopsig=%d\n",
+			    status, exitcode, termsig, stopsig);
+	} else {
+		close(pfd[0]);
+		res = write(pfd[1], "c", 1);
+		assert(res == 1);
+		/*
+		 * Block by reading from the pipe. This should never be reached
+		 * since the parent kills this process using PT_KILL.
+		 */
+		res = read(pfd[1], &c, 1);
+		assert(c == 'x');
+		fprintf(stderr, "got exit message, this should not happen!\n");
+		close(pfd[1]);
+		exit(23);
+	}
+}
+
+static int test_aio_sival_signal = 0;
+static siginfo_t test_aio_sival_info = { 0 };
+
+static void
+test_aio_sival_handler(int sig, siginfo_t *si, void *uc __attribute__((__unused__)))
+{
+	test_aio_sival_signal = sig;
+	test_aio_sival_info = *si;
+}
+
+CHERIBSDTEST(aio_sival, "Test pointer passing through AIO signals")
+{
+	char buf[128];
+	int pfd[2];
+	int res;
+	sigset_t sigset, osigset;
+	struct aiocb aiocb;
+	struct sigaction sa;
+
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = &test_aio_sival_handler;
+	res = sigaction(SIGUSR1, &sa, NULL);
+	CHERIBSDTEST_VERIFY2(res == 0, "Could not install AIO handler; errno=%d", errno);
+
+	res = sigaction(SIGALRM, &sa, NULL);
+	CHERIBSDTEST_VERIFY2(res == 0, "Could not install ALRM handler; errno=%d", errno);
+
+	res = socketpair(AF_UNIX, SOCK_STREAM, 0, pfd);
+	CHERIBSDTEST_VERIFY2(res == 0, "Could not create socketpair; errno=%d", errno);
+
+	bzero(&aiocb, sizeof(aiocb));
+	aiocb.aio_fildes = pfd[0];
+	aiocb.aio_buf = buf;
+	aiocb.aio_nbytes = sizeof(buf);
+	aiocb.aio_lio_opcode = LIO_READ;
+
+	aiocb.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
+	aiocb.aio_sigevent.sigev_signo = SIGUSR1;
+	aiocb.aio_sigevent.sigev_value.sival_ptr = test_aio_sival_handler;
+
+	res = aio_read(&aiocb);
+	CHERIBSDTEST_VERIFY2(res == 0, "Could not register aio; errno=%d", errno);
+
+	CHERIBSDTEST_VERIFY(sigemptyset(&sigset) == 0);
+	CHERIBSDTEST_VERIFY(sigaddset(&sigset, SIGUSR1) == 0);
+	CHERIBSDTEST_VERIFY(sigaddset(&sigset, SIGALRM) == 0);
+	CHERIBSDTEST_VERIFY(sigprocmask(SIG_BLOCK, &sigset, &osigset) == 0);
+	close(pfd[1]);
+	alarm(2);
+	CHERIBSDTEST_VERIFY(sigsuspend(&osigset) == -1 && errno == EINTR);
+	close(pfd[0]);
+
+	switch (test_aio_sival_signal) {
+	case SIGALRM:
+		cheribsdtest_failure_errx("Test timeout!");
+		break;
+	case 0:
+		cheribsdtest_failure_errx("No signal received?");
+		break;
+	default:
+		cheribsdtest_failure_errx("Bad signal %d",
+					test_aio_sival_signal);
+		break;
+	case SIGUSR1:
+		CHERIBSDTEST_VERIFY2(test_aio_sival_info.si_code == SI_ASYNCIO,
+			"Signal not asyncio?  code=%d",
+			test_aio_sival_info.si_code);
+		CHERIBSDTEST_VERIFY2(test_aio_sival_info.si_value.sival_ptr ==
+				  test_aio_sival_handler,
+			"Bad si_value; expected=%#p got=%#p",
+			test_aio_sival_handler,
+			test_aio_sival_info.si_value.sival_ptr);
+		cheribsdtest_success();
+	}
+}
