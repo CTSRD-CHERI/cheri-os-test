@@ -79,6 +79,10 @@
 /*
  * Convert a pointer to a null-derived void * with the same address. This is
  * useful for getting the correct value for ccs_si_addr_expected.
+ *
+ * XXXPM: Do we really expect an invalid capability without bounds,
+ *        permissions, etc? This needs to be discussed on the OS portability
+ *        mailing list.
  */
 #define	NULL_DERIVED_VOIDP(x) ((void *)(uintptr_t)(ptraddr_t)(x))
 
@@ -94,11 +98,13 @@ struct cheriostest_child_state {
 	int		ccs_si_code;
 	int		ccs_si_trapno;
 	void		*ccs_si_addr;
+	bool		ccs_si_addr_tag;
 
 	/* Fields filled in by the test itself. */
 	int		ccs_testresult;
 	char		ccs_testresult_str[TESTRESULT_STR_LEN];
 	void		*ccs_si_addr_expected;
+	bool		ccs_si_addr_expected_tag;
 	bool		ccs_warn;
 };
 extern struct cheriostest_child_state *ccsp;

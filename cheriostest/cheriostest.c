@@ -202,6 +202,7 @@ signal_handler(int signum, siginfo_t *info,
 	// Musl libc's siginfo_t does not have this field
 	ccsp->ccs_si_trapno = info->si_trapno;
 #endif
+	ccsp->ccs_si_addr_tag = cheri_tag_get(info->si_addr);
 	ccsp->ccs_si_addr = cheri_tag_clear(info->si_addr);
 
 	/*
@@ -513,9 +514,12 @@ cheriostest_run_test(const struct cheri_test *ctp)
 	}
 #endif
 	if ((ctp->ct_flags & CT_FLAG_SI_ADDR) &&
-	    !cheri_is_equal_exact(ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr)) {
-		snprintf(reason, sizeof(reason), "Expected si_addr %#p, got %#p",
-		    ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr);
+	    (!cheri_is_equal_exact(ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr) ||
+	    ccsp->ccs_si_addr_expected_tag != ccsp->ccs_si_addr_tag)) {
+		snprintf(reason, sizeof(reason),
+			"Expected si_addr %#p with tag = %d, got %#p with tag = %d",
+			ccsp->ccs_si_addr_expected, ccsp->ccs_si_addr_expected_tag,
+				ccsp->ccs_si_addr, ccsp->ccs_si_addr_tag);
 		goto fail;
 	}
 
