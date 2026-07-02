@@ -199,7 +199,7 @@ signal_handler(int signum, siginfo_t *info,
 	// Musl libc's siginfo_t does not have this field
 	ccsp->ccs_si_trapno = info->si_trapno;
 #endif
-	ccsp->ccs_si_addr = info->si_addr;
+	ccsp->ccs_si_addr = cheri_tag_clear(info->si_addr);
 
 	/*
 	 * Signal delivered outside of a sandbox; catch but terminate

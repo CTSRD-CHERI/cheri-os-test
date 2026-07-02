@@ -138,7 +138,7 @@ void
 cheribsdtest_set_expected_si_addr(void *addr)
 {
 
-	ccsp->ccs_si_addr_expected = addr;
+	ccsp->ccs_si_addr_expected = cheri_tag_clear(addr);
 }
 
 const char *
