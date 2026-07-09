@@ -20,3 +20,5 @@ The test suite binaries are in `/opt/cheri-os-tests/`
 
 ## Note
 We are currently using the CheriBSD makefiles (see the `mk` directory). This is a short-term interim solution and will be replaced by a cmake-based build system soon.
+
+CheriBSD support is currently broken and remains a work in progress. Please use `cheribsdtest`, which is bundled with CheriBSD, instead.
