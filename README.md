@@ -4,6 +4,8 @@ This repository provides a portable CHERI test suite for POSIX-based systems suc
 ## Building
 This test suite is intended to be built with [cheribuild](https://github.com/CTSRD-CHERI/cheribuild). The corresponding cheribuild targets are called `cheri-os-tests-linux-riscv64-purecap` for RISC-V (RVY) and `cheri-os-tests-linux-morello-purecap` for Morello.
 
+The `cheribuild` targets for this test suite are currently on in the `cheriostest` branch and will be merged into `main` in due course.
+
 ## Usage
 The test suite binaries are in `/opt/cheri-os-tests/`
 `cheriostest-purecap [options..] -a` will run over 200 tests followed by a test report
