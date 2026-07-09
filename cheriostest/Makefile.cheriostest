@@ -91,12 +91,12 @@ CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
 
-LDFLAGS+= -Wl,-rpath=\$$ORIGIN
 .if ${OS} == "FreeBSD"
 # XXXPM: This is a bit untidy, but we plan to replace the Makefiles
 #        with cmake anyways, and so maybe its OK in the interim.
 LDADD+=	-Wl,-Bdynamic -lcheriostest_dynamic
 .else
+LDFLAGS+= -Wl,-rpath=/opt/cheri-os-test/lib/
 LDADD+=	-Wl,-Bdynamic -lcheriostest_dynamic -Wl,-Bstatic
 .endif
 # XXXPM: These fail, but the dynamic linker on some CHERI Linux flavours might
