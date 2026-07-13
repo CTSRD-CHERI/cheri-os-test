@@ -7,4 +7,4 @@ NEED_COMPAT=	64C
 
 CHERI_C_TESTS=	yes
 
-.include "${.PARSEDIR}/Makefile.cheribsdtest"
+.include "${.PARSEDIR}/Makefile.cheriostest"

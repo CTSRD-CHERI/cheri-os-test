@@ -70,7 +70,7 @@ SRCS+=	cheribsdtest_cheriabi_open.c
 #SRCS+=	cheribsdtest_vm_swap.c
 #CFLAGS.cheribsdtest_vm_swap.c+=-Wno-cheri-capability-misuse
 
-.sinclude "${CHERIBSDTEST_DIR}/${MACHINE}/Makefile.cheribsdtest"
+.sinclude "${CHERIBSDTEST_DIR}/${MACHINE}/Makefile.cheriostest"
 
 # Enable sub-object bounds only in tests specifically designed for them.
 CFLAGS.cheribsdtest_bounds_subobject.c+=-cheri-bounds=subobject-safe
