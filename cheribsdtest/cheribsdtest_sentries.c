@@ -2,7 +2,12 @@
  * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2020 SRI International
+ * Copyright (c) 2026 Paul Metzger
  * All rights reserved.
+ *
+ * This software was developed by the CHERI Research Centre (CRC) in the
+ * Department of Computer Science and Technology at the University of
+ * Cambridge under the EPSRC grant "UKRI3001: CHERI Research Centre".
  *
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory (Department of Computer Science and

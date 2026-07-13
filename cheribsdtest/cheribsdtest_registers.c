@@ -1,7 +1,12 @@
 /*-
  * Copyright (c) 2012-2018 Robert N. M. Watson
  * Copyright (c) 2014 SRI International
+ * Copyright (c) 2026 Paul Metzger
  * All rights reserved.
+ *
+ * This software was developed by the CHERI Research Centre (CRC) in the
+ * Department of Computer Science and Technology at the University of
+ * Cambridge under the EPSRC grant "UKRI3001: CHERI Research Centre".
  *
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)

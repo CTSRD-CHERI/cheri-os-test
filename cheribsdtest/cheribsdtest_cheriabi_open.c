@@ -1,6 +1,11 @@
 /*-
  * Copyright (c) 2017 Edward Tomasz Napierala
+ * Copyright (c) 2025-2026 Paul Metzger
  * All rights reserved.
+ *
+ * This software was developed by the CHERI Research Centre (CRC) in the
+ * Department of Computer Science and Technology at the University of
+ * Cambridge under the EPSRC grant "UKRI3001: CHERI Research Centre".
  *
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
