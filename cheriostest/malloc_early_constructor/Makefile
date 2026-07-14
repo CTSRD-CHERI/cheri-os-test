@@ -12,7 +12,6 @@ SUBDIR+=	mt-c18n
 .endif
 
 .if ${.MAKE.OS} == "FreeBSD"
-# XXXPM: Do we have a benchmarking ABI on Linux?
 .if (${MACHINE_ABI:Mpurecap} && ${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64CB} == "yes"
 SUBDIR+=	purecap-benchmark \
 		purecap-benchmark-dynamic \
