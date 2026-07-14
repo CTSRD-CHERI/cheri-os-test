@@ -28,17 +28,25 @@ SRCS+=	cheriostest_bounds_globals.c					\
 	cheriostest_syscall.c						\
 	cheriostest_vm.c						\
 	cheriostest_strfcap.c
+
 .if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheriostest_bounds_subobject.c			\
 	cheriostest_malloc.c						\
 	cheriostest_bounds_varargs.c				\
 		cheriostest_sentries.c
 
-#.if ${MK_COMPARTMENT_POLICY} != "no"
-#SRCS+=	cheriostest_compartments.c
-#CFLAGS.cheriostest_compartments.c+=-ffunction-sections
-#COMPARTMENT_POLICY=	${CHERIOSTEST_DIR}/compartments.json
-#.endif
+.if ${.MAKE.OS} == "FreeBSD"
+.if ${MK_COMPARTMENT_POLICY} != "no"
+SRCS+=	cheriostest_compartments.c
+CFLAGS.cheriostest_compartments.c+=-ffunction-sections
+COMPARTMENT_POLICY=	${CHERIOSTEST_DIR}/compartments.json
+.endif
+.elif ${.MAKE.OS} == "Linux"
+# We add this file on Linux regardless of the value of MK_COMPARTMENT_POLICY
+# to report this test as an expected failure because compartmentalisation
+# is not supported on Linux.
+SRCS+=	cheriostest_compartments.c
+.endif
 .endif
 
 # We currently don't have zlib available on Linux
@@ -119,8 +127,8 @@ LIBADD+=	pthread
 SRCS+=		cheriostest_tls_threads.c
 .endif
 
-.ifdef CHERIBSD_C18N_TESTS
-CFLAGS+=	-DCHERIBSD_C18N_TESTS
+.ifdef CHERIOSTEST_C18N_TESTS
+CFLAGS+=	-DCHERIOSTEST_C18N_TESTS
 ELF_FEATURES+=	+cheric18n
 .endif
 

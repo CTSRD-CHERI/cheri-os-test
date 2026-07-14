@@ -10,7 +10,11 @@
  * No. FA8750-24-C-B047 ("DEC").
  */
 
+#if defined(__FreeBSD__)
 #include <cheri/cheric.h>
+#elif defined(__linux__)
+#include "cheri/cheric.h"
+#endif
 
 #include "cheriostest.h"
 
@@ -35,8 +39,15 @@ assert_disjoint_bounds(void *one, void *two, const char *label_one,
 }
 
 CHERIOSTEST(compartment_pcc_bounds,
-    "Check that PCC bounds of sub-object compartments are disjoint")
+    "Check that PCC bounds of sub-object compartments are disjoint",
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#if defined(__linux__)
+	cheriostest_failure_errx("Compartmentalisation is not supported by Linux");
+#endif
 	assert_disjoint_bounds(&compartment_one_foo, &compartment_two_foo,
 	    "compartment_one_foo", "compartment_two_foo");
 	assert_disjoint_bounds(&compartment_one_foo, &compartment_pcc_bounds,

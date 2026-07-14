@@ -33,6 +33,8 @@
 #define	_CHERIC_H_
 
 #include <cheriintrin.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 /*
  * Get the top of a capability (i.e. one byte past the last accessible one)
@@ -60,5 +62,18 @@
 	(~cheri_representable_alignment_mask(len) + 1)
 
 #define	CHERITEST_CHERI_ALIGN_MASK(l)		~(cheri_representable_alignment_mask(l))
+
+/* Get the top of a capability (i.e. one byte past the last accessible one) */
+#define cheri_top_get(cap) __extension__({		\
+	__typeof__(cap) c = (cap);					\
+	(cheri_base_get(c) + cheri_length_get(c));	\
+})
+
+/* Check if the address is between cap.base and cap.top, i.e. in bounds */
+static inline bool
+cheri_is_address_inbounds(const void * __capability cap, ptraddr_t addr)
+{
+	return (addr >= cheri_base_get(cap) && addr < cheri_top_get(cap));
+}
 
 #endif /* _SYS_CHERIC_H_ */

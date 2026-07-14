@@ -30,9 +30,14 @@ SUBDIR+=	purecap \
 		purecap-dynamic \
 		purecap-dynamic-mt
 
-#.if ${MACHINE_CPUARCH} == "aarch64" && ${MACHINE_ABI:Mpurecap}
-#SUBDIR+=	mt-c18n
-#.endif
+.if ${MACHINE_CPUARCH} == "aarch64" \
+	&& ${MACHINE_ABI:Mpurecap} \
+	&& ${.MAKE.OS} == "FreeBSD"
+# Don't create these test binaries for Linux because this doesn't actually add
+# any tests that we could use to report the missing compartmentalisation
+# support. However, we do use 'compartment_pcc_bounds' test for this.
+SUBDIR+=	mt-c18n
+.endif
 .endif
 
 #.if (${MACHINE_ABI:Mpurecap} && ${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64CB} == "yes"

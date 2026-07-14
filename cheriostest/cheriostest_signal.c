@@ -304,7 +304,7 @@ CHERIOSTEST(signal_returncap,
 #ifdef __ARM_MORELLO_PURECAP_BENCHMARK_ABI
 	/* The purecap benchmark ABI does not bound PCC capabilities. */
 	expect = CHERI_CAP_USER_CODE_LENGTH;
-#elif defined(CHERIBSD_C18N_TESTS)
+#elif defined(CHERIOSTEST_C18N_TESTS)
 	/* Signal handlers return to a c18n trampoline. */
 	expect = 0x300;
 #else

@@ -233,9 +233,11 @@ check_initreg_code(void * __capability c)
 	expect = 0;
 #endif
 
-#ifdef CHERIBSD_C18N_TESTS
+#ifdef CHERIOSTEST_C18N_TESTS
 #ifndef __ARM_MORELLO_PURECAP_BENCHMARK_ABI
+#ifndef __linux__
 	expect &= ~CHERI_PERM_SYSCALL;
+#endif
 #endif
 #endif
 	if ((v & CHERITEST_CHERI_PERMS_SWALL) != expect)
@@ -244,9 +246,11 @@ check_initreg_code(void * __capability c)
 
 	/* Check that the raw permission bits match the kernel header: */
 	expect = CHERITEST_CHERI_PERMS_USERSPACE_CODE;
-#ifdef CHERIBSD_C18N_TESTS
+#ifdef CHERIOSTEST_C18N_TESTS
 #ifndef __ARM_MORELLO_PURECAP_BENCHMARK_ABI
+#ifndef __linux__
 	expect &= ~CHERI_PERM_SYSCALL;
+#endif
 #ifdef __aarch64__
 	expect &= ~ARM_CAP_PERMISSION_EXECUTIVE;
 #endif
@@ -558,7 +562,7 @@ CHERIOSTEST(initregs_pcc,
 }
 
 #ifdef __aarch64__
-#ifndef CHERIBSD_C18N_TESTS
+#ifndef CHERIOSTEST_C18N_TESTS
 CHERIOSTEST(initregs_restricted_default,
     "Test initial value of restricted default capability")
 {

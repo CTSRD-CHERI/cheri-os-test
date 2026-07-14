@@ -176,7 +176,7 @@ extern struct cheriostest_child_state *ccsp;
 #endif
 
 #ifndef XFAIL_C18N_SIGALTSTACK
-#ifdef CHERIBSD_C18N_TESTS
+#ifdef CHERIOSTEST_C18N_TESTS
 #define	XFAIL_C18N_SIGALTSTACK \
     "sigaltstack is currently unsupported by library-based compartmentalisation"
 #else
@@ -185,7 +185,7 @@ extern struct cheriostest_child_state *ccsp;
 #endif
 
 #ifndef XFAIL_FLAKY_C18N_CONTEXT
-#ifdef CHERIBSD_C18N_TESTS
+#ifdef CHERIOSTEST_C18N_TESTS
 #define	XFAIL_FLAKY_C18N_CONTEXT \
     "setcontext and swapcontext are currently unsupported by library-based compartmentalisation"
 #else
