@@ -31,28 +31,14 @@
  */
 
 #ifdef __FreeBSD__
-#include <sys/types.h>
 #include <sys/sysctl.h>
-
 #include <cheri/cidcap.h>
+#endif
 
+#include <sys/types.h>
 #include "cheriostest.h"
 
-#ifdef CHERI_PERM_COMPARTMENT_ID
-
-static uintcap_t
-get_cidcap_sysctl(void)
-{
-	uintcap_t cidcap;
-	size_t cidcap_size;
-
-	cidcap_size = sizeof(cidcap);
-	CHERIOSTEST_CHECK_SYSCALL(sysctlbyname("security.cheri.cidcap",
-	    &cidcap, &cidcap_size, NULL, 0));
-
-	return (cidcap);
-}
-
+#if defined(CHERI_PERM_COMPARTMENT_ID)
 static void
 check_cidcap(uintcap_t cidcap, size_t base, size_t length, size_t offset)
 {
@@ -100,6 +86,21 @@ check_cidcap(uintcap_t cidcap, size_t base, size_t length, size_t offset)
 	if (v != 1)
 		cheriostest_failure_errx("tag %jx (expected 1)", v);
 }
+#endif
+
+#ifdef __FreeBSD__
+static uintcap_t
+get_cidcap_sysctl(void)
+{
+	uintcap_t cidcap;
+	size_t cidcap_size;
+
+	cidcap_size = sizeof(cidcap);
+	CHERIOSTEST_CHECK_SYSCALL(sysctlbyname("security.cheri.cidcap",
+		&cidcap, &cidcap_size, NULL, 0));
+
+	return (cidcap);
+}
 
 CHERIOSTEST(cidcap_sysctl, "Retrieve cidcap using sysctl(3)")
 {
@@ -113,9 +114,20 @@ CHERIOSTEST(cidcap_sysctl, "Retrieve cidcap using sysctl(3)")
 
 	cheriostest_success();
 }
+#endif
 
-CHERIOSTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
+#if defined(CHERI_PERM_COMPARTMENT_ID) \
+	|| (defined(__linux__) && defined(__aarch64__))
+CHERIOSTEST(cidcap_alloc,
+	"Retrieve cidcap using cheri_cidcap_alloc(2)",
+#ifdef __linux__
+	.ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("Linux on Morello does not use compartment IDs");
+#else
 	uintcap_t cidcap1, cidcap2;
 
 	/*
@@ -135,6 +147,6 @@ CHERIOSTEST(cidcap_alloc, "Retrieve cidcap using cheri_cidcap_alloc(2)")
 	CHERIOSTEST_VERIFY(cidcap1 != cidcap2);
 
 	cheriostest_success();
+#endif
 }
-#endif /* CHERI_PERM_COMPARTMENT_ID */
-#endif /* __FreeBSD__ */
+#endif
