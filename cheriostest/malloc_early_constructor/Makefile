@@ -1,7 +1,5 @@
 .include <src.opts.mk>
 
-OS!=	uname -s
-
 SUBDIR=		purecap \
 		purecap-mt \
 		purecap-dynamic \
@@ -13,14 +11,14 @@ SUBDIR=		purecap \
 .endif
 .endif
 
-#.if ${OS} == "FreeBSD"
+.if ${.MAKE.OS} == "FreeBSD"
 # XXXPM: Do we have a benchmarking ABI on Linux?
-#.if (${MACHINE_ABI:Mpurecap} && ${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64CB} == "yes"
-#SUBDIR+=	purecap-benchmark \
+.if (${MACHINE_ABI:Mpurecap} && ${MACHINE_ABI:Mbenchmark}) || ${MK_LIB64CB} == "yes"
+SUBDIR+=	purecap-benchmark \
 		purecap-benchmark-dynamic \
 		purecap-benchmark-dynamic-mt \
 		purecap-benchmark-mt
-#.endif
-#.endif
+.endif
+.endif
 
 .include <bsd.subdir.mk>

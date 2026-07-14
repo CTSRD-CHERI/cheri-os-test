@@ -1,8 +1,6 @@
 .include <src.opts.mk>
 
-OS!=	uname -s
-
-.if ${OS} == "FreeBSD"
+.if ${.MAKE.OS} == "FreeBSD"
 BINOWN!= whoami
 BINDIR= ${.CURDIR}/build/
 LIBDIR= ${.CURDIR}/build/
@@ -48,7 +46,7 @@ SUBDIR+=	purecap \
 #.endif
 #.endif
 
-.if ${OS} == "FreeBSD"
+.if ${.MAKE.OS} == "FreeBSD"
 SUBDIR+=	malloc_revoke_enabled
 .endif
 

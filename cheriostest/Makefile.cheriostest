@@ -1,7 +1,5 @@
 .include <src.opts.mk>
 
-OS!=	uname -s
-
 SRCS=	cheriostest.c
 
 SRCS+=	cheriostest_bounds_globals.c					\
@@ -44,7 +42,7 @@ SRCS+=	cheriostest_bounds_subobject.c			\
 .endif
 
 # We currently don't have zlib available on Linux
-.if ${OS} == 'FreeBSD'
+.if ${.MAKE.OS} == "FreeBSD"
 SRCS+=	cheriostest_zlib.c
 .endif
 
@@ -76,7 +74,7 @@ CFLAGS.cheriostest_bounds_subobject.c+=-cheri-bounds=subobject-safe
 
 MAN=
 
-.if ${OS} == "FreeBSD"
+.if ${.MAKE.OS} == "FreeBSD"
 LIBADD+=	procstat util xo z
 .else
 # Linux has not libprocstat
@@ -91,7 +89,7 @@ CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
 
-.if ${OS} == "FreeBSD"
+.if ${.MAKE.OS} == "FreeBSD"
 # XXXPM: This is a bit untidy, but we plan to replace the Makefiles
 #        with cmake anyways, and so maybe its OK in the interim.
 LDADD+=	-Wl,-Bdynamic -lcheriostest_dynamic
@@ -109,7 +107,7 @@ NO_SHARED?=	YES
 
 # We don't add these tests on Linux because Musl libc doesn't support ifuncs.
 # XXXPM: Check if they are included on CheriBSD as expected
-.ifdef CHERIBSD_IFUNC_TESTS && ${OS} != "Linux"
+.ifdef CHERIBSD_IFUNC_TESTS && ${.MAKE.OS} != "Linux"
 SRCS+=		cheriostest_ifunc.c
 .endif
 
