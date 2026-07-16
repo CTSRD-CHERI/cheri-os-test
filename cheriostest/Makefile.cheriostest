@@ -66,10 +66,13 @@ SRCS+=	cheriostest_cheriabi_libc.c
 SRCS+=	cheriostest_cheriabi_open.c
 .endif
 
-#.if ${MACHINE_ABI:Mpurecap} && ${MK_CHERI_CAPREVOKE} == "yes"
-#LIBADD+=	cheri_caprevoke
-#CFLAGS+=	-DCHERIOSTEST_CHERI_REVOKE_TESTS
-#.endif
+.if ${.MAKE.OS} == "Linux"
+# Include these tests on Linux to report revocation is missing.
+CFLAGS+=	-DCHERIOSTEST_CHERI_REVOKE_TESTS
+.elif ${MACHINE_ABI:Mpurecap} && ${MK_CHERI_CAPREVOKE} == "yes"
+LIBADD+=	cheri_caprevoke
+CFLAGS+=	-DCHERIOSTEST_CHERI_REVOKE_TESTS
+.endif
 
 # This test is broken as written
 #SRCS+=	cheriostest_vm_swap.c

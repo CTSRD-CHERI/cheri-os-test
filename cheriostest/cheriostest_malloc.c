@@ -70,8 +70,16 @@ skip_malloc_revocation_disabled(const struct cheri_test *ctp __attribute__((__un
 CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
     .ct_flags = CT_FLAG_SIGEXIT,
     .ct_signum = SIGABRT,
-    .ct_check_skip = skip_malloc_revocation_disabled)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_malloc_revocation_disabled,
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	volatile void *ptr;
 
 	/* Externalize to prevent malloc() from being optimized away */
@@ -81,13 +89,22 @@ CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
 	free(__DEVOLATILE(void *, ptr));
 
 	cheriostest_failure_errx("malloc() did not abort");
+#endif
 }
 
 
 CHERIOSTEST(malloc_revoke_basic,
     "verify that a free'd pointer is revoked by malloc_revoke",
-    .ct_check_skip = skip_malloc_revocation_disabled)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_malloc_revocation_disabled,
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	volatile void *ptr __attribute__((__unused__));
 
 	/*
@@ -97,20 +114,17 @@ CHERIOSTEST(malloc_revoke_basic,
 
 	free(__DEVOLATILE(void *, ptr));
 
-#ifdef __FreeBSD__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	malloc_revoke();
 #pragma GCC diagnostic pop
-#elif defined(__linux__)
-#pragma message "Morello Linux and CHERI Linux don't support revocation"
-#endif
 	CHERIOSTEST_VERIFY2(!cheri_tag_get(ptr),
 	    "revoked ptr not revoked %#lp", ptr);
 	CHERIOSTEST_VERIFY2(!cheri_tag_get(eptr),
 	    "revoked eptr not revoked %#lp", eptr);
 
 	cheriostest_success();
+#endif
 }
 
 #ifdef __FreeBSD__

@@ -1947,6 +1947,14 @@ CHERIOSTEST(vm_capdirty, "verify capdirty marking and mincore")
  * Revocation tests
  */
 
+static int
+check_revoked(void *r)
+{
+	return (cheri_tag_get(r) == 0) ||
+		((cheri_type_get(r) == -1L) && (cheri_perms_get(r) == 0));
+}
+
+#if defined(__FreeBSD__)
 static const char *
 skip_need_quarantine_unmapped_reservations(
     const struct cheri_test *ctp __attribute__((__unused__)))
@@ -1956,13 +1964,6 @@ skip_need_quarantine_unmapped_reservations(
 	if (!reservations_are_quarantined())
 		return ("unmapped reservations are not being quarantined");
 	return (NULL);
-}
-
-static int
-check_revoked(void *r)
-{
-	return (cheri_tag_get(r) == 0) ||
-	    ((cheri_type_get(r) == -1L) && (cheri_perms_get(r) == 0));
 }
 
 /*
@@ -2027,10 +2028,19 @@ check_kqueue_cap(int kq, int pfd[2], unsigned int valid)
 	CHERIOSTEST_VERIFY(rv == 1);
 	CHERIOSTEST_VERIFY(b == 42);
 }
+#endif
 
 CHERIOSTEST(cheri_revoke_lightly, "A gentle test of capability revocation",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	void **mb;
 	void *sh;
 	const volatile struct cheri_revoke_info *cri;
@@ -2123,11 +2133,21 @@ CHERIOSTEST(cheri_revoke_lightly, "A gentle test of capability revocation",
 	close(pfd[1]);
 
 	cheriostest_success();
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_loadside, "Test load-side revoker",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
+
 #define CHERIOSTEST_VM_CHERI_REVOKE_LOADSIDE_NPG	3
 
 	void **mb;
@@ -2258,12 +2278,21 @@ CHERIOSTEST(cheri_revoke_loadside, "Test load-side revoker",
 	cheriostest_success();
 
 #undef CHERIOSTEST_VM_CHERI_REVOKE_LOADSIDE_NPG
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_async,
     "A gentle test of asynchronous capability revocation",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#if defined(__linux__)
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	struct cheri_revoke_syscall_info crsi;
 	const volatile struct cheri_revoke_info *cri;
 	cheri_revoke_epoch_t epoch;
@@ -2319,6 +2348,7 @@ CHERIOSTEST(cheri_revoke_async,
 	CHERIOSTEST_VERIFY2(check_revoked(mb[1]), "Memory tag persists");
 
 	cheriostest_success();
+#endif
 }
 
 #ifdef CHERIBSD_THREAD_TESTS
@@ -2340,8 +2370,16 @@ forker(void *arg)
 
 CHERIOSTEST(cheri_revoke_async_fork,
     "A test of asynchronous capability revocation with concurrent forks",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	struct cheri_revoke_syscall_info crsi;
 	const volatile struct cheri_revoke_info *cri;
 	cheri_revoke_epoch_t epoch;
@@ -2410,9 +2448,11 @@ CHERIOSTEST(cheri_revoke_async_fork,
 		cheriostest_failure_errc(error, "pthread_join");
 
 	cheriostest_success();
+#endif
 }
 #endif /* CHERIBSD_THREAD_TESTS */
 
+#if defined(__FreeBSD__)
 /*
  * Repeatedly invoke libcheri_caprevoke logic.
  * Using a bump the pointer allocator, repeatedly grab rand()-omly sized
@@ -2609,10 +2649,19 @@ load_split_fini:
 		}
 	}
 }
+#endif
 
 CHERIOSTEST(cheri_revoke_lib, "Test libcheri_caprevoke internals",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	/*
 	 * Tweaking paranoia can turn this test into more of a
 	 * benchmark than a correctness test.  At 0, no checks
@@ -2647,11 +2696,20 @@ CHERIOSTEST(cheri_revoke_lib, "Test libcheri_caprevoke internals",
 	munmap(bigblock, bigblock_caps * sizeof(void *));
 
 	cheriostest_success();
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_lib_fork, "Test libcheri_caprevoke with fork",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported"
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	static const int paranoia = 2;
 
 	static const size_t bigblock_caps = 4096;
@@ -2694,12 +2752,21 @@ CHERIOSTEST(cheri_revoke_lib_fork, "Test libcheri_caprevoke with fork",
 	munmap(bigblock, bigblock_caps * sizeof(void *));
 
 	cheriostest_success();
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_lib_fork_split,
     "Test libcheri_caprevoke split across fork",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	static const int paranoia = 2;
 
 	static const size_t bigblock_caps = 4096;
@@ -2745,8 +2812,10 @@ CHERIOSTEST(cheri_revoke_lib_fork_split,
 	munmap(bigblock, bigblock_caps * sizeof(void *));
 
 	cheriostest_success();
+#endif
 }
 
+#if defined(__FreeBSD__)
 /*
  * cheri_revoke_lib_child_* - test that execed children can revoke
  *
@@ -2844,6 +2913,12 @@ cheri_revoke_lib_child_split(void)
 	cheri_revoke_lib_child_common(TCLR_MODE_LOAD_SPLIT);
 }
 
+/*
+ *	These tests are surrounded by #ifdef __FreeBSD__ instead of
+ *	emitting an XFAIL on Linux to not spam the test suite output
+ *	with too many 'The CHERI Linux Project does not support revocation'
+ *	messages.
+ */
 CHERIOSTEST(cheri_revoke_lib_child_fork_exec_once,
     "revoke in a fork+exec'd child",
     .ct_child_func = cheri_revoke_lib_child_once,
@@ -2933,11 +3008,20 @@ CHERIOSTEST(cheri_revoke_lib_child_posix_spawn_split_opened,
 	cheri_revoke_lib_child_spawn_common(SC_MODE_POSIX_SPAWN,
 	    TCLR_MODE_LOAD_SPLIT_INIT);
 }
+#endif
 
 CHERIOSTEST(revoke_largest_quarantined_reservation,
     "Verify that the largest quarantined reservation is revoked",
-    .ct_check_skip = skip_need_quarantine_unmapped_reservations)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_need_quarantine_unmapped_reservations
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	const size_t res_size = 0x100000000;
 	void *res;
 	ptraddr_t res_addr;
@@ -3015,13 +3099,22 @@ CHERIOSTEST(revoke_largest_quarantined_reservation,
 	procstat_freeprocs(psp, kipp);
 	procstat_close(psp);
 	cheriostest_success();
+#endif
 }
 
 #define	NRES	3
 CHERIOSTEST(revoke_merge_quarantined,
     "Verify that adjacent non-neighbor reservations are revoked",
-    .ct_check_skip = skip_need_quarantine_unmapped_reservations)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_need_quarantine_unmapped_reservations
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	const size_t big_res_size = 0x100000000;
 	const size_t res_sizes[NRES] =
 	    { CHERITEST_PAGE_SIZE, big_res_size, CHERITEST_PAGE_SIZE };
@@ -3113,6 +3206,7 @@ CHERIOSTEST(revoke_merge_quarantined,
 	procstat_freeprocs(psp, kipp);
 	procstat_close(psp);
 	cheriostest_success();
+#endif
 }
 #undef NRES
 
@@ -3122,8 +3216,16 @@ CHERIOSTEST(revoke_merge_quarantined,
  */
 CHERIOSTEST(cheri_revoke_cow_mapping,
     "verify that revocation of a COW page triggers a copy",
-    .ct_check_skip = skip_need_cheri_revoke)
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_check_skip = skip_need_cheri_revoke
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	void **block, **cap1, **cap2;
 	void *shadow, *torev;
 	ssize_t n;
@@ -3272,12 +3374,21 @@ CHERIOSTEST(cheri_revoke_cow_mapping,
 	CHERIOSTEST_CHECK_SYSCALL(close(pd[1]));
 
 	cheriostest_success();
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_shm_anon_hoard_unmapped,
     "Capability is revoked within an unmapped shm object",
-    .ct_xfail_reason = "unmapped part of shm objects aren't revoked")
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_xfail_reason = "unmapped part of shm objects aren't revoked"
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	int fd, ret;
 	void * volatile to_revoke;
 	void * volatile *map;
@@ -3306,12 +3417,21 @@ CHERIOSTEST(cheri_revoke_shm_anon_hoard_unmapped,
 	CHERIOSTEST_VERIFY(check_revoked(*map));
 
 	cheriostest_success();
+#endif
 }
 
 CHERIOSTEST(cheri_revoke_shm_anon_hoard_closed,
     "Capability is revoked within an unmapped and closed shm object",
-    .ct_xfail_reason = "unmapped part of shm objects aren't revoked")
+#if defined(__linux__)
+    .ct_xfail_reason = "Not supported",
+#else
+    .ct_xfail_reason = "unmapped part of shm objects aren't revoked"
+#endif
+)
 {
+#ifdef __linux__
+	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+#else
 	int sv[2];
 	int pid;
 
@@ -3431,6 +3551,7 @@ CHERIOSTEST(cheri_revoke_shm_anon_hoard_closed,
 			cheriostest_failure_errx("child failed");
 		}
 	}
+#endif
 }
 
 #endif /* CHERIOSTEST_CHERI_REVOKE_TESTS */
