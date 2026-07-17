@@ -13,6 +13,7 @@ SRCS+=	cheriostest_bounds_globals.c					\
 	cheriostest_fault.c	\
 	cheriostest_flag_captured.c					\
 	cheriostest_fs.c						\
+	cheriostest_ifunc.c						\
 	cheriostest_kbounce.c						\
 	cheriostest_internal.c 					\
 	cheriostest_ipc.c				\
@@ -112,12 +113,6 @@ SRCS+=		cheriostest_fptr_canon.c \
 		cheriostest_lazy_bind.c
 .else
 NO_SHARED?=	YES
-.endif
-
-# We don't add these tests on Linux because Musl libc doesn't support ifuncs.
-# XXXPM: Check if they are included on CheriBSD as expected
-.ifdef CHERIBSD_IFUNC_TESTS && ${.MAKE.OS} != "Linux"
-SRCS+=		cheriostest_ifunc.c
 .endif
 
 # Both variants exist so we can test with and without libthr's interposition on

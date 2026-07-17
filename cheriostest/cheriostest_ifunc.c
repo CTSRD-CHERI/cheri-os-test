@@ -23,9 +23,18 @@
  * SUCH DAMAGE.
  */
 
+#if __has_include(<machine/ifunc.h>) || __has_include(<sys/ifunc.h>)
+#define IFUNC_SUPPORTED 1
+#else
+#define IFUNC_SUPPORTED 0
+#define IFUNC_FAILURE_MESSAGE "ifuncs are not supported"
+#endif
+
 #include <sys/types.h>
 
+#if IFUNC_SUPPORTED
 #include <machine/ifunc.h>
+#endif
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 #include <cheriostest_dynamic.h>
@@ -39,13 +48,20 @@ simple_ifunc_impl(void)
 	return (42);
 }
 
+#if IFUNC_SUPPORTED
 DEFINE_UIFUNC(static, int, simple_ifunc, (void))
 {
 	return (simple_ifunc_impl);
 }
+#endif
 
-CHERIOSTEST(call_ifunc, "Check IFUNCs can be called")
+CHERIOSTEST(call_ifunc, "Check IFUNCs can be called",
+#if !IFUNC_SUPPORTED
+    .ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#if IFUNC_SUPPORTED
 	int ret;
 
 	ret = simple_ifunc();
@@ -53,16 +69,26 @@ CHERIOSTEST(call_ifunc, "Check IFUNCs can be called")
 		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
 	cheriostest_success();
+#else
+	cheriostest_failure_errx(IFUNC_FAILURE_MESSAGE);
+#endif
 }
 
+#if IFUNC_SUPPORTED
 DEFINE_UIFUNC(static, int, canon_plt_ifunc, (void))
 {
 	return (simple_ifunc_impl);
 }
+#endif
 
 CHERIOSTEST(global_data_ifunc_fptr,
-    "Check global function pointers can be initialised to an IFUNC")
+    "Check global function pointers can be initialised to an IFUNC",
+#if !IFUNC_SUPPORTED
+    .ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#if IFUNC_SUPPORTED
 	static int (* volatile fptr)(void) = &canon_plt_ifunc;
 	int ret;
 
@@ -71,12 +97,20 @@ CHERIOSTEST(global_data_ifunc_fptr,
 		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
 	cheriostest_success();
+#else
+	cheriostest_failure_errx(IFUNC_FAILURE_MESSAGE);
+#endif
 }
 
 #ifdef CHERIBSD_DYNAMIC_TESTS
 CHERIOSTEST(dynamic_ifunc,
-    "Check IFUNCs can be called from another object")
+    "Check IFUNCs can be called from another object",
+#if !IFUNC_SUPPORTED
+    .ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#if IFUNC_SUPPORTED
 	int ret;
 
 	ret = cheriostest_dynamic_ifunc();
@@ -84,11 +118,19 @@ CHERIOSTEST(dynamic_ifunc,
 		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
 	cheriostest_success();
+#else
+	cheriostest_failure_errx(IFUNC_FAILURE_MESSAGE);
+#endif
 }
 
 CHERIOSTEST(global_data_dynamic_ifunc_fptr,
-    "Check global function pointers can be initialised to an IFUNC from another object")
+    "Check global function pointers can be initialised to an IFUNC from another object",
+#if !IFUNC_SUPPORTED
+    .ct_xfail_reason = "Not supported"
+#endif
+)
 {
+#if IFUNC_SUPPORTED
 	static int (* volatile fptr)(void) = &cheriostest_dynamic_ifunc;
 	int ret;
 
@@ -97,5 +139,8 @@ CHERIOSTEST(global_data_dynamic_ifunc_fptr,
 		cheriostest_failure_errx("Returned %d, expected 42", ret);
 
 	cheriostest_success();
+#else
+	cheriostest_failure_errx(IFUNC_FAILURE_MESSAGE);
+#endif
 }
 #endif
