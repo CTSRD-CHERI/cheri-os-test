@@ -95,7 +95,6 @@ LIBADD+=	procstat
 .ifdef CHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	-DCHERIBSD_DYNAMIC_TESTS
 CFLAGS+=	'-DLIBM_SONAME="libm.so.5"'
-# XXXPM: This is hacky but the Makefile will be replaced with cmake files.
 CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
@@ -107,9 +106,7 @@ LDFLAGS+= -Wl,-rpath=/opt/cheri-os-test/lib/
 LDADD+=	-Wl,--push-state,-Bdynamic -lcheriostest_dynamic -Wl,--pop-state
 .endif
 
-# XXXPM: These fail, but the dynamic linker on some CHERI Linux flavours might
-#        be broken.
-SRCS+=		cheriostest_fptr_canon.c \
+SRCS+=	cheriostest_fptr_canon.c \
 		cheriostest_lazy_bind.c
 .else
 NO_SHARED?=	YES
