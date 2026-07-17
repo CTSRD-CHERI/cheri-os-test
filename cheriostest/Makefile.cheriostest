@@ -85,11 +85,10 @@ CFLAGS.cheriostest_bounds_subobject.c+=-cheri-bounds=subobject-safe
 
 MAN=
 
-.if ${.MAKE.OS} == "FreeBSD"
-LIBADD+=	procstat util xo z
-.else
-# Linux has not libprocstat
 LIBADD+=	util xo bsd
+.if ${.MAKE.OS} == "FreeBSD"
+# Linux doesn't have libprocstat
+LIBADD+=	procstat
 .endif
 
 .ifdef CHERIBSD_DYNAMIC_TESTS
@@ -100,14 +99,13 @@ CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
 
-.if ${.MAKE.OS} == "FreeBSD"
-# XXXPM: This is a bit untidy, but we plan to replace the Makefiles
-#        with cmake anyways, and so maybe its OK in the interim.
-LDADD+=	-Wl,-Bdynamic -lcheriostest_dynamic
-.else
+.if ${.MAKE.OS} == "Linux"
+# On Linux, we are putting the helper libraries in /opt/cheri-os-test/lib to
+# avoid polluting system library search paths.
 LDFLAGS+= -Wl,-rpath=/opt/cheri-os-test/lib/
-LDADD+=	-Wl,-Bdynamic -lcheriostest_dynamic -Wl,-Bstatic
+LDADD+=	-Wl,--push-state,-Bdynamic -lcheriostest_dynamic -Wl,--pop-state
 .endif
+
 # XXXPM: These fail, but the dynamic linker on some CHERI Linux flavours might
 #        be broken.
 SRCS+=		cheriostest_fptr_canon.c \
