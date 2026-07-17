@@ -117,7 +117,7 @@ CHERIOSTEST(sentry_dlsym,
 		cheriostest_failure_err("dlsym(acos)");
 #elif __linux__
 	/* libm.so is not yet available on Linux */
-	lib_so = "./libcheriostest_dynamic.so.0";
+	lib_so = "/opt/cheri-os-test/lib/libcheriostest_dynamic.so.0";
 	if ((handle = dlopen(lib_so, RTLD_LAZY)) == NULL)
 		cheriostest_failure_errx("dlopen(%s) %s", lib_so, dlerror());
 	if ((fptr = dlsym(handle, "cheriostest_dynamic_ifunc_impl")) == NULL)
