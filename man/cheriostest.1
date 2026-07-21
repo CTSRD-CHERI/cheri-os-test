@@ -31,33 +31,33 @@
 .Dt CHERIOSTESTS 1
 .Os
 .Sh NAME
-.Nm cheriostests
+.Nm cheriostest
 .Nd low-level CHERI test suite
 .Sh SYNOPSIS
-.Nm cheriostests-purecap
+.Nm cheriostest-purecap
 .Op Fl fcdsqQvx 
 .Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
 .Pp
-.Nm cheriostests-purecap-dynamic
+.Nm cheriostest-purecap-dynamic
 .Op Fl fcdsqQvx 
 .Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
 .Pp
-.Nm cheriostests-purecap-mt
+.Nm cheriostest-purecap-mt
 .Op Fl fcdsqQvx 
 .Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
 .Pp
-.Nm cheriostests-purecap-dynamic-mt
+.Nm cheriostest-purecap-dynamic-mt
 .Op Fl fcdsqQvx 
 .Op Fl l | Fl a | Fl g Ar GLOB... | Ar TEST...
 .Sh DESCRIPTION 
 .Nm
 is a low-level test suite for CHERI-enabled POSIX-based systems. The suite primarily tests operating system (OS) interfaces that were adapted for CHERI. It also includes tests of C compiler behaviour, some of which interacts with the operating system.
 .Pp
-.Nm cheriostests-purecap-mt
+.Nm cheriostest-purecap-mt
 includes multithreaded test cases.
-.Nm cheriostests-purecap-dynamic
+.Nm cheriostest-purecap-dynamic
 and
-.Nm cheriostests-purecap-dynamic-mt
+.Nm cheriostest-purecap-dynamic-mt
 additionally perform tests that require a dynamically linked test suite binary.
 .Sh OPTIONS
 A subset of tests can be selected by passing test case names as

@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 
-PROG=	cheriostests-purecap-mt
+PROG=	cheriostest-purecap-mt
 
 CHERIBSD_THREAD_TESTS=	yes
 
