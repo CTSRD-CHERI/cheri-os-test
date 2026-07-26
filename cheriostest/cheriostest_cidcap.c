@@ -30,13 +30,14 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+
 #ifdef __FreeBSD__
 #include <stdint.h>
 #include <sys/sysctl.h>
 #include <cheri/cidcap.h>
 #endif
 
-#include <sys/types.h>
 #include "cheriostest.h"
 
 #if defined(CHERI_PERM_COMPARTMENT_ID)
@@ -88,7 +89,7 @@ check_cidcap(uintcap_t cidcap, size_t base, size_t length, size_t offset)
 		cheriostest_failure_errx("tag %jx (expected 1)", v);
 }
 
-#ifdef __FreeBSD__
+#ifdef CHERI_PERM_COMPARTMENT_ID
 static uintcap_t
 get_cidcap_sysctl(void)
 {
