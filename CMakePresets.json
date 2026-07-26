@@ -1,0 +1,48 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "cheri-purecap",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/cheri-purecap-toolchain.cmake"
+    },
+    {
+      "name": "linux-riscv64",
+      "inherits": "cheri-purecap",
+      "displayName": "Linux (riscv64-purecap)",
+      "cacheVariables": {
+        "CHERIOSTEST_TARGET_OS": "Linux",
+        "CHERIOSTEST_TARGET_ARCH": "riscv64"
+      }
+    },
+    {
+      "name": "freebsd-riscv64",
+      "inherits": "cheri-purecap",
+      "displayName": "CheriBSD (riscv64-purecap)",
+      "cacheVariables": {
+        "CHERIOSTEST_TARGET_OS": "FreeBSD",
+        "CHERIOSTEST_TARGET_ARCH": "riscv64"
+      }
+    },
+    {
+      "name": "linux-morello",
+      "inherits": "cheri-purecap",
+      "displayName": "Linux (morello-purecap)",
+      "cacheVariables": {
+        "CHERIOSTEST_TARGET_OS": "Linux",
+        "CHERIOSTEST_TARGET_ARCH": "morello"
+      }
+    },
+    {
+      "name": "freebsd-morello",
+      "inherits": "cheri-purecap",
+      "displayName": "CheriBSD (morello-purecap)",
+      "cacheVariables": {
+        "CHERIOSTEST_TARGET_OS": "FreeBSD",
+        "CHERIOSTEST_TARGET_ARCH": "morello"
+      }
+    }
+  ]
+}
