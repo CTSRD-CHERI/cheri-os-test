@@ -707,31 +707,23 @@ cheriostest_run_child_name(const char *name)
 	errx(EX_USAGE, "unknown test: %s", name);
 }
 
-static char **
-mk_exec_args(const struct cheri_test *ctp)
+/*
+ * Store the path of the running executable in execpath, which must have room
+ * for at least PATH_MAX + 1 bytes.
+ */
+static void
+get_execpath(char *execpath)
 {
-	char *execpath;
-	char const **exec_args;
-	int argc = 0;
-#ifdef __FreeBSD__
-	int error = 0;
-#elif defined(__linux__)
-	ssize_t len = 0;
-#endif
-
-	execpath = malloc(PATH_MAX + 1);
-	if (execpath == NULL)
-		err(EX_OSERR, "malloc");
-	exec_args = calloc(5, sizeof(*exec_args));
-	if (exec_args == NULL)
-		err(EX_OSERR, "calloc");
-
 #ifdef __linux__
+	ssize_t len;
+
 	len = readlink("/proc/self/exe", execpath, PATH_MAX);
 	if (len == -1)
 		errx(EX_OSERR, "readlink: %s", strerror(errno));
 	execpath[len] = '\0';
 #elif defined(__FreeBSD__)
+	int error;
+
 	/*
 	 * XXX: This won't work for direct exec as an rtld argument.
 	 * (e.g., /libexec/ld-elf.so.1 /bin/cheriostest-purecap-dynamic)
@@ -745,6 +737,23 @@ mk_exec_args(const struct cheri_test *ctp)
 #else
 #error "Unsupported OS"
 #endif
+}
+
+static char **
+mk_exec_args(const struct cheri_test *ctp)
+{
+	char *execpath;
+	char const **exec_args;
+	int argc = 0;
+
+	execpath = malloc(PATH_MAX + 1);
+	if (execpath == NULL)
+		err(EX_OSERR, "malloc");
+	exec_args = calloc(5, sizeof(*exec_args));
+	if (exec_args == NULL)
+		err(EX_OSERR, "calloc");
+
+	get_execpath(execpath);
 	exec_args[argc++] = execpath;
 	exec_args[argc++] = "-E";
 	if (coredump_enabled)
@@ -805,21 +814,43 @@ cheriostest_spawn_child(enum spawn_child_mode mode)
 	return (pid);
 }
 
+/*
+ * Helper binaries are installed in libexec, which we look up relative to the
+ * running cheriostest binary rather than at a fixed path. The build directory
+ * mirrors the installed layout, so the tests work both ways.
+ */
+const char *
+cheriostest_get_helper_dir(void)
+{
+	static char helper_dir[PATH_MAX + 1];
+	char execpath[PATH_MAX + 1];
+	char *slash;
+
+	if (helper_dir[0] == '\0') {
+		get_execpath(execpath);
+		slash = strrchr(execpath, '/');
+		/* No directory component: we were run out of the cwd. */
+		if (slash == NULL)
+			strcpy(execpath, ".");
+		else
+			*slash = '\0';
+		snprintf(helper_dir, sizeof(helper_dir), "%s/%s", execpath,
+		    CHERIOSTEST_HELPER_RELDIR);
+	}
+
+	return (helper_dir);
+}
+
 static const char *
 _cheriostest_get_helper_path(const struct cheri_test *ctp)
 {
 	static char helper_path[PATH_MAX];
-#ifdef __FreeBSD__
-	const char *prefix = "/usr/libexec";
-#elif defined(__linux__)
-	const char *prefix = ".";
-#endif
 
 	if (ctp == NULL)
 		return (NULL);
 
-	snprintf(helper_path, sizeof(helper_path), "%s/%s%s", prefix,
-	    ctp->ct_name, PROG_SUFFIX);
+	snprintf(helper_path, sizeof(helper_path), "%s/%s%s",
+	    cheriostest_get_helper_dir(), ctp->ct_name, PROG_SUFFIX);
 
 	return (helper_path);
 }

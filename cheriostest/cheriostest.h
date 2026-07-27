@@ -430,6 +430,7 @@ extern pid_t cheriostest_spawn_child(enum spawn_child_mode mode);
 const char *skip_need_cheri_revoke(const struct cheri_test *ctp);
 const char *skip_need_default_cheri_revoke(const struct cheri_test *ctp);
 
+const char *cheriostest_get_helper_dir(void);
 const char *cheriostest_get_helper_path(void);
 const char *cheriostest_skip_no_helper(const struct cheri_test *ctp);
 

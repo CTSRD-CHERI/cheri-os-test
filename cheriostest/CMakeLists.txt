@@ -9,6 +9,12 @@ else()
     message(FATAL_ERROR "Unsupported CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
+# The cheriostest binaries locate their helpers relative to themselves, so they
+# need to know how to get from the directory they are installed in to the one
+# the helpers are installed in.
+file(RELATIVE_PATH CHERIOSTEST_BINDIR_TO_LIBEXECDIR
+    "${CMAKE_INSTALL_FULL_BINDIR}" "${CMAKE_INSTALL_FULL_LIBEXECDIR}")
+
 find_package(LibXo REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(LibBSD REQUIRED)
@@ -94,6 +100,7 @@ function(add_cheriostest_variant name)
     target_compile_definitions(${target} PRIVATE
         PROG="${target}"
         PROG_SUFFIX="-${name}"
+        CHERIOSTEST_HELPER_RELDIR="${CHERIOSTEST_BINDIR_TO_LIBEXECDIR}"
     )
     target_link_libraries(${target} PRIVATE util LibXo::xo)
 

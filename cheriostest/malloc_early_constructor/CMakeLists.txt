@@ -6,7 +6,9 @@ function(add_malloc_early_constructor_variant name)
     if(ARG_THREADS)
         target_link_libraries(${target} PRIVATE pthread)
     endif()
-    install(TARGETS ${target} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    set_target_properties(${target} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CHERIOSTEST_LIBEXEC_OUTPUT_DIRECTORY}")
+    install(TARGETS ${target} RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 endfunction()
 
 add_malloc_early_constructor_variant(purecap)

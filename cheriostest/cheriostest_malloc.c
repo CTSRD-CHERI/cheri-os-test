@@ -275,7 +275,8 @@ malloc_revocation_ctl_common_procctl(const char *progname,
 			CHERIOSTEST_CHECK_SYSCALL(procctl(P_PID, getpid(),
 			    PROC_CHERI_REVOKE_CTL, procctl_arg));
 
-		asprintf(&progpath, "/usr/libexec/%s", progname);
+		asprintf(&progpath, "%s/%s", cheriostest_get_helper_dir(),
+		    progname);
 		argv[0] = progpath;
 		argv[1] = NULL;
 		execve(argv[0], argv, NULL);
