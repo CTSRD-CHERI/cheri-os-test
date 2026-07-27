@@ -61,4 +61,12 @@ set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE CACHE BOOL "")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE CACHE BOOL "")
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}" CACHE STRING "")
 
+# Note cheribuild can currently only actually run these when cross-compiling
+# for CheriBSD, since that is the only target it has a script for to run them
+# in a VM; there is no such script for Linux yet.
+option(BUILD_TESTING "Register the cheriostest binaries with CTest" ON)
+if(BUILD_TESTING)
+    enable_testing()
+endif()
+
 add_subdirectory(cheriostest)

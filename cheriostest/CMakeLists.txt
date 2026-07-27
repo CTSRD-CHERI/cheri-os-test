@@ -145,6 +145,13 @@ function(add_cheriostest_variant name)
     endif()
 
     install(TARGETS ${target} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+    # One CTest entry per variant, running that variant's whole suite: the
+    # binary already reports its own per-test results (including expected
+    # failures and skips) and exits non-zero if any test failed.
+    if(BUILD_TESTING)
+        add_test(NAME ${target} COMMAND ${target} -a)
+    endif()
 endfunction()
 
 add_subdirectory(libcheriostest_dynamic)
