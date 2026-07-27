@@ -9,7 +9,9 @@
 
 add_executable(malloc_revoke_enabled malloc_revoke_enabled.c)
 target_link_options(malloc_revoke_enabled PRIVATE -static)
-install(TARGETS malloc_revoke_enabled RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+set_target_properties(malloc_revoke_enabled PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CHERIOSTEST_LIBEXEC_OUTPUT_DIRECTORY}")
+install(TARGETS malloc_revoke_enabled RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 
 # The elfnote_* variants need the ELF feature-control. elfctl(1) does that,
 # but it is only part of the CheriBSD build so not always available.
@@ -26,7 +28,8 @@ ExternalProject_Add(host-set-feature-ctl-note
 set(ELFCTL_EXECUTABLE "${CMAKE_CURRENT_BINARY_DIR}/set-feature-ctl-note-build/set-feature-ctl-note")
 
 function(add_malloc_revoke_enabled_variant name features)
-    set(out "${CMAKE_CURRENT_BINARY_DIR}/${name}")
+    # `out` is set to where the cheriostest binaries that exec() these look for them.
+    set(out "${CHERIOSTEST_LIBEXEC_OUTPUT_DIRECTORY}/${name}")
     if(features STREQUAL "")
         add_custom_command(OUTPUT "${out}"
             COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:malloc_revoke_enabled>" "${out}"
@@ -43,14 +46,14 @@ function(add_malloc_revoke_enabled_variant name features)
     add_dependencies(malloc_revoke_enabled-${name} host-set-feature-ctl-note)
 
     if(name MATCHES "_suid")
-        install(PROGRAMS "${out}" DESTINATION ${CMAKE_INSTALL_BINDIR}
+        install(PROGRAMS "${out}" DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
             PERMISSIONS
                 OWNER_READ OWNER_WRITE OWNER_EXECUTE
                 GROUP_READ GROUP_EXECUTE
                 WORLD_READ WORLD_EXECUTE
                 SETUID)
     else()
-        install(PROGRAMS "${out}" DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(PROGRAMS "${out}" DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
     endif()
 endfunction()
 

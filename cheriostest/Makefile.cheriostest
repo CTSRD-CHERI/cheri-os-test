@@ -62,6 +62,7 @@ CHERIOSTEST_DIR:=	${.PARSEDIR}
 CFLAGS+=	-I${CHERIOSTEST_DIR}/${MACHINE}
 
 CFLAGS+=	'-DPROG="${PROG}"' '-DPROG_SUFFIX="${PROG:S/^cheriostest//}"'
+CFLAGS+=	'-DCHERIOSTEST_HELPER_RELDIR="../libexec"'
 
 .if ${MACHINE_ABI:Mpurecap}
 SRCS+=	cheriostest_cheriabi.c
