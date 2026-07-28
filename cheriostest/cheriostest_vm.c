@@ -1743,7 +1743,15 @@ CHERIOSTEST(vm_reservation_mmap_fixed_insert_noperm,
 	cheriostest_success();
 }
 
-#if (defined(PMAP_HAS_LARGEPAGES) && defined(__FreeBSD__)) || defined(__linux__)
+#ifdef __FreeBSD__
+#if PMAP_HAS_LARGEPAGES
+#define CHERIOSTEST_HAVE_LARGEPAGES
+#endif
+#elif defined(__linux__)
+#define CHERIOSTEST_HAVE_LARGEPAGES
+#endif
+
+#ifdef CHERIOSTEST_HAVE_LARGEPAGES
 #ifdef __FreeBSD__
 static int
 get_pagesizes(size_t ps[static MAXPAGESIZES])
@@ -1890,7 +1898,7 @@ CHERIOSTEST(vm_large_pages_basic,
 
 	cheriostest_success();
 }
-#endif /* PMAP_HAS_LARGEPAGES */
+#endif /* CHERIOSTEST_HAVE_LARGEPAGES */
 
 #ifdef __FreeBSD__
 /*
