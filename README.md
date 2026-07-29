@@ -1,12 +1,23 @@
 # Portable CHERI OS API test suite
 This repository provides a portable CHERI test suite for POSIX-based systems such as Linux and CheriBSD. It is heavily based on the [cheribsdtest](https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest) suite.
 
-Note, this is a preview and CheriBSD support is currently a work in progress. On CheriBSD, please use the bundled `cheribsdtest` instead. We are currently using the CheriBSD makefiles (see the `mk` directory). This is a short-term interim solution and will be replaced by a cmake-based build system in the near future.
+Note, this is a preview and CheriBSD support is currently a work in progress. On CheriBSD, please use the bundled `cheribsdtest` instead.
 
 ## Building
-This test suite can be built with [cheribuild](https://github.com/CTSRD-CHERI/cheribuild). The corresponding `cheribuild` targets are called `cheri-os-test-linux-riscv64-purecap` for RISC-V (RVY) and `cheri-os-test-linux-morello-purecap` for Morello.
+The test suite is built with CMake, cross-compiling for Linux or CheriBSD on RISC-V or Morello. `CMakePresets.json` has a preset for each combination:
 
-The `cheribuild` targets for this test suite are currently available in the `cheriostest` branch of `cheribuild` and will be merged into `main` soon.
+```sh
+cmake --preset linux-riscv64    # also freebsd-riscv64, linux-morello, freebsd-morello
+cmake --build build/linux-riscv64
+```
+
+The presets use `cmake/cheri-purecap-toolchain.cmake`, which expects the SDKs and sysroots to be laid out the way [cheribuild](https://github.com/CTSRD-CHERI/cheribuild) installs them by default, under `~/cheri/output`. Point `CHERI_SDK_ROOT` elsewhere if yours is:
+
+```sh
+cmake --preset linux-riscv64 -DCHERI_SDK_ROOT=/path/to/output
+```
+
+Either way the compiler and sysroot have to be built by `cheribuild` first, along with `libxo` (and `libbsd` for Linux). `cheribuild` can also configure and build the test suite itself, and on CheriBSD run it in a QEMU VM via CTest.
 
 ## Usage
 The test suite binaries are installed in `/opt/cheri-os-test/` by `cheribuild`. `cheriostest-purecap [options..] -a` will run over 200 tests followed by a test report.
