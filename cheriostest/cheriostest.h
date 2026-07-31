@@ -67,6 +67,14 @@
 #error "Unsupported OS"
 #endif
 
+#if !defined(__FreeBSD__) && !defined (__GLIBC__)
+/*
+ * Musl libc does not define an identification macro as FreeBSD, glibc and
+ * others do. We therefore use this heuristic to determine if musl libc is used.
+ */
+#define __musl_libc_heuristic__
+#endif
+
 /*
  * We define our own macros for these because they are not portable.
  * Some implementations of CONCAT() do not expand the arguments
