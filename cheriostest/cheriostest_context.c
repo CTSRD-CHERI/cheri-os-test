@@ -94,6 +94,8 @@ CHERIOSTEST(setcontext_basic, "Check that setcontext works",
      * setcontext calls are done in the same function?
      */
     .ct_flaky_reason = XFAIL_FLAKY_C18N_CONTEXT
+#else
+    .ct_xfail_reason = "Not supported"
 #endif
 )
 {
@@ -115,6 +117,8 @@ CHERIOSTEST(setcontext_basic, "Check that setcontext works",
 CHERIOSTEST(swapcontext_basic, "Check that swapcontext works",
 #if HAS_GET_AND_SETCONTEXT
     .ct_flaky_reason = XFAIL_FLAKY_C18N_CONTEXT
+#else
+    .ct_xfail_reason = "Not supported"
 #endif
 )
 {
