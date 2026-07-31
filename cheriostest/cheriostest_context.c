@@ -88,7 +88,7 @@ setcontext_func(int arg1, int arg2)
 #endif
 
 CHERIOSTEST(setcontext_basic, "Check that setcontext works",
-#if HAS_GET_AND_SETCONTEXT
+#ifdef HAS_GET_AND_SETCONTEXT
     /*
      * Currently happens to pass for c18n, possibly because makecontext and
      * setcontext calls are done in the same function?
@@ -99,7 +99,7 @@ CHERIOSTEST(setcontext_basic, "Check that setcontext works",
 #endif
 )
 {
-#if HAS_GET_AND_SETCONTEXT
+#ifdef HAS_GET_AND_SETCONTEXT
 	ucontext_t uc;
 
 	CHERIOSTEST_CHECK_SYSCALL(getcontext(&uc));
@@ -115,14 +115,14 @@ CHERIOSTEST(setcontext_basic, "Check that setcontext works",
 }
 
 CHERIOSTEST(swapcontext_basic, "Check that swapcontext works",
-#if HAS_GET_AND_SETCONTEXT
+#ifdef HAS_GET_AND_SETCONTEXT
     .ct_flaky_reason = XFAIL_FLAKY_C18N_CONTEXT
 #else
     .ct_xfail_reason = "Not supported"
 #endif
 )
 {
-#if HAS_GET_AND_SETCONTEXT
+#ifdef HAS_GET_AND_SETCONTEXT
 	ucontext_t uc, uc_link;
 	int ret;
 
