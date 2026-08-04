@@ -49,7 +49,7 @@ CHERIOSTEST(fptr_canon_cross,
 	fptr_inside = cheriostest_dynamic_get_dummy_fptr();
 	fptr_outside = &cheriostest_dynamic_dummy_func;
 
-	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_outside),
+	CHERIOSTEST_VERIFY2(cheri_ptr_equal_exact(fptr_inside, fptr_outside),
 	    "inside %#p differs from outside %#p", fptr_inside, fptr_outside);
 
 	cheriostest_success();
@@ -65,7 +65,7 @@ CHERIOSTEST(fptr_canon_dlsym,
 	fptr_dlsym = (void (*)(void))dlsym(RTLD_DEFAULT,
 	    "cheriostest_dynamic_dummy_func");
 
-	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlsym),
+	CHERIOSTEST_VERIFY2(cheri_ptr_equal_exact(fptr_inside, fptr_dlsym),
 	    "inside %#p differs from dlsym %#p", fptr_inside, fptr_dlsym);
 
 	cheriostest_success();
@@ -82,7 +82,7 @@ CHERIOSTEST(fptr_canon_dlfunc,
 	fptr_dlfunc = (void (*)(void))dlfunc(RTLD_DEFAULT,
 	    "cheriostest_dynamic_dummy_func");
 
-	CHERIOSTEST_VERIFY2(cheri_is_equal_exact(fptr_inside, fptr_dlfunc),
+	CHERIOSTEST_VERIFY2(cheri_ptr_equal_exact(fptr_inside, fptr_dlfunc),
 	    "inside %#p differs from dlfunc %#p", fptr_inside, fptr_dlfunc);
 
 	cheriostest_success();
