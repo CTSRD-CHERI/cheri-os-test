@@ -51,7 +51,7 @@
 	"functions are not supported by musl libc"
 
 #else
-#define	HAS_GET_AND_SETCONTEXT
+#define	HAS_GET_AND_SETCONTEXT 1
 #define	SWAPCONTEXT_ARG1	0x53574150
 
 static int swapcontext_arg1;
