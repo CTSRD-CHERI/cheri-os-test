@@ -151,15 +151,6 @@ extern struct cheriostest_child_state *ccsp;
 #define	SI_CODE_STORELOCAL	PROT_CHERI_STORELOCAL
 #endif
 
-#ifndef	XFAIL_HYBRID_BOUNDS_GLOBALS
-#ifdef __CHERI_PURE_CAPABILITY__
-#define	XFAIL_HYBRID_BOUNDS_GLOBALS	NULL
-#else
-#define	XFAIL_HYBRID_BOUNDS_GLOBALS \
-    "Bounds not supported for globals in hybrid ABI"
-#endif
-#endif
-
 #ifndef	XFAIL_HYBRID_BOUNDS_GLOBALS_EXTERN
 #ifdef __CHERI_PURE_CAPABILITY__
 #define	XFAIL_HYBRID_BOUNDS_GLOBALS_EXTERN	NULL
