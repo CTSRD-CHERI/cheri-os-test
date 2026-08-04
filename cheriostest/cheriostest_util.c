@@ -145,8 +145,13 @@ cheriostest_success_with_warn(const char *msg)
 void
 cheriostest_set_expected_si_addr(void *addr)
 {
+#ifdef __CHERI_PURE_CAPABILITY__
 	ccsp->ccs_si_addr_expected = cheri_tag_clear(addr);
 	ccsp->ccs_si_addr_expected_tag = cheri_tag_get(addr);
+#else
+	ccsp->ccs_si_addr_expected = addr;
+	ccsp->ccs_si_addr_expected_tag = false;
+#endif
 }
 
 const char *
