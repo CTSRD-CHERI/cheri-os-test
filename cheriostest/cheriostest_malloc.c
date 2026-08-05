@@ -52,6 +52,9 @@
 
 #include "cheriostest.h"
 
+#define THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG \
+	"The CHERI Linux Project does not support revocation"
+
 extern volatile void *eptr;
 volatile void *eptr;
 
@@ -63,7 +66,7 @@ skip_malloc_revocation_disabled(const struct cheri_test *ctp __attribute__((__un
 		return (NULL);
 	return ("malloc quarantine disabled");
 #elif defined(__linux__)
-	return ("Morello Linux and CHERI Linux don't support revocation");
+	return (THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #endif
 }
 
@@ -78,7 +81,7 @@ CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	volatile void *ptr;
 
@@ -103,7 +106,7 @@ CHERIOSTEST(malloc_revoke_basic,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	volatile void *ptr __attribute__((__unused__));
 
@@ -189,7 +192,7 @@ CHERIOSTEST(malloc_revoke_quarantine_force_flush_twice,
 	cheriostest_success();
 }
 #elif defined(__linux__)
-#pragma message "Morello Linux and CHERI Linux don't support revocation"
+#pragma message "The CHERI Linux Project does not support revocation"
 #endif
 
 CHERIOSTEST(malloc_zero_size,
@@ -237,7 +240,7 @@ CHERIOSTEST(malloc_zero_size,
 }
 
 /*
- * No else branch because CHERI Linux and Morello Linux don't support
+ * No else branch because the CHERI Linux Project does not support
  * revocation yet.
  */
 #ifdef __FreeBSD__

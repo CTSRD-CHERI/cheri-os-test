@@ -32,7 +32,7 @@
  */
 
 /*
- * CHERI Linux and Morello Linux don't have an equivalent to the
+ * The CHERI Linux Project does not have an equivalent to the
  * flag_captured system call.
  */
 #ifdef __FreeBSD__

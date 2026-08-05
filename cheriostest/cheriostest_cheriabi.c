@@ -338,7 +338,7 @@ CHERIOSTEST(cheriabi_mmap_perms,
 	    "Missing PERM_EXEC on PROT_RWX mapping");
 
 /*
- * CHERI Linux does not have PROT_CAP and PROT_NO_CAP currently.
+ * The CHERI Linux Project does not have PROT_CAP and PROT_NO_CAP currently.
  */
 #ifdef PROT_CAP
 	/* RO and RW with explicit cap perms */
@@ -411,7 +411,7 @@ CHERIOSTEST(cheriabi_mmap_perms,
 }
 
 /*
- * CHERI Linux does not define PROT_CAP and PROT_NO_CAP currently.
+ * The CHERI Linux Project does not define PROT_CAP and PROT_NO_CAP currently.
  */
 #ifdef PROT_CAP
 CHERIOSTEST(cheriabi_mmap_no_cap_perms,

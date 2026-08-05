@@ -102,6 +102,9 @@
 
 #include "cheriostest.h"
 
+#define THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG \
+	"The CHERI Linux Project does not support revocation"
+
 static void
 gen_shm_obj_name(char *shm_obj_name, size_t len)
 {
@@ -2039,7 +2042,7 @@ CHERIOSTEST(cheri_revoke_lightly, "A gentle test of capability revocation",
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	void **mb;
 	void *sh;
@@ -2145,7 +2148,7 @@ CHERIOSTEST(cheri_revoke_loadside, "Test load-side revoker",
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 
 #define CHERIOSTEST_VM_CHERI_REVOKE_LOADSIDE_NPG	3
@@ -2291,7 +2294,7 @@ CHERIOSTEST(cheri_revoke_async,
 )
 {
 #if defined(__linux__)
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	struct cheri_revoke_syscall_info crsi;
 	const volatile struct cheri_revoke_info *cri;
@@ -2660,7 +2663,7 @@ CHERIOSTEST(cheri_revoke_lib, "Test libcheri_caprevoke internals",
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	/*
 	 * Tweaking paranoia can turn this test into more of a
@@ -2708,7 +2711,7 @@ CHERIOSTEST(cheri_revoke_lib_fork, "Test libcheri_caprevoke with fork",
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	static const int paranoia = 2;
 
@@ -2765,7 +2768,7 @@ CHERIOSTEST(cheri_revoke_lib_fork_split,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	static const int paranoia = 2;
 
@@ -2914,10 +2917,10 @@ cheri_revoke_lib_child_split(void)
 }
 
 /*
- *	These tests are surrounded by #ifdef __FreeBSD__ instead of
- *	emitting an XFAIL on Linux to not spam the test suite output
- *	with too many 'The CHERI Linux Project does not support revocation'
- *	messages.
+ * These tests are surrounded by #ifdef __FreeBSD__ instead of
+ * emitting an XFAIL on Linux, to not spam the test suite output
+ * with too many 'The CHERI Linux Project does not support revocation
+ * messages.
  */
 CHERIOSTEST(cheri_revoke_lib_child_fork_exec_once,
     "revoke in a fork+exec'd child",
@@ -3020,7 +3023,7 @@ CHERIOSTEST(revoke_largest_quarantined_reservation,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	const size_t res_size = 0x100000000;
 	void *res;
@@ -3113,7 +3116,7 @@ CHERIOSTEST(revoke_merge_quarantined,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	const size_t big_res_size = 0x100000000;
 	const size_t res_sizes[NRES] =
@@ -3224,7 +3227,7 @@ CHERIOSTEST(cheri_revoke_cow_mapping,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	void **block, **cap1, **cap2;
 	void *shadow, *torev;
@@ -3387,7 +3390,7 @@ CHERIOSTEST(cheri_revoke_shm_anon_hoard_unmapped,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	int fd, ret;
 	void * volatile to_revoke;
@@ -3430,7 +3433,7 @@ CHERIOSTEST(cheri_revoke_shm_anon_hoard_closed,
 )
 {
 #ifdef __linux__
-	cheriostest_failure_errx("The CHERI Linux Project does not support revocation");
+	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
 #else
 	int sv[2];
 	int pid;

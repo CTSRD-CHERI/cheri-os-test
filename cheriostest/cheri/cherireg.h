@@ -133,7 +133,7 @@
 #define CHERI_PERM_STORE_LOCAL_CAP      CHERI_PERM_STORE_LEVEL
 
 /*
- * This file will be removed once CHERI Linux's asm/cheri.h contains
+ * This file will be removed once Linux's asm/cheri.h contains
  * these definitions.
  */
 #define CHERITEST_CHERI_PERM_SW_0 (1 << 6)

@@ -43,7 +43,7 @@
 
 #if defined(__musl_libc_heuristic__)
 /*
- * Morello and CHERI Linux are based on Musl libc which doesn't implement the
+ * The CHERI Linux Project is based on Musl libc which doesn't implement the
  * getcontext(), setcontext(), etc system calls. Likely because they were
  * deprecated by POSIX in 2004.
  */
