@@ -20,8 +20,7 @@ SRCS=	cheriostest_dynamic_fptr.c					\
 	cheriostest_dynamic_identity_cap.c				\
 	cheriostest_dynamic_tls.c
 
-.if ${MACHINE_CPUARCH} == "aarch64" && ${TARGET_OS} == "FreeBSD"
-# XXXPM: Why the CPUARCH condition?
+.if ${TARGET_OS} == "FreeBSD"
 SRCS+=	cheriostest_dynamic_ifunc.c
 .endif
 
