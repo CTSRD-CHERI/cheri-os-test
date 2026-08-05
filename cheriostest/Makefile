@@ -1,6 +1,8 @@
 .include <src.opts.mk>
 
-.if ${.MAKE.OS} == "FreeBSD"
+TARGET_OS?= ${.MAKE.OS}
+
+.if ${TARGET_OS} == "FreeBSD"
 BINOWN!= whoami
 BINDIR= ${.CURDIR}/build/
 LIBDIR= ${.CURDIR}/build/
@@ -24,7 +26,7 @@ SUBDIR+=	purecap \
 
 .if ${MACHINE_CPUARCH} == "aarch64" \
 	&& ${MACHINE_ABI:Mpurecap} \
-	&& ${.MAKE.OS} == "FreeBSD"
+	&& ${TARGET_OS} == "FreeBSD"
 # Don't create these test binaries for Linux because this doesn't actually add
 # any tests that we could use to report the missing compartmentalisation
 # support. However, we do use 'compartment_pcc_bounds' test for this.
@@ -32,7 +34,7 @@ SUBDIR+=	mt-c18n
 .endif
 .endif
 
-.if ${.MAKE.OS} == "FreeBSD"
+.if ${TARGET_OS} == "FreeBSD"
 #.if !${MACHINE_ABI:Mpurecap} || ${MK_LIB64} == "yes"
 #SUBDIR+=	hybrid \
 		hybrid-dynamic \

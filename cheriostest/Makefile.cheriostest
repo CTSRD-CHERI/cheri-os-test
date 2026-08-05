@@ -1,5 +1,7 @@
 .include <src.opts.mk>
 
+TARGET_OS?= ${.MAKE.OS}
+
 SRCS=	cheriostest.c
 
 SRCS+=	cheriostest_bounds_globals.c					\
@@ -36,13 +38,13 @@ SRCS+=	cheriostest_bounds_subobject.c			\
 	cheriostest_bounds_varargs.c				\
 		cheriostest_sentries.c
 
-.if ${.MAKE.OS} == "FreeBSD"
+.if ${TARGET_OS} == "FreeBSD"
 .if ${MK_COMPARTMENT_POLICY} != "no"
 SRCS+=	cheriostest_compartments.c
 CFLAGS.cheriostest_compartments.c+=-ffunction-sections
 COMPARTMENT_POLICY=	${CHERIOSTEST_DIR}/compartments.json
 .endif
-.elif ${.MAKE.OS} == "Linux"
+.elif ${TARGET_OS} == "Linux"
 # We add this file on Linux regardless of the value of MK_COMPARTMENT_POLICY
 # to report this test as an expected failure because compartmentalisation
 # is not supported on Linux.
@@ -51,7 +53,7 @@ SRCS+=	cheriostest_compartments.c
 .endif
 
 # We currently don't have zlib available on Linux
-.if ${.MAKE.OS} == "FreeBSD"
+.if ${TARGET_OS} == "FreeBSD"
 SRCS+=	cheriostest_zlib.c
 .endif
 
@@ -67,7 +69,7 @@ SRCS+=	cheriostest_cheriabi_libc.c
 SRCS+=	cheriostest_cheriabi_open.c
 .endif
 
-.if ${.MAKE.OS} == "Linux"
+.if ${TARGET_OS} == "Linux"
 # Include these tests on Linux to report revocation is missing.
 CFLAGS+=	-DCHERIOSTEST_CHERI_REVOKE_TESTS
 .elif ${MACHINE_ABI:Mpurecap} && ${MK_CHERI_CAPREVOKE} == "yes"
@@ -87,11 +89,11 @@ CFLAGS.cheriostest_bounds_subobject.c+=-cheri-bounds=subobject-safe
 MAN=
 
 LIBADD+=	util xo
-.if ${.MAKE.OS} == "Linux"
+.if ${TARGET_OS} == "Linux"
 # Linux requires libbsd for compatibility
 # reasons.
 LIBADD+=	bsd
-.elif ${.MAKE.OS} == "FreeBSD"
+.elif ${TARGET_OS} == "FreeBSD"
 # Linux doesn't have libprocstat and
 # libz is currently not available either
 LIBADD+=	procstat z
@@ -104,7 +106,7 @@ CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
 
-.if ${.MAKE.OS} == "Linux"
+.if ${TARGET_OS} == "Linux"
 # On Linux, we are putting the helper libraries in /opt/cheri-os-test/lib to
 # avoid polluting system library search paths.
 LDFLAGS+= -Wl,-rpath=/opt/cheri-os-test/lib/
