@@ -46,17 +46,16 @@
 
 #include <cheriintrin.h>
 
+#include <cheri/cherireg.h>
+
 #include "cheriostest_compat.h"
 
 #ifdef __FreeBSD__
 #include <sys/linker_set.h>
-#include <cheri/cherireg.h>
-
 #include "cheriostest_md.h"
 #elif __linux__
 #include <bsd/sys/cdefs.h>
 
-#include "cheri/cherireg.h"
 #include "utils/linker_set.h"
 #ifdef __aarch64__
 #include "arm64/cheriostest_md.h"

@@ -36,6 +36,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#if __has_include_next(<cheri/cheric.h>)
+#include_next <cheri/cheric.h>  /* For strfcap() on FreeBSD */
+#endif
 /* Provide macros to make it easier to work with the raw CRAM/CRRL results: */
 #define CHERITEST_CHERI_REPRESENTABLE_ALIGNMENT(len) \
 	(~cheri_representable_alignment_mask(len) + 1)

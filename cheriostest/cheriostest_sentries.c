@@ -40,19 +40,14 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#ifdef __FreeBSD__
-/* XXXPM: Check if this is needed on CheriBSD */
-#include <sys/sysctl.h>
-#elif __linux__
-#include "cheri/cherireg.h"
-#endif
-
 #include <sys/param.h>
 #include <sys/syscall.h>
 
 #include <dlfcn.h>
 #include <stdint.h>
 #include <unistd.h>
+
+#include <cheri/cherireg.h>
 
 #include "cheriostest.h"
 

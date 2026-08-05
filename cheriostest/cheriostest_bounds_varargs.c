@@ -40,17 +40,14 @@
 #endif
 
 #include <sys/types.h>
-
-#ifdef __FreeBSD__
 #include <cheri/cheric.h>
 
+#ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
 
 #include <machine/frame.h>
 #include <machine/trap.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
 #endif
 
 #include <sys/time.h>

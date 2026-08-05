@@ -23,11 +23,9 @@
  * SUCH DAMAGE.
  */
 
+#include <cheri/cheric.h>
 #ifdef __FreeBSD__
 #include <cheri/cheri.h>
-#include <cheri/cheric.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
 #endif
 
 #include <sys/types.h>

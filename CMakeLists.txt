@@ -43,10 +43,10 @@ include(GNUInstallDirs)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CheriostestAbi)
 
-# Currently need to suppress this due to the way we include <cheri/cheric.h>.
-check_c_compiler_flag("-Wno-include-next-absolute-path" CHERIOSTEST_HAVE_WNO_INCLUDE_NEXT_ABSOLUTE_PATH)
+# Set this flag to avoid using incorrect #includes "cheri/cheric.h" instead of <cheri/cheric.h>.
+check_c_compiler_flag("-Winclude-next-absolute-path" CHERIOSTEST_HAVE_WNO_INCLUDE_NEXT_ABSOLUTE_PATH)
 if(CHERIOSTEST_HAVE_WNO_INCLUDE_NEXT_ABSOLUTE_PATH)
-    add_compile_options(-Wno-include-next-absolute-path)
+    add_compile_options(-Werror=include-next-absolute-path)
 endif()
 
 # Mirror the installed layout in the build tree. This is needed since the

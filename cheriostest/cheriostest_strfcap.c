@@ -39,12 +39,10 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#include <cheri/cheric.h>
+#include <cheri/cherireg.h>
 #ifdef __FreeBSD__
 #include <cheri/cheri.h>
-#include <cheri/cheric.h>
-#elif defined(__linux__)
-#include "cheri/cherireg.h"
-#include "cheri/cheric.h"
 #endif
 
 #include <sys/param.h>

@@ -41,8 +41,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#ifdef __FreeBSD__
 #include <cheri/cheric.h>
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
 
 #include <machine/frame.h>
@@ -50,8 +50,6 @@
 
 #include <cheri/cheri.h>
 #elif defined(__linux__)
-#include "cheri/cheric.h"
-
 #include <sys/auxv.h>
 #endif
 

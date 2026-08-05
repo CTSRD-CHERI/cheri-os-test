@@ -39,7 +39,7 @@
 #include <sys/auxv.h>
 #endif
 
-#include "cheri/cherireg.h"
+#include <cheri/cherireg.h>
 
 #include <stdio.h>
 
