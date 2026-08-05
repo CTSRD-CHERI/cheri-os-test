@@ -44,14 +44,14 @@
 #include <sys/shm.h>
 #include <sys/time.h>
 
+#include <cheri/cheric.h>
+#include <cheri/cherireg.h>
+
 #ifdef __FreeBSD__
 #include <sys/signal.h>
 #include <sys/sysctl.h>
 
 #include <machine/sysarch.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
-#include "cheri/cherireg.h"
 #endif
 
 #include <err.h>
@@ -109,7 +109,7 @@ CHERIOSTEST(cheriabi_mincore,
 #define EXEC_ONLY CHERI_PERM_EXECUTE | CHERI_PERM_GLOBAL
 #define READ_ONLY CHERI_PERM_LOAD | CHERI_PERM_GLOBAL
 #define WRITE_ONLY CHERI_PERM_STORE | CHERI_PERM_GLOBAL
-#elif defined(__riscv_zcheripurecap)
+#elif defined(__riscv)
 /*
  * XXXPM: mincore() fails if the first block of reserved permissions bits is
  *        not set; surprisingly, the second block doesn't need to be set.

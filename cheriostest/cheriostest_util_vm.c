@@ -36,12 +36,12 @@
 #include <sys/param.h>
 #include <sys/user.h>
 
+#include <cheri/cheric.h>
+
 #ifdef __FreeBSD__
 #include <libprocstat.h>
 
 #include <sys/sysctl.h>
-
-#include <cheri/cheric.h>
 #elif defined(__linux__)
 #include <errno.h>
 #include <stdio.h>
@@ -51,7 +51,6 @@
 #include <bsd/sys/queue.h>
 #endif
 
-#include "cheri/cheric.h"
 
 #include <unistd.h>
 

@@ -34,12 +34,10 @@
 #endif
 
 #include <sys/types.h>
+#include <cheri/cheric.h>
 
 #if defined(__FreeBSD__)
 #include <cheri/cheri.h>
-#include <cheri/cheric.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
 #endif
 
 #include <string.h>

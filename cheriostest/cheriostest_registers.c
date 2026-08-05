@@ -56,12 +56,12 @@
 #include <sysexits.h>
 #include <unistd.h>
 
-#include "cheri/cherireg.h"
+#include <cheri/cheric.h>
+#include <cheri/cherireg.h>
+
 #include "cheriostest.h"
 
 #if defined(__FreeBSD__)
-#include <cheri/cheric.h>
-
 #include <sys/sysctl.h>
 
 #include <machine/pte.h>
@@ -70,8 +70,6 @@
 #include <cheri/cheri.h>
 
 #elif defined(__linux__)
-#include "cheri/cheric.h"
-
 #include <sys/cheri.h>
 #include <sys/resource.h>
 #endif

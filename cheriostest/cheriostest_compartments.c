@@ -10,12 +10,7 @@
  * No. FA8750-24-C-B047 ("DEC").
  */
 
-#if defined(__FreeBSD__)
 #include <cheri/cheric.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
-#endif
-
 #include "cheriostest.h"
 
 static void

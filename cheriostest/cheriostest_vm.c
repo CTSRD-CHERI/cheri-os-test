@@ -42,13 +42,12 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#if defined(__FreeBSD__)
 #include <cheri/cheric.h>
-#elif defined(__linux__)
+
+#if defined(__linux__)
 #define _GNU_SOURCE
 #endif
 
-#include "cheri/cheric.h"
 
 #include <sys/types.h>
 #include <sys/param.h>

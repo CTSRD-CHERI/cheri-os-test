@@ -39,12 +39,9 @@
 #endif
 
 #include <sys/types.h>
-#ifdef __FreeBSD__
 #include <cheri/cheric.h>
-
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
 #endif
 #include <sys/time.h>
 

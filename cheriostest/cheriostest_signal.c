@@ -38,6 +38,7 @@
 #endif
 
 #include <sys/types.h>
+#include <cheri/cherireg.h>
 
 #if defined(__FreeBSD__)
 #include <machine/vmparam.h>
@@ -45,8 +46,6 @@
 #include <cheri/cheri.h>
 #elif defined(__linux__)
 #include <sys/syscall.h>
-
-#include "cheri/cherireg.h"
 #endif
 
 #include <errno.h>

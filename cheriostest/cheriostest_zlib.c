@@ -33,11 +33,7 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
-#if defined(__FreeBSD__)
 #include <cheri/cheric.h>
-#elif defined(__linux__)
-#include "cheri/cheric.h"
-#endif
 
 #include <sys/types.h>
 
