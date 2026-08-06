@@ -55,12 +55,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}"
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
 set(CHERIOSTEST_LIBEXEC_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBEXECDIR}")
 
-# Set RPATH so that the dynamic variants can find libcheriostest_dynamic (both at
-# its installed location as well as the build dir) without needing LD_LIBRARY_PATH.
-set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE CACHE BOOL "")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE CACHE BOOL "")
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}" CACHE STRING "")
-
 # Note cheribuild can currently only actually run these when cross-compiling
 # for CheriBSD, since that is the only target it has a script for to run them
 # in a VM; there is no such script for Linux yet.

@@ -129,6 +129,13 @@ function(add_cheriostest_variant name)
             cheriostest_fptr_canon.c
             cheriostest_lazy_bind.c
         )
+        # Set RPATH so that the dynamic variants can find libcheriostest_dynamic (both at
+        # its installed location as well as the build dir) without needing LD_LIBRARY_PATH.
+        set_target_properties(${target} PROPERTIES
+                INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+                INSTALL_RPATH_USE_LINK_PATH TRUE
+                BUILD_RPATH_USE_ORIGIN TRUE
+        )
         if(ARG_ABI STREQUAL "hybrid")
             target_link_libraries(${target} PRIVATE cheriostest_dynamic_hybrid)
         else()
