@@ -672,9 +672,9 @@ vm_shm_open_unix_surprise(const char *shm_obj_name)
 
 		waitpid(pid, &res, 0);
 		if (res == 0) {
-			cheriostest_failure_errx("tags failed to transfer");
-		} else {
 			cheriostest_success();
+		} else {
+			cheriostest_failure_errx("tag transfer succeeded");
 		}
 	}
 }
