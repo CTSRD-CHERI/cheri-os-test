@@ -120,6 +120,13 @@ function(add_cheriostest_variant name)
     endif()
 
     if(ARG_DYNAMIC)
+        # Hybrid (lp64d/aapcs) isn't PIE by default with this toolchain, which
+        # breaks function-pointer canonicalization: &f no longer matches
+        # dlsym()/dlfunc() once the executable has a non-PLT address for f.
+        # Force PIE for all dynamic variants. It's already the default for
+        # purecap but adding it explicitly doesn't hurt.
+        target_compile_options(${target} PRIVATE -fPIE)
+        target_link_options(${target} PRIVATE -pie)
         target_compile_definitions(${target} PRIVATE
             CHERIBSD_DYNAMIC_TESTS
             LIBM_SONAME="libm.so.5"
