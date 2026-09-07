@@ -9,6 +9,13 @@
 
 add_executable(malloc_revoke_enabled malloc_revoke_enabled.c)
 target_link_options(malloc_revoke_enabled PRIVATE -static)
+
+# Some cmake versions attempt to set the rpath on statically linked binaries
+# because cheribuild sets CMAKE_INSTALL_RPATH="$ORIGIN/../lib". This
+# causes the build to fail because cheri-os-test consists of static
+# and dynamic binaries. The two lines below work around this issue.
+set_target_properties(malloc_revoke_enabled PROPERTIES INSTALL_RPATH "")
+set_target_properties(malloc_revoke_enabled PROPERTIES INSTALL_RPATH_USE_LINK_PATH FALSE)
 set_target_properties(malloc_revoke_enabled PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CHERIOSTEST_LIBEXEC_OUTPUT_DIRECTORY}")
 install(TARGETS malloc_revoke_enabled RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})

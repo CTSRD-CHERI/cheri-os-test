@@ -149,6 +149,12 @@ function(add_cheriostest_variant name)
             target_link_libraries(${target} PRIVATE cheriostest_dynamic)
         endif()
     else()
+        # Some cmake versions attempt to set the rpath on statically linked binaries
+        # because cheribuild sets CMAKE_INSTALL_RPATH="$ORIGIN/../lib". This
+        # causes the build to fail because cheri-os-test consists of static
+        # and dynamic binaries. The two lines below work around this issue.
+        set_target_properties(${target} PROPERTIES INSTALL_RPATH "")
+        set_target_properties(${target} PROPERTIES INSTALL_RPATH_USE_LINK_PATH FALSE)
         target_link_options(${target} PRIVATE -static)
     endif()
 
