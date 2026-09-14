@@ -121,10 +121,10 @@ find_address_space_gap(size_t len, size_t align)
 struct vma_attr_t {
 	unsigned long long start;
 	unsigned long long end;
-	LIST_ENTRY(vma_attr_t) link;
+	TAILQ_ENTRY(vma_attr_t) link;
 };
 
-LIST_HEAD(vma_attr_list, vma_attr_t);
+TAILQ_HEAD(vma_attr_list, vma_attr_t);
 
 ptraddr_t
 find_address_space_gap(size_t len, size_t align)
@@ -135,11 +135,10 @@ find_address_space_gap(size_t len, size_t align)
 	char *line = NULL;
 	size_t line_len = 0;
 	struct vma_attr_list lh;
-	unsigned int vmcnt = 0;
 
-	LIST_INIT(&lh);
+	TAILQ_INIT(&lh);
 
-	// Create a list of VMAs based on /proc/self/stat
+	// Create a list of VMAs based on /proc/self/maps
 	f = fopen("/proc/self/maps", "r");
 	if (f == NULL) {
 		cheriostest_failure_errx("fopen: %s", strerror(errno)); // TODO: Improve this
@@ -148,8 +147,7 @@ find_address_space_gap(size_t len, size_t align)
 	while(getline(&line, &line_len, f) != -1) {
 		cur_vma_attr = malloc(sizeof(struct vma_attr_t));
 		sscanf(line, "%llx-%llx", &cur_vma_attr->start, &cur_vma_attr->end);
-		LIST_INSERT_HEAD(&lh, cur_vma_attr, link);
-		vmcnt++;
+		TAILQ_INSERT_TAIL(&lh, cur_vma_attr, link);
 	}
 	free(line);
 	fclose(f);
@@ -160,16 +158,20 @@ find_address_space_gap(size_t len, size_t align)
 	}
 
 	// Search for gap in the address space
-	struct vma_attr_t *it = LIST_FIRST(&lh);
-	for (unsigned int i = 0; i < vmcnt - 1; i++) {
-		ptraddr_t end = it->start;
-		it = LIST_NEXT(it, link);
-		ptraddr_t aligned_start = __builtin_align_up(it->end, align);
-		if (aligned_start > end)
-			continue;
-		if (end - aligned_start >= len) {
-			addr = aligned_start;
-			break;
+	struct vma_attr_t *it = TAILQ_FIRST(&lh);
+	if (it) {
+		for (;;) {
+			ptraddr_t end = it->end;
+			it = TAILQ_NEXT(it, link);
+			if (!it)
+				break;
+			ptraddr_t aligned_start = __builtin_align_down(it->start, align);
+			if (aligned_start < end)
+				continue;
+			if (aligned_start - end >= len) {
+				addr = end;
+				break;
+			}
 		}
 	}
 

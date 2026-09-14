@@ -396,11 +396,24 @@ CHERIOSTEST(initregs_default, "Test initial value of default capability")
 #ifdef __CHERI_PURE_CAPABILITY__
 
 /*
- * We require our stack offset to be somewhere in the first 256KiB.  That
- * should be plenty of room for the aux vector and args and all that.
+ * The limitations of the representable range on the stack bounds
+ * means that the top of the stack capability will be aligned on a
+ * large boundary (the value of which is dependent on the size of the
+ * stack). However, due to ASLR, the top of the stack chosen by the
+ * OS may be anywhere (as long as it correctly aligned). So the
+ * current stack pointer's offset from the top of the stack pointer
+ * capability will be the sum of:
+ * - the ASLR chosen offset from the upper bound (aligned to the
+ *   representable alignment mask)
+ * - initial data placed on the stack (the aux vector and args and all
+ *   that)
+ * - the stack frames to reach this test
+ * At most, the first is the inverse of the representable alignment mask,
+ * and the last two are 64KiB.
  */
 
-#define	CHERI_STACK_USE_MAX	(256 * 1024)
+#define	CHERI_STACK_USE_MAX(c)						\
+	((~cheri_representable_alignment_mask(cheri_length_get(c)) + 1) + (64 * 1024))
 #define	CHERI_STACK_SWPERMS						\
 	(CHERI_PERMS_SWALL & ~(CHERI_PERM_SW_VMEM | CHERI_PERM_SYSCALL))
 
@@ -437,10 +450,10 @@ CHERIOSTEST(initregs_stack,
 
 	/* Offset. */
 	/* If we're running len > offset... */
-	if (cheri_length_get(c) - cheri_offset_get(c) > CHERI_STACK_USE_MAX)
-		cheriostest_failure_errx("offset more then 0x%jx from top "
-		    "(0x%jx)", (intmax_t)CHERI_STACK_USE_MAX,
-		    cheri_length_get(c) - cheri_offset_get(c));
+	if (cheri_length_get(c) - cheri_offset_get(c) > CHERI_STACK_USE_MAX(c))
+		cheriostest_failure_errx("offset more than 0x%jx from top "
+		    "(0x%jx, sp %#p)", (intmax_t)CHERI_STACK_USE_MAX(c),
+		    cheri_length_get(c) - cheri_offset_get(c), c);
 
 #ifdef HAS_CHERI_PERM_SEAL
 	/* Type -- should have unsealed type. */
