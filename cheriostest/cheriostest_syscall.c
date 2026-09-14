@@ -157,7 +157,7 @@ CHERIOSTEST(ptrace_basic,
 	int pfd[2];
 	char c;
 
-	CHERIOSTEST_CHECK_SYSCALL(pipe(pfd));
+	CHERIOSTEST_CHECK_SYSCALL(socketpair(AF_UNIX, SOCK_STREAM, 0, pfd));
 
 	cpid = fork();
 	if (cpid != 0) {
@@ -180,8 +180,8 @@ CHERIOSTEST(ptrace_basic,
 		CHERIOSTEST_CHECK_EQ_INT(stopsig, SIGSTOP);
 #elif defined(__linux__)
 		res = waitpid(cpid, &status, WSTOPPED);
-		CHERIOSTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0");
-		CHERIOSTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGURG");
+		CHERIOSTEST_VERIFY2(WIFSTOPPED(status) != 0, "Expected WIFSTOPPED(status) != 0 (status = %#x)", status);
+		CHERIOSTEST_VERIFY2(WSTOPSIG(status) == SIGSTOP, "Expected SIGSTOP");
 #endif
 
 		/* Kill it */
@@ -212,8 +212,7 @@ CHERIOSTEST(ptrace_basic,
 		 * since the parent kills this process using PT_KILL.
 		 */
 		res = read(pfd[1], &c, 1);
-		assert(c == 'x');
-		fprintf(stderr, "got exit message, this should not happen!\n");
+		fprintf(stderr, "read returned(%d (%s), char %x), this should not happen!\n", res, strerror(errno), c);
 		close(pfd[1]);
 		exit(23);
 	}
