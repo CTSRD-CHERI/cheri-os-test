@@ -20,7 +20,7 @@ cmake --preset linux-riscv64 -DCHERI_SDK_ROOT=/path/to/output
 Either way the compiler and sysroot have to be built by `cheribuild` first, along with `libxo` (and `libbsd` for Linux). `cheribuild` can also configure and build the test suite itself, and on CheriBSD run it in a QEMU VM via CTest.
 
 ## Usage
-The test suite binaries are installed in `/opt/cheri-os-test/` by `cheribuild`. `cheriostest-purecap [options..] -a` will run over 200 tests followed by a test report.
+The test suite binaries are installed in `/opt/cheri-os-test/` on Linux and in `/usr/local/` on CheriBSD by `cheribuild`. `cheriostest-purecap [options..] -a` will run over 200 tests followed by a test report.
 
 ### Run select test cases
 `cheriostest-purecap -l` lists all available test cases.  
