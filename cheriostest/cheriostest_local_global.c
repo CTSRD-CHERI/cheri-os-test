@@ -64,24 +64,9 @@
 static const char *
 skip_local_global_required(const struct cheri_test *test __attribute__((__unused__)))
 {
-#if defined(__riscv_zcheripurecap)
-	FILE *f;
-	ssize_t buf_size = 4096;
-	char *line = malloc(buf_size);
-
-	f = fopen("/proc/cpuinfo", "r");
-	if (f == NULL)
-		cheriostest_failure_errx("Couldn't open /proc/cpuinfo");
-
-	while (getline(&line, &buf_size, f) != -1) {
-		if (strstr(line, "isa") != NULL) {
-			if (strstr(line, "zcherilevels") != NULL) {
-				free(line);
-				return NULL;
-			}
-		}
-	}
-	free(line);
+#if defined(__riscv_zcherilevels)
+	return NULL;
+#elif defined(__riscv) && !defined(__riscv_zcherilevels)
 	return ("zcherilevels required");
 #else
 	return NULL;
