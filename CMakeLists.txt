@@ -11,13 +11,6 @@ endif()
 # loads the toolchain file, so CMAKE_SYSTEM_NAME is already known here.
 project(cheri-os-test NONE)
 
-# Ubuntu 23.10 and earlier patch cmake (3.28 and earlier) to unconditionally link with
-# libatomic when building for RISC-V. Because this breaks our build, we remove '-latomic'
-# from CMAKE_C_STANDARD_LIBRARIES, which the patched toolchain adds.
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^riscv" AND CMAKE_VERSION VERSION_LESS "3.28" AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-    string(REPLACE "-latomic" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES})
-endif()
-
 if(NOT DEFINED CHERIOSTEST_TARGET_ARCH)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "^riscv")
         set(CHERIOSTEST_TARGET_ARCH "riscv64")
