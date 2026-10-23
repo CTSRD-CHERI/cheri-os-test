@@ -47,4 +47,8 @@
 #define CHERITEST_PAGE_SHIFT	(__builtin_ctzl(CHERITEST_PAGE_SIZE))
 #define cheritest_trunc_page(x)	__builtin_align_down(x, CHERITEST_PAGE_SIZE)
 #define cheritest_round_page(x)	__builtin_align_up(x, CHERITEST_PAGE_SIZE)
+
+#if defined(HAVE_FreeBSD)
+typedef __uintcap_t uintcap_t;
+#endif
 #endif
