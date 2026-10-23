@@ -1,6 +1,8 @@
 # Builds the cheriostest-* test binaries: purecap for Linux or CheriBSD, plus
 # hybrid and (Morello-only) purecap-benchmark ABI variants for CheriBSD.
 
+include(../cmake/CheckOS.cmake)
+
 if(CHERIOSTEST_TARGET_ARCH STREQUAL "riscv64")
     set(CHERIOSTEST_MD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/riscv")
 elseif(CHERIOSTEST_TARGET_ARCH STREQUAL "morello")
@@ -33,13 +35,10 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_bounds_globals_x.c
     cheriostest_bounds_heap.c
     cheriostest_bounds_stack.c
-    cheriostest_cidcap.c
     cheriostest_context.c
     cheriostest_fault.c
-    cheriostest_flag_captured.c
     cheriostest_fs.c
     cheriostest_ifunc.c
-    cheriostest_kbounce.c
     cheriostest_internal.c
     cheriostest_ipc.c
     cheriostest_local_global.c
@@ -55,6 +54,13 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_vm.c
     cheriostest_strfcap.c
 )
+
+if(HAVE_CheriBSD OR HAVE_Linux)
+    list(APPEND CHERIOSTEST_COMMON_SRCS
+            cheriostest_kbounce.c
+            cheriostest_flag_captured.c
+            cheriostest_cidcap.c)
+endif()
 
 set(CHERIOSTEST_PURECAP_SRCS
     cheriostest_bounds_subobject.c
@@ -103,6 +109,14 @@ function(add_cheriostest_variant name)
         CHERIOSTEST_HELPER_RELDIR="${CHERIOSTEST_BINDIR_TO_LIBEXECDIR}"
     )
     target_link_libraries(${target} PRIVATE util LibXo::xo)
+
+    if(HAVE_FreeBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_FreeBSD)
+    elseif(HAVE_CheriBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_CheriBSD)
+    elseif(HAVE_Linux)
+        target_compile_definitions(${target} PRIVATE HAVE_Linux)
+    endif()
 
     cheriostest_target_set_abi(${target} ${ARG_ABI})
 
