@@ -86,7 +86,10 @@
 #include <machine/vmparam.h>
 
 #include <cheri/cheri.h>
+
+#if defined(HAVE_CheriBSD)
 #include <cheri/revoke.h>
+#endif
 
 #include <libprocstat.h>
 #elif defined(__linux__)
