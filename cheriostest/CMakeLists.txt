@@ -1,6 +1,8 @@
 # Builds the cheriostest-* test binaries: purecap for Linux or CheriBSD, plus
 # hybrid and (Morello-only) purecap-benchmark ABI variants for CheriBSD.
 
+include(../cmake/CheckOS.cmake)
+
 if(CHERIOSTEST_TARGET_ARCH STREQUAL "riscv64")
     set(CHERIOSTEST_MD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/riscv")
 elseif(CHERIOSTEST_TARGET_ARCH STREQUAL "morello")
@@ -103,6 +105,14 @@ function(add_cheriostest_variant name)
         CHERIOSTEST_HELPER_RELDIR="${CHERIOSTEST_BINDIR_TO_LIBEXECDIR}"
     )
     target_link_libraries(${target} PRIVATE util LibXo::xo)
+
+    if(HAVE_FreeBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_FreeBSD)
+    elseif(HAVE_CheriBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_CheriBSD)
+    elseif(HAVE_Linux)
+        target_compile_definitions(${target} PRIVATE HAVE_Linux)
+    endif()
 
     cheriostest_target_set_abi(${target} ${ARG_ABI})
 
