@@ -41,7 +41,7 @@ SUBDIR+=	benchmark-mt-c18n
 .endif
 .endif
 
-.if ${.MAKE.OS} == "FreeBSD"
+.if ${TARGET_OS} == "FreeBSD"
 SUBDIR+=	malloc_revoke_enabled
 .endif
 
