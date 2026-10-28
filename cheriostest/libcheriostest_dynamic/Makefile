@@ -1,16 +1,11 @@
 .include <src.opts.mk>
 
-TARGET_OS?= ${.MAKE.OS}
-
 # Don't pass -S because GNU install doesn't understand it
 NO_SAFE_LIBINSTALL=	yes
 SHLIB=	cheriostest_dynamic
 SHLIB_MAJOR=	0
 
-.if ${TARGET_OS} == "Linux"
-# This will install the library in /opt/cheri-os-test/lib on Linux.
-SHLIBDIR="/lib"
-.endif
+SHLIBDIR= /usr/local/lib/
 # No manpage; this is internal.
 MAN=
 # Don't create links
