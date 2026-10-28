@@ -2,19 +2,6 @@
 
 TARGET_OS?= ${.MAKE.OS}
 
-.if ${TARGET_OS} == "FreeBSD"
-BINOWN!= whoami
-BINDIR= ${.CURDIR}/build/
-LIBDIR= ${.CURDIR}/build/
-SHLIBDIR= ${.CURDIR}/build/
-MAKEOBJDIRPREFIX= ${.CURDIR}/build/obj/
-.MAKEOVERRIDES+= MAKEOBJDIRPREFIX \
-	BINDIR \
-	BINOWN \
-	LIBDIR \
-	SHLIBDIR
-.endif
-
 SUBDIR+=	malloc_early_constructor \
 		libcheriostest_dynamic
 

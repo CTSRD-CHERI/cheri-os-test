@@ -1,5 +1,8 @@
 .include <src.opts.mk>
 
+BINDIR= /usr/local/libexec
+.MAKEOVERRIDES+= BINDIR
+
 SUBDIR=		purecap \
 		purecap-mt \
 		purecap-dynamic \

@@ -2,6 +2,18 @@
 
 TARGET_OS?= ${.MAKE.OS}
 
+BINOWN!= whoami
+PREFIX= /usr/local/
+BINDIR= ${PREFIX}/bin/
+LIBDIR= ${PREFIX}/lib/
+SHLIBDIR= ${PREFIX}/lib/
+MAKEOBJDIRPREFIX= ${.CURDIR}/build/obj/
+.MAKEOVERRIDES+= MAKEOBJDIRPREFIX \
+	BINDIR \
+	BINOWN \
+	LIBDIR \
+	SHLIBDIR
+
 SRCS=	cheriostest.c
 
 SRCS+=	cheriostest_bounds_globals.c					\
