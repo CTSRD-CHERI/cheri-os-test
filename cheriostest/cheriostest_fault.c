@@ -162,7 +162,8 @@ CHERIOSTEST(nofault_perm_load,
 	cheriostest_success();
 }
 
-#ifdef HAS_CHERI_PERM_SEAL
+#if defined(HAS_CHERI_PERM_SEAL) && \
+	(defined(HAVE_CheriBSD) || defined(HAVE_Linux))
 CHERIOSTEST(illegal_perm_seal,
     "Exercise capability seal permission failure",
     CT_SEAL_VIOLATION_EXCEPTION)
@@ -207,7 +208,8 @@ CHERIOSTEST(illegal_perm_seal,
 }
 #endif
 
-#ifdef HAS_CHERI_PERM_SEAL
+#if defined(HAS_CHERI_PERM_SEAL) && \
+	(defined(HAVE_CheriBSD) || defined(HAVE_Linux))
 CHERIOSTEST(illegal_perm_unseal,
     "Exercise capability unseal permission failure",
     CT_SEAL_VIOLATION_EXCEPTION)

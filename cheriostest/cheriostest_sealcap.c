@@ -45,7 +45,8 @@
 
 #include "cheriostest.h"
 
-#ifdef HAS_CHERI_PERM_SEAL
+#if defined(HAS_CHERI_PERM_SEAL) && \
+	(defined(HAVE_CheriBSD) || defined(HAVE_Linux))
 static void * __capability
 get_sealcap(void)
 {
