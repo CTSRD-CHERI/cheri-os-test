@@ -35,13 +35,10 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_bounds_globals_x.c
     cheriostest_bounds_heap.c
     cheriostest_bounds_stack.c
-    cheriostest_cidcap.c
     cheriostest_context.c
     cheriostest_fault.c
-    cheriostest_flag_captured.c
     cheriostest_fs.c
     cheriostest_ifunc.c
-    cheriostest_kbounce.c
     cheriostest_internal.c
     cheriostest_ipc.c
     cheriostest_local_global.c
@@ -57,6 +54,17 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_vm.c
     cheriostest_strfcap.c
 )
+
+if(HAVE_CheriBSD)
+    list(APPEND CHERIOSTEST_COMMON_SRCS
+            cheriostest_kbounce.c
+            cheriostest_flag_captured.c)
+endif()
+
+if(HAVE_CheriBSD OR HAVE_Linux)
+    list(APPEND CHERIOSTEST_COMMON_SRCS
+            cheriostest_cidcap.c)
+endif()
 
 set(CHERIOSTEST_PURECAP_SRCS
     cheriostest_bounds_subobject.c
