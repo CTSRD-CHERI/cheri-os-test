@@ -23,6 +23,6 @@ function(add_cheriostest_dynamic_variant target)
 endfunction()
 
 add_cheriostest_dynamic_variant(cheriostest_dynamic)
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(HAVE_CheriBSD)
     add_cheriostest_dynamic_variant(cheriostest_dynamic_hybrid ABI hybrid)
 endif()

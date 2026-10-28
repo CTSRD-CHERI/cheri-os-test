@@ -53,8 +53,7 @@
 
 #include "cheriostest.h"
 
-#define THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG \
-	"The CHERI Linux Project does not support revocation"
+#define REVOCATION_IS_NOT_SUPPORTED_MSG "Revocation is not supported"
 
 extern volatile void *eptr;
 volatile void *eptr;
@@ -62,27 +61,27 @@ volatile void *eptr;
 static const char *
 skip_malloc_revocation_disabled(const struct cheri_test *ctp __attribute__((__unused__)))
 {
-#ifdef __FreeBSD__
+#if defined(HAVE_CheriBSD)
 	if (malloc_revoke_enabled())
 		return (NULL);
 	return ("malloc quarantine disabled");
-#elif defined(__linux__)
-	return (THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
+#elif defined(HAVE_Linux) || defined(HAVE_FreeBSD)
+	return (REVOCATION_IS_NOT_SUPPORTED_MSG);
 #endif
 }
 
 CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
     .ct_flags = CT_FLAG_SIGEXIT,
     .ct_signum = SIGABRT,
-#if defined(__linux__)
+#if defined(HAVE_Linux) || defined(HAVE_FreeBSD)
     .ct_xfail_reason = "Not supported",
 #else
     .ct_check_skip = skip_malloc_revocation_disabled,
 #endif
 )
 {
-#ifdef __linux__
-	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
+#if defined(HAVE_Linux) || defined(HAVE_FreeBSD)
+	cheriostest_failure_errx(REVOCATION_IS_NOT_SUPPORTED_MSG);
 #else
 	volatile void *ptr;
 
@@ -99,15 +98,15 @@ CHERIOSTEST(malloc_double_free, "malloc aborts on double free",
 
 CHERIOSTEST(malloc_revoke_basic,
     "verify that a free'd pointer is revoked by malloc_revoke",
-#if defined(__linux__)
+#if defined(HAVE_Linux) || defined(HAVE_FreeBSD)
     .ct_xfail_reason = "Not supported",
 #else
     .ct_check_skip = skip_malloc_revocation_disabled,
 #endif
 )
 {
-#ifdef __linux__
-	cheriostest_failure_errx(THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
+#if defined(HAVE_Linux) || defined(HAVE_FreeBSD)
+	cheriostest_failure_errx(REVOCATION_IS_NOT_SUPPORTED_MSG);
 #else
 	volatile void *ptr __attribute__((__unused__));
 
@@ -131,7 +130,7 @@ CHERIOSTEST(malloc_revoke_basic,
 #endif
 }
 
-#ifdef __FreeBSD__
+#if defined(HAVE_CheriBSD)
 CHERIOSTEST(malloc_revoke_quarantine_force_flush_basic,
     "verify that a free'd pointer is revoked by malloc_revoke_quarantine_force_flush",
     .ct_check_skip = skip_malloc_revocation_disabled)
@@ -192,8 +191,6 @@ CHERIOSTEST(malloc_revoke_quarantine_force_flush_twice,
 
 	cheriostest_success();
 }
-#elif defined(__linux__)
-#pragma message "The CHERI Linux Project does not support revocation"
 #endif
 
 CHERIOSTEST(malloc_zero_size,
@@ -241,10 +238,10 @@ CHERIOSTEST(malloc_zero_size,
 }
 
 /*
- * No else branch because the CHERI Linux Project does not support
- * revocation yet.
+ * No else branch because the Linux forks with CHERI support and the FreeBSD
+ * upstreaming effort do not support revocation yet.
  */
-#ifdef __FreeBSD__
+#if defined(HAVE_CheriBSD)
 static bool
 child_is_revoking(int pid)
 {

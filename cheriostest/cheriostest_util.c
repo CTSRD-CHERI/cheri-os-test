@@ -61,8 +61,7 @@
 
 #include "cheriostest.h"
 
-#define THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG \
-	"The CHERI Linux Project does not support revocation"
+#define REVOCATION_IS_NOT_SUPPORTED_MSG "Revocation is not supported"
 
 static void
 vcheriostest_failure_errx(const char *msg, va_list ap)
@@ -162,7 +161,7 @@ skip_need_cheri_revoke(const struct cheri_test *ctp __attribute__((__unused__)))
 		return ("Kernel does not support revocation");
 	return (NULL);
 #elif __linux__
-	return (THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
+	return (REVOCATION_IS_NOT_SUPPORTED_MSG);
 #endif
 }
 
@@ -182,6 +181,6 @@ skip_need_default_cheri_revoke(const struct cheri_test *ctp __attribute__((__unu
 	}
 	return (NULL);
 #elif defined(__linux__)
-	return (THE_CHERI_LINUX_PROJECT_DOES_NOT_SUPPORT_REVOC_MSG);
+	return (REVOCATION_IS_NOT_SUPPORTED_MSG);
 #endif
 }

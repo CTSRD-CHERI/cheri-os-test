@@ -134,4 +134,21 @@ CFLAGS+=	-DCHERIOSTEST_C18N_TESTS
 ELF_FEATURES+=	+cheric18n
 .endif
 
+# Define HAVE_FreeBSD and HAVE_CheriBSD so that the source code can
+# distinguish between the two OSes.
+HAVE_Linux!= echo | ${CC} -dM -E - | grep -q '__linux__' && echo yes || echo no
+HAVE_CheriBSD!= echo '\#include <sys/param.h>' | \
+	${CC} -E -dM -x c - | grep -q '__CheriBSD_version' && \
+	echo yes || echo no
+HAVE_FreeBSD!= echo '\#include <sys/param.h>' | \
+	${CC} -E -dM -x c - | grep -q '__FreeBSD_version' && \
+	echo yes || echo no
+.if ${HAVE_CheriBSD} == "yes"
+CFLAGS+= -DHAVE_CheriBSD
+.elif ${HAVE_FreeBSD} == "yes"
+CFLAGS+= -DHAVE_FreeBSD
+.elif ${HAVE_Linux} == "yes"
+CFLAGS+= -DHAVE_Linux
+.endif
+
 .include <bsd.prog.mk>

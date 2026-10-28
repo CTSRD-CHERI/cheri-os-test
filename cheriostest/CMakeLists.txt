@@ -1,6 +1,8 @@
 # Builds the cheriostest-* test binaries: purecap for Linux or CheriBSD, plus
 # hybrid and (Morello-only) purecap-benchmark ABI variants for CheriBSD.
 
+include(../cmake/CheckOS.cmake)
+
 if(CHERIOSTEST_TARGET_ARCH STREQUAL "riscv64")
     set(CHERIOSTEST_MD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/riscv")
 elseif(CHERIOSTEST_TARGET_ARCH STREQUAL "morello")
@@ -33,13 +35,10 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_bounds_globals_x.c
     cheriostest_bounds_heap.c
     cheriostest_bounds_stack.c
-    cheriostest_cidcap.c
     cheriostest_context.c
     cheriostest_fault.c
-    cheriostest_flag_captured.c
     cheriostest_fs.c
     cheriostest_ifunc.c
-    cheriostest_kbounce.c
     cheriostest_internal.c
     cheriostest_ipc.c
     cheriostest_local_global.c
@@ -55,6 +54,17 @@ set(CHERIOSTEST_COMMON_SRCS
     cheriostest_vm.c
     cheriostest_strfcap.c
 )
+
+if(HAVE_CheriBSD)
+    list(APPEND CHERIOSTEST_COMMON_SRCS
+            cheriostest_kbounce.c
+            cheriostest_flag_captured.c)
+endif()
+
+if(HAVE_CheriBSD OR HAVE_Linux)
+    list(APPEND CHERIOSTEST_COMMON_SRCS
+            cheriostest_cidcap.c)
+endif()
 
 set(CHERIOSTEST_PURECAP_SRCS
     cheriostest_bounds_subobject.c
@@ -104,15 +114,28 @@ function(add_cheriostest_variant name)
     )
     target_link_libraries(${target} PRIVATE util LibXo::xo)
 
+    if(HAVE_FreeBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_FreeBSD)
+    elseif(HAVE_CheriBSD)
+        target_compile_definitions(${target} PRIVATE HAVE_CheriBSD)
+    elseif(HAVE_Linux)
+        target_compile_definitions(${target} PRIVATE HAVE_Linux)
+    endif()
+
     cheriostest_target_set_abi(${target} ${ARG_ABI})
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    if(HAVE_CheriBSD OR HAVE_FreeBSD)
         # For static variants we have to manually list libprocstat's own dependencies
         #(_DP_procstat in CheriBSD's src.libnames.mk) since they aren't pulled in automatically.
         target_link_libraries(${target} PRIVATE procstat kvm elf z)
         if(CHERIOSTEST_HAVE_CHERI_CAPREVOKE AND NOT ARG_ABI STREQUAL "hybrid")
-            target_link_libraries(${target} PRIVATE cheri_caprevoke)
+            # The FreeBSD upstreaming efforts don't have libcheri_caprevoke
+            # because revocation isn't supported yet, but we want to execute the
+            # tests to report that the feature is missing.
             target_compile_definitions(${target} PRIVATE CHERIOSTEST_CHERI_REVOKE_TESTS)
+            if(HAVE_CheriBSD)
+                target_link_libraries(${target} PRIVATE cheri_caprevoke)
+            endif()
         endif()
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(${target} PRIVATE LibBSD::bsd)
@@ -182,7 +205,7 @@ add_cheriostest_variant(purecap-dynamic DYNAMIC)
 add_cheriostest_variant(purecap-dynamic-mt DYNAMIC THREADS)
 
 # Hybrid and purecap-benchmark are CheriBSD only for now.
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(HAVE_CheriBSD)
     add_cheriostest_variant(hybrid ABI hybrid)
     add_cheriostest_variant(hybrid-mt ABI hybrid THREADS)
     add_cheriostest_variant(hybrid-dynamic ABI hybrid DYNAMIC)
@@ -197,6 +220,6 @@ endif()
 
 add_subdirectory(malloc_early_constructor)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(HAVE_CheriBSD)
     add_subdirectory(malloc_revoke_enabled)
 endif()

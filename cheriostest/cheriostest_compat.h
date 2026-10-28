@@ -47,4 +47,9 @@
 #define CHERITEST_PAGE_SHIFT	(__builtin_ctzl(CHERITEST_PAGE_SIZE))
 #define cheritest_trunc_page(x)	__builtin_align_down(x, CHERITEST_PAGE_SIZE)
 #define cheritest_round_page(x)	__builtin_align_up(x, CHERITEST_PAGE_SIZE)
+
+#if defined(HAVE_FreeBSD)
+// FreeBSD won't define uintcap_t, as hybrid support is not being upstreamed.
+typedef uintptr_t uintcap_t;
+#endif
 #endif
