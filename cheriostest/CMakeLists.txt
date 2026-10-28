@@ -200,7 +200,7 @@ add_cheriostest_variant(purecap-dynamic DYNAMIC)
 add_cheriostest_variant(purecap-dynamic-mt DYNAMIC THREADS)
 
 # Hybrid and purecap-benchmark are CheriBSD only for now.
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(HAVE_CheriBSD)
     add_cheriostest_variant(hybrid ABI hybrid)
     add_cheriostest_variant(hybrid-mt ABI hybrid THREADS)
     add_cheriostest_variant(hybrid-dynamic ABI hybrid DYNAMIC)
