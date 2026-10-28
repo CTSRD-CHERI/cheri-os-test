@@ -50,18 +50,17 @@
 
 #include "cheriostest_compat.h"
 
-#ifdef __FreeBSD__
-#include <sys/linker_set.h>
-#include "cheriostest_md.h"
-#elif __linux__
-#include <bsd/sys/cdefs.h>
-
-#include "utils/linker_set.h"
 #ifdef __aarch64__
 #include "arm64/cheriostest_md.h"
 #elif defined(__riscv)
 #include "riscv/cheriostest_md.h"
 #endif
+
+#ifdef __FreeBSD__
+#include <sys/linker_set.h>
+#elif __linux__
+#include <bsd/sys/cdefs.h>
+#include "utils/linker_set.h"
 #else
 #error "Unsupported OS"
 #endif
