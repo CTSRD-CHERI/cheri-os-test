@@ -238,7 +238,8 @@ CHERIOSTEST(cheriabi_open_sentry, "Sealed path")
 	cheriostest_success();
 }
 
-#ifdef HAS_CHERI_PERM_SEAL
+#if defined(HAS_CHERI_PERM_SEAL) && \
+	(defined(HAVE_CheriBSD) || defined(HAVE_Linux))
 CHERIOSTEST(cheriabi_open_sealed, "Sealed path")
 {
 	char *path, *sealed_path;
