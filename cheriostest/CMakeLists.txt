@@ -220,6 +220,6 @@ endif()
 
 add_subdirectory(malloc_early_constructor)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(HAVE_CheriBSD)
     add_subdirectory(malloc_revoke_enabled)
 endif()
