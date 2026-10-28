@@ -1,5 +1,8 @@
 .include <src.opts.mk>
 
+BINDIR= /usr/local/libexec
+.MAKEOVERRIDES+= BINDIR
+
 .if !${MACHINE_ABI:Mpurecap}
 NEED_COMPAT=    64C
 .include <bsd.compat.mk>
