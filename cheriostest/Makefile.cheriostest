@@ -120,11 +120,7 @@ CFLAGS+=	-I${.CURDIR}/../libcheriostest_dynamic
 LDFLAGS+=	-L${.OBJDIR}/../libcheriostest_dynamic/
 DPADD+=	${.OBJDIR}/../libcheriostest_dynamic/libcheriostest_dynamic.so
 
-.if ${TARGET_OS} == "Linux"
-# On Linux, we are putting the helper libraries in /opt/cheri-os-test/lib to
-# avoid polluting system library search paths.
-LDFLAGS+= -Wl,-rpath=/opt/cheri-os-test/lib/
-.endif
+LDFLAGS+= -Wl,-rpath=/usr/local/lib/
 LDADD+=	-Wl,--push-state,-Bdynamic -lcheriostest_dynamic -Wl,--pop-state
 
 SRCS+=	cheriostest_fptr_canon.c \
