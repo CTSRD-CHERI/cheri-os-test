@@ -124,13 +124,18 @@ function(add_cheriostest_variant name)
 
     cheriostest_target_set_abi(${target} ${ARG_ABI})
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    if(HAVE_CheriBSD OR HAVE_FreeBSD)
         # For static variants we have to manually list libprocstat's own dependencies
         #(_DP_procstat in CheriBSD's src.libnames.mk) since they aren't pulled in automatically.
         target_link_libraries(${target} PRIVATE procstat kvm elf z)
         if(CHERIOSTEST_HAVE_CHERI_CAPREVOKE AND NOT ARG_ABI STREQUAL "hybrid")
-            target_link_libraries(${target} PRIVATE cheri_caprevoke)
+            # The FreeBSD upstreaming efforts don't have libcheri_caprevoke
+            # because revocation isn't supported yet, but we want to execute the
+            # tests to report that the feature is missing.
             target_compile_definitions(${target} PRIVATE CHERIOSTEST_CHERI_REVOKE_TESTS)
+            if(HAVE_CheriBSD)
+                target_link_libraries(${target} PRIVATE cheri_caprevoke)
+            endif()
         endif()
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(${target} PRIVATE LibBSD::bsd)
