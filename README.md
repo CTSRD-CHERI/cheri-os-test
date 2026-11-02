@@ -1,10 +1,24 @@
-# Portable CHERI OS API test suite
+# Portable test suite for CHERI-specific OS APIs
 This repository provides a portable CHERI test suite for POSIX-based systems such as Linux and CheriBSD. It is heavily based on the [cheribsdtest](https://github.com/CTSRD-CHERI/cheribsd/tree/main/bin/cheribsdtest) suite.
 
 Note, this is a preview and CheriBSD support is currently a work in progress. On CheriBSD, please use the bundled `cheribsdtest` instead.
 
 ## Building
-The test suite is built with CMake, cross-compiling for Linux or CheriBSD on RISC-V or Morello. `CMakePresets.json` has a preset for each combination:
+
+### Cheribuild
+Using cheribuild is the standard way of building the test suite. The corresponding cheribuild targets have the prefix `cheri-os-test-`.
+For example, this builds the test suite for CheriBSD on Morello:
+
+```sh
+./cheribuild.py cheri-os-test-morello-purecap -d
+```
+
+`cheribuild` can also configure and build the test suite itself, and on CheriBSD run it in a QEMU VM via CTest.
+
+Note that, for the FreeBSD upstreaming effort the branch `cheriostest-freebsd-cheri` cheribuild branch must be used. 
+
+### Manual cmake build
+The test suite can also be built without cheribuild by invoking `cmake` directly to cross-compile for Linux or CheriBSD on RISC-V or Morello. `CMakePresets.json` has a preset for each combination:
 
 ```sh
 cmake --preset linux-riscv64    # also freebsd-riscv64, linux-morello, freebsd-morello
@@ -17,10 +31,11 @@ The presets use `cmake/cheri-purecap-toolchain.cmake`, which expects the SDKs an
 cmake --preset linux-riscv64 -DCHERI_SDK_ROOT=/path/to/output
 ```
 
-Either way the compiler and sysroot have to be built by `cheribuild` first, along with `libxo` (and `libbsd` for Linux). `cheribuild` can also configure and build the test suite itself, and on CheriBSD run it in a QEMU VM via CTest.
+Either way the compiler and sysroot have to be built by `cheribuild` first, along with `libxo` (and `libbsd` for Linux).
 
 ## Usage
-The test suite binaries are installed in `/opt/cheri-os-test/` on Linux and in `/usr/local/` on CheriBSD by `cheribuild`. `cheriostest-purecap [options..] -a` will run over 200 tests followed by a test report.
+The test suite binaries are installed in `/opt/cheri-os-test` by `cheribuild`. `cheriostest-purecap [options..] -a` will run
+over 200 tests followed by a test report.
 
 ### Run select test cases
 `cheriostest-purecap -l` lists all available test cases.  
