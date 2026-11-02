@@ -45,6 +45,10 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
+#ifdef __linux__
+#include <sys/cheri.h>
+#endif
+
 #include <cheri/cheric.h>
 #include <cheri/cherireg.h>
 
@@ -908,7 +912,7 @@ check_string_array_bounds(char **argp)
 			    cheri_base_get(next),
 			    "Invalid argp[%d] base: expect %#p < %#p",
 			    i, arg, next);
-			CHERIOSTEST_VERIFY2(cheri_top_get(arg) <=
+			CHERIOSTEST_VERIFY2(cheri_base_get(arg) + cheri_length_get(arg) <=
 			    cheri_base_get(next),
 			    "Invalid argp[%d] top: %#p overlaps %#p",
 			    i, arg, next);
@@ -927,8 +931,8 @@ static void
 cheriabi_check_argv_envv_bounds(void)
 {
 	char **argv = entrystate.es_argv;
-	ptraddr_t argv_top = cheri_top_get(argv) - 1;
-	ptraddr_t envv_top = cheri_top_get(environ) - 1;
+	ptraddr_t argv_top = cheri_base_get(argv) + cheri_length_get(argv) - 1;
+	ptraddr_t envv_top = cheri_base_get(environ) + cheri_length_get(environ) - 1;
 
 	if (verbose)
 		fprintf(stderr, "argv=%#p\n", argv);
