@@ -45,7 +45,6 @@
 
 #define CHERITEST_CHERI_ALIGN_MASK(l)	~(cheri_representable_alignment_mask(l))
 
-#if defined(__linux__)
 /* Check if the address is between cap.base and cap.top, i.e. in bounds */
 static inline bool
 cheritest_cheri_is_address_inbounds(const void * __capability cap, ptraddr_t addr)
@@ -53,6 +52,5 @@ cheritest_cheri_is_address_inbounds(const void * __capability cap, ptraddr_t add
 	return (addr >= cheri_base_get(cap) &&
 		addr < (cheri_base_get(cap) + cheri_length_get(cap)));
 }
-#endif
 
 #endif /* _SYS_CHERIC_H_ */
