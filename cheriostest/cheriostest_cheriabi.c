@@ -947,8 +947,8 @@ cheriabi_check_argv_envv_bounds(void)
 	CHERIOSTEST_VERIFY2(cheri_base_get(environ) ==
 	    cheri_address_get(environ),
 	    "invalid envv base %#p", environ);
-	CHERIOSTEST_VERIFY2(!cheri_is_address_inbounds(environ, argv_top) &&
-	    !cheri_is_address_inbounds(argv, envv_top),
+	CHERIOSTEST_VERIFY2(!cheritest_cheri_is_address_inbounds(environ, argv_top) &&
+	    !cheritest_cheri_is_address_inbounds(argv, envv_top),
 	    "invalid argv bounds %#p overlaps envv %#p",
 	    argv, environ);
 

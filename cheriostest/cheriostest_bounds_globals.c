@@ -111,8 +111,8 @@ test_hybrid_cap_impl(void *__capability cap, void *ptr, size_t size)
 	/* Capability address should match integer pointer. */
 	CHERIOSTEST_CHECK_EQ_LONG(cheri_address_get(cap), (uintptr_t)ptr);
 
-	CHERIOSTEST_VERIFY(cheri_is_address_inbounds(cap, (uintptr_t)ptr));
-	CHERIOSTEST_VERIFY(cheri_is_address_inbounds(cap, (uintptr_t)ptr +
+	CHERIOSTEST_VERIFY(cheritest_cheri_is_address_inbounds(cap, (uintptr_t)ptr));
+	CHERIOSTEST_VERIFY(cheritest_cheri_is_address_inbounds(cap, (uintptr_t)ptr +
 	    size - 1));
 
 	cheriostest_success();
