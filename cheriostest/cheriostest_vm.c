@@ -350,12 +350,12 @@ CHERIOSTEST(vm_mmap_disallowed_prot,
 	/* Disallowed explicit capability protection combinations */
 	mmap_check_bad_protections(PROT_CAP, ENOTSUP);
 	mmap_check_bad_protections(PROT_MAX(PROT_CAP), ENOTSUP);
-#endif
 
 	int fd = CHERIOSTEST_CHECK_SYSCALL(create_tempfile());
 	CHERIOSTEST_CHECK_SYSCALL(ftruncate(fd, getpagesize()));
 	mmap_check_bad_protections_fd(PROT_READ|PROT_WRITE|PROT_CAP, fd,
 	    EACCES);
+#endif
 
 	cheriostest_success();
 }
