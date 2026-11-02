@@ -18,14 +18,16 @@ For example, this builds the test suite for CheriBSD on Morello:
 Note that, for the FreeBSD upstreaming effort the branch `cheriostest-freebsd-cheri` cheribuild branch must be used. 
 
 ### Manual cmake build
-The test suite can also be built without cheribuild by invoking `cmake` directly to cross-compile for Linux or CheriBSD on RISC-V or Morello. `CMakePresets.json` has a preset for each combination:
+The test suite can also be built without cheribuild by invoking `cmake` directly to cross-compile for Linux or CheriBSD
+on RISC-V or Morello. `CMakePresets.json` has a preset for each combination:
 
 ```sh
 cmake --preset linux-riscv64    # also freebsd-riscv64, linux-morello, freebsd-morello
 cmake --build build/linux-riscv64
 ```
 
-The presets use `cmake/cheri-purecap-toolchain.cmake`, which expects the SDKs and sysroots to be laid out the way [cheribuild](https://github.com/CTSRD-CHERI/cheribuild) installs them by default, under `~/cheri/output`. Point `CHERI_SDK_ROOT` elsewhere if yours is:
+The presets use `cmake/cheri-purecap-toolchain.cmake`, which expects the SDKs and sysroots to be laid out the
+way [cheribuild](https://github.com/CTSRD-CHERI/cheribuild) installs them by default, under `~/cheri/output`. Point `CHERI_SDK_ROOT` elsewhere if yours is:
 
 ```sh
 cmake --preset linux-riscv64 -DCHERI_SDK_ROOT=/path/to/output
