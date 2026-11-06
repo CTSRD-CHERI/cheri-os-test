@@ -192,6 +192,7 @@ CHERIOSTEST(malloc_revoke_quarantine_force_flush_twice,
 	cheriostest_success();
 }
 
+#if __CheriBSD_version > 20260710
 CHERIOSTEST(malloc_no_quarantine_not_revoked,
 	"verify that a malloc_no_quarantine is not revoked",
 	.ct_check_skip = skip_malloc_revocation_disabled)
@@ -215,6 +216,7 @@ CHERIOSTEST(malloc_no_quarantine_not_revoked,
 
 	cheriostest_success();
 }
+#endif
 
 #elif defined(__linux__)
 #pragma message "The CHERI Linux Project does not support revocation"
