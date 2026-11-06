@@ -34,7 +34,10 @@ if(CHERIOSTEST_TARGET_ARCH STREQUAL "riscv64")
         set(_cheriostest_target_triple "riscv64-linux-musl")
         set(_cheriostest_sdk_bindir "${CHERI_SDK_ROOT}/cheri-alliance-sdk/bin")
         set(_cheriostest_sysroot "${CHERI_SDK_ROOT}/cheri-alliance-sdk/linux/linux-riscv64zcheri093-purecap")
-        string(PREPEND _cheriostest_arch_flags "-march=rv64imafdczcherihybrid_zcherilevels ")
+        string(PREPEND _cheriostest_arch_flags "-march=rv64imafdczcherihybrid_zcherilevels "
+            "-Xclang -target-feature -Xclang +cheri-bounded-vararg "
+            "-Xclang -target-feature -Xclang +cheri-bounded-memarg-caller "
+            "-Xclang -target-feature -Xclang +cheri-bounded-memarg-callee ")
     else()
         set(_cheriostest_target_triple "riscv64-unknown-freebsd15")
         set(_cheriostest_sdk_bindir "${CHERI_SDK_ROOT}/sdk/bin")
