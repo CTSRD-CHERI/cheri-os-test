@@ -78,10 +78,10 @@ endif()
 
 set(CMAKE_SYSROOT "${_cheriostest_sysroot}")
 
-# Keep the runtime prefix as /usr/local (this is used for any CMake-generated
+# Set the runtime prefix as /opt/cheri-os-test (this is used for any CMake-generated
 # RPATHs, pkg-config files, etc.), but ensure that `cmake --install`
 # defaults to installing into the SDK sysroot instead of requiring DESTDIR at install time.
-set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "")
+set(CMAKE_INSTALL_PREFIX "/opt/cheri-os-test" CACHE PATH "")
 set(CMAKE_STAGING_PREFIX "${_cheriostest_sysroot}${CMAKE_INSTALL_PREFIX}" CACHE PATH
     "Directory to actually install to when cross compiling")
 
