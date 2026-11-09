@@ -9,6 +9,23 @@
 #       [-DCHERIOSTEST_TARGET_OS=Linux|FreeBSD] \
 #       [-DCHERIOSTEST_TARGET_ARCH=riscv64|morello]
 
+# Ubuntu < 24.04 carries a downstream patch in Modules/Platform/Linux.cmake (LP #1876814,
+# dropped in Ubuntu 24.04 / CMake 3.28) that appends " -latomic" directly to the
+# non-cache CMAKE_C/CXX_STANDARD_LIBRARIES variables for RISC-V, which breaks linking
+# against our compiler-rt + musl sysroot. Because Platform/Linux.cmake is included after
+# the toolchain file and shadows any cache variable, use variable_watch() to strip
+# -latomic as soon as Platform/Linux.cmake modifies those variables.
+if(CMAKE_VERSION VERSION_LESS "3.28")
+    function(_cheribuild_strip_latomic var access value current_list_file stack)
+        if(access STREQUAL "MODIFIED_ACCESS" AND value MATCHES "-latomic")
+            string(REGEX REPLACE "(^| )-latomic" "" _cleaned "${value}")
+            set(${var} "${_cleaned}" PARENT_SCOPE)
+        endif()
+    endfunction()
+    variable_watch(CMAKE_C_STANDARD_LIBRARIES _cheribuild_strip_latomic)
+    variable_watch(CMAKE_CXX_STANDARD_LIBRARIES _cheribuild_strip_latomic)
+endif()
+
 set(CHERI_SDK_ROOT "$ENV{HOME}/cheri/output" CACHE PATH
     "Root of the cheribuild 'output' directory containing the SDK and sysroots")
 
