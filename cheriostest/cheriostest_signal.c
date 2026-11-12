@@ -37,6 +37,8 @@
 #error "This code requires a CHERI-aware compiler"
 #endif
 
+#include <semaphore.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <cheri/cherireg.h>
 
@@ -247,6 +249,48 @@ CHERIOSTEST(signal_sigaltstack_disable,
 		    altstack_addr+SIGSTKSZ);
 
 	cheriostest_success();
+}
+
+static sem_t sigqueue_sival_ptr_sem;
+static void
+test_sigqueue_sival_ptr_handler(int signo __unused, siginfo_t *info, void *ucontext __unused) {
+	/*
+	 * This handler should be unreachable as the sigqueue call is
+	 * expected to fail.
+	 */
+	CHERIOSTEST_VERIFY(cheri_tag_get(
+		(void * __capability)info->si_value.sival_ptr) == 0);
+	sem_post(&sigqueue_sival_ptr_sem);
+}
+
+CHERIOSTEST(sigqueue_sival_ptr, "Test cross-AS pointer passing through sival_ptr")
+{
+	pid_t pid;
+
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = &test_sigqueue_sival_ptr_handler;
+	sigemptyset(&sa.sa_mask);
+	CHERIOSTEST_VERIFY (sigaction(SIGUSR1, &sa, NULL) == 0);
+
+	sem_init(&sigqueue_sival_ptr_sem, 0, 0);
+
+	pid = fork();
+	CHERIOSTEST_VERIFY(pid >= 0);
+	if (pid == 0) {
+		while (sem_wait(&sigqueue_sival_ptr_sem) != 0) {}
+		exit(0);
+	} else {
+		union sigval sv = {0};
+		sv.sival_ptr = &pid;
+#if defined(HAVE_CheriBSD)
+		CHERIOSTEST_CHECK_CALL_ERROR(sigqueue(pid, SIGUSR1, sv), EPROT);
+#else
+		CHERIOSTEST_CHECK_CALL_ERROR(sigqueue(pid, SIGUSR1, sv), EINVAL);
+#endif
+		cheriostest_success();
+	}
 }
 
 #ifdef __CHERI_PURE_CAPABILITY__
